@@ -1,13 +1,12 @@
 
 import pandas as pd
 
+import player_rankings as pr
 
 DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
 
 # The two years of the season
-SEASON = '2023-2024'
-# The second year of the season
-YEAR = '2023'
+SEASON = '2022-2023'
 # The teams of a season
 TEAMS = [
     'ANA', 'ARI', 'BOS', 'BUF', 'CGY', 'CAR', 'CHI', 'COL', 'CBJ', 'DAL', 
@@ -58,12 +57,12 @@ for index, row in player_data.iterrows():
         scores['plm_score'] = pr.playmaking_score(row)
         scores['phy_score'] = pr.physicality_score(row)
         scores['spd_score'] = pr.speed_score(row)
-    elif row['situation'] == '5v5':
+    elif row['situation'] == '5on5':
         scores['evo_score'] = pr.offensive_score(row)
         scores['evd_score'] = pr.defensive_score(row)
-    elif row['situation'] == '5v4':
+    elif row['situation'] == '5on4':
         scores['ppl_score'] = pr.power_play_score(row)
-    elif row['situation'] == '4v5':
+    elif row['situation'] == '4on5':
         scores['pkl_score'] = pr.penalty_kill_score(row)
 
     # Append the calculated scores to the all_scores list
@@ -78,20 +77,31 @@ player_data = pd.concat([player_data.reset_index(drop=True), scores_df], axis=1)
 # Add a 'season' column to player_data
 player_data['season'] = SEASON
 
-# Group by relevant player identifiers to ensure one row per player per season
-player_data_grouped = player_data.groupby(
+# Group player scores to one row
+player_data = player_data.groupby(
     ['season', 'name', 'team', 'position'],
     as_index=False
-).sum(numeric_only=True)
+).agg({
+    'off_score': 'sum',
+    'def_score': 'sum',
+    'evo_score': 'sum',
+    'evd_score': 'sum',
+    'ppl_score': 'sum',
+    'pkl_score': 'sum',
+    'sht_score': 'sum',
+    'plm_score': 'sum',
+    'phy_score': 'sum',
+    'spd_score': 'sum'
+})
 
 # Separate forwards and defensemen rankings
-f_rankings_df = player_data_grouped[player_data_grouped['position'].isin(['C', 'L', 'R'])][[
+f_rankings_df = player_data[player_data['position'].isin(['C', 'L', 'R'])][[
     'season', 'name', 'team', 'position', 
     'off_score', 'def_score', 'evo_score', 'evd_score', 'ppl_score', 'pkl_score',
     'sht_score', 'plm_score', 'phy_score', 'spd_score', 
 ]]
 
-d_rankings_df = player_data_grouped[player_data_grouped['position'] == 'D'][[
+d_rankings_df = player_data[player_data['position'] == 'D'][[
     'season', 'name', 'team', 'position', 
     'off_score', 'def_score', 'evo_score', 'evd_score', 'ppl_score', 'pkl_score',
     'sht_score', 'plm_score', 'phy_score', 'spd_score', 

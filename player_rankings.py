@@ -94,8 +94,8 @@ def defensive_score(row):
 
 def power_play_score(row):
     # Check to see if player meets power play toi requirement (60 sec * 41 games = 2460 sec)
-    if row['pp_icetime'] < 2460:
-        ppl_score = 'N/A'
+    if row['icetime'] < 2460:
+        ppl_score = None
     else:
         # Define weights for each metric
         ppl_weights = {
@@ -117,8 +117,8 @@ def power_play_score(row):
 
 def penalty_kill_score(row):
     # Check to see if player meets penalty kill toi requirement (60 sec * 41 games = 2460 sec)
-    if row['pk_icetime'] < 2460:
-        pkl_score = 'N/A'
+    if row['icetime'] < 2460:
+        pkl_score = None
     else:
         # Define weights for each metric
         pkl_weights = {
