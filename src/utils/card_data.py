@@ -1,10 +1,10 @@
 # ====================================================================================================
-# FUNCTIONS FOR GETTING DATA TO BE USED IN PLAYER CARDS
+# FUNCTIONS FOR GETTING DATA USED IN PLAYER CARDS
 # ====================================================================================================
 
 import sys
 DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(f'{DATA_DIR}')
+sys.path.append(DATA_DIR)
 
 # Imports
 import pandas as pd
@@ -12,12 +12,13 @@ import pandas as pd
 
 def get_player_role(player_row: pd.Series) -> str:
     """
-    Get an str for a player's time on ice allocation.
+    Return a str for a player's time on ice allocation based on their time on ice and games played.
 
     :param player_row: a Series containing player data
     :return: a str of the toi allocation
     """
     
+    # Player roles for goalies
     if player_row['Position'] == 'G':
         games_played = player_row['GP']
         if games_played >= 50:
@@ -31,6 +32,7 @@ def get_player_role(player_row: pd.Series) -> str:
         else:
             role = 'Fringe'
 
+    # Player roles for defensemen
     elif player_row['Position'] == 'D':
         avg_toi = player_row['TOI'] / player_row['GP']
         if avg_toi >= 22.0:
@@ -42,6 +44,7 @@ def get_player_role(player_row: pd.Series) -> str:
         else:
             role = 'Fringe'
 
+    # Player roles for forwards
     else:
         avg_toi = player_row['TOI'] / player_row['GP']
         if avg_toi >= 18.0:
@@ -58,22 +61,30 @@ def get_player_role(player_row: pd.Series) -> str:
 
 def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, total_players: int) -> tuple[int, int]:
     """
-    Get the player's rank and percentile of a given attribute.
+    Return the player's rank and percentile of a given attribute.
+    If a player does not qualify for an attribute ranking they will receive a rank of 'N/A'
+    and their percentile will be 100 so that they receive a full percentile bar on their card.
 
     :param player_row: a series from a data frame containing player ranks
-    :param attribute_rank_name: a str of the attribute name of the rank to get
+    :param attribute_rank_name: a str of the attribute name of the rank to return
     :param total_players: an int of the total players that qualify for the attribute
     :return: a tuple of the player's rank and percentile for the given attribute
     """
+
+    # For player's that do not qualify for certain attributes (power play and penalty kill)
     if attribute_rank_name == "ppl_rank" and player_row['ppl_score'] == -999999:
         rank = 'N/A'
         percentile = 100
     elif attribute_rank_name == "pkl_rank" and player_row['pkl_score'] == -999999:
         rank = 'N/A'
         percentile = 100
-    elif attribute_rank_name == "fof_rank" and player_row['fof_score'] == -999999:
-        rank = 'N/A'
-        percentile = 100
+
+    # Faceoff attribute logic - might be used in the future
+    # elif attribute_rank_name == "fof_rank" and player_row['fof_score'] == -999999:
+    #     rank = 'N/A'
+    #     percentile = 100
+    
+    # Calculate a player's attribute rank and percentile among total players
     else:
         rank = int(player_row[attribute_rank_name])
         percentile = int(round((total_players - rank) / total_players, 2) * 100)
@@ -83,37 +94,37 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
 
 def get_percentile_color(percentile: int) -> tuple[float, float, float]:
     """
-    Get a normalized RGB color based on the percentile rank.
+    Return a normalized RGB color based on the percentile rank.
     0%   -> Red (255, 0, 0)
     25%  -> Orange (255, 165, 0)
     50%  -> Yellow (255, 255, 0)
     75%  -> Light Green (144, 238, 144)
     100% -> Dark Green (0, 128, 0)
 
-    :param percentile: an int of the percentile to get the color for
+    :param percentile: an int of the percentile to return the color for
     :return: a tuple containing normalized RGB values that correspond to the given percentile
     """
 
     if percentile <= 25:
-        # Interpolate between red (255,0,0) and orange (255,165,0)
+        # Get color between red (255,0,0) and orange (255,165,0)
         ratio = percentile / 25
         r = 255
         g = int(165 * ratio)
         b = 0
     elif percentile <= 50:
-        # Interpolate between orange (255,165,0) and yellow (255,255,0)
+        # Get color between orange (255,165,0) and yellow (255,255,0)
         ratio = (percentile - 25) / 25
         r = 255
         g = 165 + int(90 * ratio)
         b = 0
     elif percentile <= 75:
-        # Interpolate between yellow (255,255,0) and light green (144,238,144)
+        # Get color between yellow (255,255,0) and light green (144,238,144)
         ratio = (percentile - 50) / 25
         r = 255 - int((255 - 144) * ratio)
         g = 255 - int((255 - 238) * ratio)
         b = int(144 * ratio)
     else:
-        # Interpolate between light green (144,238,144) and dark green (0,128,0)
+        # Get color between light green (144,238,144) and dark green (0,128,0)
         ratio = (percentile - 75) / 25
         r = 144 - int(144 * ratio)
         g = 238 - int((238 - 128) * ratio)
@@ -124,7 +135,7 @@ def get_percentile_color(percentile: int) -> tuple[float, float, float]:
 
 def get_prev_season(cur_season: str) -> str:
     """
-    Get the str for previous season from a given season's str.
+    Return the str for previous season from a given season's str.
 
     :param cur_season: a str of the current season ('YYYY-YYYY')
     :return: a str of the season previous to the current season
@@ -138,13 +149,15 @@ def get_prev_season(cur_season: str) -> str:
 
 def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     """
-    Get a Series containing all the information needed for the player card's header.
+    Return a Series containing all the information needed for the player card's header.
     
     :param player_name: a str of the player's full name name that the Series is being retrieved for ('First Last')
-    :param season: a str of the season to get the hearer information (YYYY-YYYY')
+    :param season: a str of the season to return the header information (YYYY-YYYY')
     :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
     :return: a Series containing all the header information
     """
+
+    # Header row for goalies
     if pos == 'g':
         all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_profiles/{season}_goalie_profiles.csv')
         all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_all_goalie_stats.csv')
@@ -155,6 +168,7 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
 
         player_header_row = pd.merge(player_profile_row, player_stats_row, on=['Player'])
 
+    # Header row for skaters
     else:
         all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_profiles/{season}_skater_profiles.csv')
         all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_all_skater_stats.csv')
@@ -165,29 +179,28 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
 
         player_header_row = pd.merge(player_profile_row, player_stats_row, on=['Player'])
 
-
     # Add Season column
     player_header_row['Season'] = season
-
-    player_header_row['Position'] = player_header_row['Position'].replace({'R': 'RW', 'L': 'LW'})
-    player_header_row['Team'] = player_header_row['Team'].replace({'L.A': 'LAK', 'S.J': 'SJS', 'N.J': 'NJD', 'T.B': 'TBL'})
 
     return player_header_row.iloc[0]
 
 
-def get_total_players(season_data: pd.DataFrame, attribute: str ='all', pos: str = 'f') -> int:
+def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str ='all',) -> int:
     """
-    Get the total amount of players that qualify for the given attribute rank 
-    (some players are not given a rank for power play, penalty kill, or faceoffs).
+    Return the total amount of players that qualify for the given attribute rank 
+    (some players are not given a rank for certain attributes).
 
     :param season_data: a DataFrame of player stats
-    :param attribute: a str of the attribute to get the total players for
+    :param attribute: a str of the attribute to return the total players for
     :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
     :return: an int of the total players that are included in an attribute
     """
     
+    # Total players for when attribute is specified as 'all' or for any goalie attriibutes is all players
     if attribute == 'all' or pos == 'g':
         total_players = len(season_data)
+
+    # For attributes that not all players qualify for, ignore player's whose attribute score is -999999
     else:
         score_column = f"{attribute}_score"
         total_players = (season_data[score_column] != -999999).sum()
@@ -197,18 +210,21 @@ def get_total_players(season_data: pd.DataFrame, attribute: str ='all', pos: str
 
 def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: str, years_num: int=5) -> dict[str, int]:
     """
-    Get the total number of players for multiple past seasons based on different attributes.
+    Return the total number of players for multiple past seasons based on different attributes.
 
     :param season: a str of the most recent season ('YYYY-YYYY')
     :param cur_season_data: a DataFrame containing player stats for the given season
-    :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
+    :param pos: a str of the first letter of the player's position ('f', 'd', or 'g')
     :param years_num: an int specifying the number of past seasons to retrieve player totals for (default is 5)
     :return: a dict mapping attribute-year keys to the corresponding total number of players
     """
+
+    # Initialize dictionary, initial season, and initial data
     yearly_total_players = {}
     tot_players_season = season
     tot_players_season_data = cur_season_data
 
+    # Set which attributes to count players by depending on position
     if pos == 'g':
         attribute_list = ['all']
         position_str = 'goalie'
@@ -219,11 +235,15 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
         attribute_list = ['all', 'ppl', 'pkl', 'fof']
         position_str = 'defense'
 
+    # Iterate through the specified number of past seasons and get total players per attribute
     for _ in range(years_num):
         for attribute in attribute_list:
             yearly_total_players.update({f'{attribute}_{tot_players_season}': get_total_players(tot_players_season_data, attribute, pos)})
         
+        # Get previous season str
         tot_players_season = get_prev_season(tot_players_season)
+        
+        # Load data from previous season,, but break if the file is not found
         try:
             tot_players_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{tot_players_season}_{pos}_rankings.csv')
         except FileNotFoundError:
@@ -235,22 +255,22 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
 
 def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, seasons_num: int = 5) -> pd.DataFrame:
     """
-    Get a DataFrame of a player's rankings for multiple consecutive seasons.
+    Return a DataFrame of a player's rankings for multiple consecutive seasons.
 
-    :param player_name: A str of the full name of the player to get the multiple seasons for ('First Last')
-    :param cur_season: A str of the most recent season ('YYYY-YYYY')
+    :param player_name: a str of the full name of the player to return the multiple seasons for ('First Last')
+    :param cur_season: a str of the most recent season ('YYYY-YYYY')
     :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
-    :param seasons_num: An int of the number of past seasons to include (default is 5)
-    :return: A DataFrame containing player stats and total player counts over the specified seasons
+    :param seasons_num: an int of the number of past seasons to include (default is 5)
+    :return: a DataFrame containing player stats and total player counts over the specified seasons
     """
 
+    # Set position strings
     if pos == 'g':
         position_str = 'goalie'
     elif pos == 'd':
         position_str = 'defense'
     elif pos == 'f':
         position_str = 'forward'
-
 
     # Load the current season's data
     season_zero_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{cur_season}_{pos}_rankings.csv')
@@ -270,7 +290,6 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
         player_seasons['pkl_players'] = yearly_total_players.get(f'pkl_{cur_season}', 0)
         player_seasons['fof_players'] = yearly_total_players.get(f'fof_{cur_season}', 0)
     
-
     # Loop to get previous seasons
     for _ in range(seasons_num - 1):
         try:
