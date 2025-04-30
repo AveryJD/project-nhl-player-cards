@@ -11,7 +11,7 @@ from src.utils import data_generation as data
 from src.utils import constants
 
 
-# Main loop to iterate through seasons and situations and  get data
+# Main loop to iterate through seasons and situations and get data
 for season in constants.SEASONS:
     data.get_skater_profiles(season)
     data.get_goalie_profiles(season)

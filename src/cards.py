@@ -11,6 +11,7 @@ from src.utils import card_generation as card
 from src.utils import constants
 
 
+card.make_player_card('Sidney Crosby', '2024-2025', 'f')
 
 """
 Different functions for generating player cards:

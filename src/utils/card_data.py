@@ -238,7 +238,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
     # Iterate through the specified number of past seasons and get total players per attribute
     for _ in range(years_num):
         for attribute in attribute_list:
-            yearly_total_players.update({f'{attribute}_{tot_players_season}': get_total_players(tot_players_season_data, attribute, pos)})
+            yearly_total_players.update({f'{attribute}_{tot_players_season}': get_total_players(tot_players_season_data, pos, attribute)})
         
         # Get previous season str
         tot_players_season = get_prev_season(tot_players_season)

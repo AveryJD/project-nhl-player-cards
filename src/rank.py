@@ -16,4 +16,3 @@ for season in constants.SEASONS:
     rank.make_skater_rankings(season)
     rank.make_goalie_rankings(season)
 
-    
