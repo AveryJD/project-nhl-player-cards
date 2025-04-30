@@ -4,108 +4,18 @@
 
 import sys
 DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(f'{DATA_DIR}')
+sys.path.append(DATA_DIR)
 
 # Imports
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import os
-import io
-from datetime import datetime
 from src.utils import constants
 from src.utils import card_data as cd
+from src.utils import card_helpers as ch
 from src.utils import card_images as ci
 
-
-# ====================================================================================================
-# HELPER CARD CREATION FUNCTIONS
-# ====================================================================================================
-
-def draw_centered_text(
-        draw: ImageDraw.ImageDraw,
-        text: str,
-        font: ImageFont.ImageFont,
-        y_position: int,
-        x_center: int = 1000,
-        fill: tuple[int, int, int] = (0, 0, 0)
-    ) -> None:    
-    """
-    Draws text that is centered on a PIL drawing.
-
-    :param draw: a PIL drawing that will have the text centered on it
-    :param text: a str of the text to be centered
-    :param font: an ImageFont of the text's font
-    :param y_position: an int of where the y position will be
-    :param x_center: an int of where the center x position is (default is at 500)
-    :param fill: a tuple of rgb values for the color of the text (default is (0,0,0)/black)
-    :return: None
-    """
-
-    text_bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = text_bbox[2] - text_bbox[0]
-    x_position = x_center - (text_width // 2)  
-    draw.text((x_position, y_position), text, font=font, fill=fill)
-
-
-def draw_righted_text(
-    draw: ImageDraw.ImageDraw,
-    text: str,
-    font: ImageFont.ImageFont,
-    y_position: int,
-    x_right: int,
-    fill: tuple[int, int, int] = (0, 0, 0)
-    ) -> None:
-    """
-    Draws text that right-aligned on a PIL drawing.
-
-    :param draw: a PIL drawing that will have the text right-aligned on it
-    :param text: a str of the text to be right-aligned
-    :param font: an ImageFont of the text's font
-    :param y_position: an int of where the y position will be
-    :param x_center: an int of where the right most x position is
-    :param fill: a tuple of rgb values for the color of the text (default is (0,0,0)/black)
-    :return: None
-    """
-
-    text_width = draw.textbbox((0, 0), str(text), font=font)[2] 
-    x_position = x_right - text_width 
-    draw.text((x_position, y_position), str(text), font=font, fill=fill)
-
-
-def plot_to_image(fig: plt) -> Image:
-    """
-    Change a matplotlib plot into a PIL image.
-
-    :param fig: a Matplotlib plot to be turned into an image
-    :return: a PIL image of the plot
-    """
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=500)
-    buf.seek(0)
-    img = Image.open(buf)
-
-    return img
-
-
-def get_word_date(number_date: str) -> str:
-    """
-    Converts a date from number format to word format (Ex: 2001-02-03 -> Feb 2, 2001).
-
-    :param number_date: a str of date in number format (YYYY-MM-DD)
-    :return: a str of the date in word format (Month Day, Year)
-    """
-    date_obj = datetime.strptime(number_date, '%Y-%m-%d')
-    word_date = date_obj.strftime('%b %d, %Y')
-
-    return word_date
-
-
-
-# ====================================================================================================
-# CARD SECTIONS CREATION FUNCTIONS
-# ====================================================================================================
 
 def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:
     """
@@ -127,7 +37,7 @@ def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:
     # Get profile variables
     position = player_row['Position']
     age = player_row['Age']
-    birth_date = get_word_date(player_row['Date of Birth'])
+    birth_date = ch.get_word_date(player_row['Date of Birth'])
     height = f"{int(player_row['Height (in)']) // 12}\'{int(player_row['Height (in)']) % 12}\""
     weight = f"{player_row['Weight (lbs)']} lbs"
     draft_year = player_row['Draft Year']
@@ -195,9 +105,9 @@ def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:
     subheading_font = ImageFont.truetype(heading_font_path, 58)
     
     # Draw subheaders text
-    draw_centered_text(draw, 'PROFILE', font=basic_subheading_font, y_position=180, x_center=1000)
-    draw_centered_text(draw, 'CONTRACT', font=basic_subheading_font, y_position=180, x_center=1650)
-    draw_centered_text(draw, 'STATS', font=basic_subheading_font, y_position=420, x_center=1650)
+    ch.draw_centered_text(draw, 'PROFILE', font=basic_subheading_font, y_position=180, x_center=1000)
+    ch.draw_centered_text(draw, 'CONTRACT', font=basic_subheading_font, y_position=180, x_center=1650)
+    ch.draw_centered_text(draw, 'STATS', font=basic_subheading_font, y_position=420, x_center=1650)
 
     # Draw profile segment text
     draw.text(xy=(680, 270), text='POSITION:', font=basic_font, fill=(0,0,0))
@@ -209,50 +119,50 @@ def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:
     draw.text(xy=(680, 510), text='DRAFT POSITION:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(680, 550), text='NATIONALITY:', font=basic_font, fill=(0,0,0))
 
-    draw_righted_text(draw, text=position, font=basic_font, y_position=270, x_right=1320)
-    draw_righted_text(draw, text=age, font=basic_font, y_position=310, x_right=1320)
-    draw_righted_text(draw, text=birth_date, font=basic_font, y_position=350, x_right=1320)
-    draw_righted_text(draw, text=height, font=basic_font, y_position=390, x_right=1320)
-    draw_righted_text(draw, text=weight, font=basic_font, y_position=430, x_right=1320)
-    draw_righted_text(draw, text=draft_year, font=basic_font, y_position=470, x_right=1320)
-    draw_righted_text(draw, text=draft_position, font=basic_font, y_position=510, x_right=1320)
-    draw_righted_text(draw, text=nationality, font=basic_font, y_position=550, x_right=1320)
+    ch.draw_righted_text(draw, text=position, font=basic_font, y_position=270, x_right=1320)
+    ch.draw_righted_text(draw, text=age, font=basic_font, y_position=310, x_right=1320)
+    ch.draw_righted_text(draw, text=birth_date, font=basic_font, y_position=350, x_right=1320)
+    ch.draw_righted_text(draw, text=height, font=basic_font, y_position=390, x_right=1320)
+    ch.draw_righted_text(draw, text=weight, font=basic_font, y_position=430, x_right=1320)
+    ch.draw_righted_text(draw, text=draft_year, font=basic_font, y_position=470, x_right=1320)
+    ch.draw_righted_text(draw, text=draft_position, font=basic_font, y_position=510, x_right=1320)
+    ch.draw_righted_text(draw, text=nationality, font=basic_font, y_position=550, x_right=1320)
 
     # Draw salary segment text
     draw.text(xy=(1400, 270), text='CAP HIT:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(1400, 310), text='YEARS REMAINING:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(1400, 350), text='EXPIRY STATUS:', font=basic_font, fill=(0,0,0))
 
-    draw_righted_text(draw, text=f'${cap_hit} M', font=basic_font, y_position=270, x_right=1900)
-    draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=310, x_right=1900)
-    draw_righted_text(draw, text=expiry_status, font=basic_font, y_position=350, x_right=1900)
+    ch.draw_righted_text(draw, text=f'${cap_hit} M', font=basic_font, y_position=270, x_right=1900)
+    ch.draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=310, x_right=1900)
+    ch.draw_righted_text(draw, text=expiry_status, font=basic_font, y_position=350, x_right=1900)
 
     # Draw stats segment text
     if position == 'G':
         draw.text(xy=(1400, 510), text='ROLE:', font=basic_font, fill=(0,0,0))
         draw.text(xy=(1400, 550), text='GP-SV%-GAA:', font=basic_font, fill=(0,0,0))
 
-        draw_righted_text(draw, text=role, font=basic_font, y_position=510, x_right=1900)
-        draw_righted_text(draw, text=f'{games_played}-{save_percentage}-{goals_against_avg}', font=basic_font, y_position=550, x_right=1900)
+        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=510, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{games_played}-{save_percentage}-{goals_against_avg}', font=basic_font, y_position=550, x_right=1900)
     
     else:
         draw.text(xy=(1400, 510), text='ROLE:', font=basic_font, fill=(0,0,0))
         draw.text(xy=(1400, 550), text='GP-G-A-P:', font=basic_font, fill=(0,0,0))
 
-        draw_righted_text(draw, text=role, font=basic_font, y_position=510, x_right=1900)
-        draw_righted_text(draw, text=f'{games_played}-{goals}-{assists}-{points}', font=basic_font, y_position=550, x_right=1900)
+        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=510, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{games_played}-{goals}-{assists}-{points}', font=basic_font, y_position=550, x_right=1900)
     
 
     # Draw banner shape
     draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
     # Draw name, team, and season drop shadow
     draw.text(xy=(76, 28), text=name, font=heading_font, fill=secondary_team_color)
-    draw_righted_text(draw, season, subheading_font, 28, 1916, fill=secondary_team_color)
-    draw_righted_text(draw, team_full_name, subheading_font, 78, 1916, fill=secondary_team_color)
+    ch.draw_righted_text(draw, season, subheading_font, 28, 1916, fill=secondary_team_color)
+    ch.draw_righted_text(draw, team_full_name, subheading_font, 78, 1916, fill=secondary_team_color)
     # Draw name and season text
     draw.text(xy=(80, 22), text=name, font=heading_font, fill=(255,255,255))
-    draw_righted_text(draw, season, subheading_font, 24, 1920, fill=(255, 255, 255))
-    draw_righted_text(draw, team_full_name, subheading_font, 74, 1920, fill=(255, 255, 255))
+    ch.draw_righted_text(draw, season, subheading_font, 24, 1920, fill=(255, 255, 255))
+    ch.draw_righted_text(draw, team_full_name, subheading_font, 74, 1920, fill=(255, 255, 255))
 
     # Draw bottom rectangle
     draw.rectangle([(60, 660), (1940, 700)], fill=primary_team_color)
@@ -335,7 +245,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     ax.spines['bottom'].set_linewidth(15)
 
     # Add percentile bar to ranking section card
-    percentile_bar = plot_to_image(fig)
+    percentile_bar = ch.plot_to_image(fig)
     percentile_bar = percentile_bar.resize((100, 200))
     ranking_section.paste(percentile_bar, (200, 60))
 
@@ -347,11 +257,11 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     percentile_font = ImageFont.truetype(basic_font_path, 50)
 
     # Draw attribute name, rank, total players, and percentile texts
-    draw_centered_text(draw, attribute_name, attribute_name_font, y_position=0, x_center=150)
-    draw_centered_text(draw, str(rank), rank_font, y_position=40, x_center=110)
+    ch.draw_centered_text(draw, attribute_name, attribute_name_font, y_position=0, x_center=150)
+    ch.draw_centered_text(draw, str(rank), rank_font, y_position=40, x_center=110)
     if rank != 'N/A':
-        draw_centered_text(draw, f'/ {total_players}', total_players_font, y_position=200, x_center=110)
-        draw_centered_text(draw, str(percentile), percentile_font, y_position=174, x_center=250)
+        ch.draw_centered_text(draw, f'/ {total_players}', total_players_font, y_position=200, x_center=110)
+        ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=174, x_center=250)
     
     draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
 
@@ -516,7 +426,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
 
 
     # Convert plot to image
-    graph_img = plot_to_image(fig)
+    graph_img = ch.plot_to_image(fig)
     graph_img = graph_img.resize((2200, 1430))
     graph_section.paste(graph_img, (-125, -110))
 
@@ -547,16 +457,16 @@ def make_branding_section(team: str) -> Image:
     draw.text(xy=(100, 73), text='Website:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(100, 156), text='Socials:', font=basic_font, fill=(0,0,0))
 
-    draw_righted_text(draw, 'AnalyticsByAvery.com', basic_font, 73, 940)
-    draw_righted_text(draw, 'Analytics By Avery', basic_font, 156, 940)
+    ch.draw_righted_text(draw, 'analyticswithavery.com', basic_font, 73, 940)
+    ch.draw_righted_text(draw, 'Analytics With Avery', basic_font, 156, 940)
 
     
     # Resources text
     draw.text(xy=(1060, 73), text='Player Data From:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(1060, 156), text='Cap Data From:', font=basic_font, fill=(0,0,0))
 
-    draw_righted_text(draw, 'NaturalStatTrick.com', basic_font, 73, 1900)
-    draw_righted_text(draw, 'PuckPedia.com', basic_font, 156, 1900)
+    ch.draw_righted_text(draw, 'NaturalStatTrick.com', basic_font, 73, 1900)
+    ch.draw_righted_text(draw, 'Coming Soon', basic_font, 156, 1900)
     
     primary_team_color = constants.PRIMARY_COLORS.get(team)
     secondary_team_color = constants.SECONDARY_COLORS.get(team)
@@ -568,8 +478,8 @@ def make_branding_section(team: str) -> Image:
     draw.rectangle([(998, 80), (1002, 220)], fill=secondary_team_color)
 
     draw.polygon([(60, 260), (2940, 260), (2980, 380), (20, 380)], fill=primary_team_color)
-    draw_centered_text(draw, 'Analytics By Avery', font=heading_font, y_position=268, x_center=996, fill=(0, 0, 0))
-    draw_centered_text(draw, 'Analytics By Avery', font=heading_font, y_position=264, x_center=1000, fill=(255, 255, 255))
+    ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=268, x_center=996, fill=(0, 0, 0))
+    ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=264, x_center=1000, fill=(255, 255, 255))
 
     return branding_section
 
@@ -626,15 +536,12 @@ def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE'
     draw.rectangle([(60, 1280), (1940, 1320)], fill=primary_team_color)
 
 
-    # Save card to the proper folder
+    # Save card as a PNG in the proper folder (create it if it doesnt exist)
     save_dir = os.path.join(DATA_DIR, 'cards', season,)
-    # Create the directory if it doesn't exist
     os.makedirs(save_dir, exist_ok=True)
-    # Convert to RGB and save as a PNG
     save_path = os.path.join(save_dir, f"{team}_{pos.upper()}_{player_name.replace(' ', '_')}_{season}.png")
     player_card = player_card.convert('RGB')
     player_card.save(save_path, 'PNG')
-
 
     print(f'{player_name} card created')
 
