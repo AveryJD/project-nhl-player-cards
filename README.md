@@ -4,8 +4,8 @@
 
 ### NHL Player Data Scraping
 - Scraped player data from [NaturalStatTrick.com](https://www.naturalstattrick.com/) using BeautifulSoup4  
-- Collected **skater** and **goalie** profile data and stats, including individual and on-ice metrics  
-- Cleaned raw data for consistency and usability (e.g., fixed names, team abbreviations, and special characters)  
+- Collected skater and goalie profile data and stats, including individual and on-ice metrics  
+- Cleaned raw data for consistency and usability
 - Saved the processed data into organized CSV files using Pandas  
 
 ### Player Attributes Ranking Model
