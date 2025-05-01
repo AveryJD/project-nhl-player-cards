@@ -1,8 +1,12 @@
+# ====================================================================================================
+# FUNCTIONS FOR GENERATING SCORES FOR NHL PLAYERS BASED ON STATS
+# ====================================================================================================
 
 # Imports
 import numpy as np
+from utils import constants
 
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
+DATA_DIR = constants.DATA_DIR
 
 # ====================================================================================================
 # WEIGHTINGS 

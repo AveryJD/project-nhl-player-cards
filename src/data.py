@@ -2,13 +2,9 @@
 # SCRIPT TO SCRAPE NHL PLAYER PROFILES AND STATS DATA
 # ====================================================================================================
 
-import sys
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(DATA_DIR)
-
 # Imports
-from src.utils import data_generation as data
-from src.utils import constants
+from utils import data_generation as data
+from utils import constants
 
 
 # Main loop to iterate through seasons and situations and get data

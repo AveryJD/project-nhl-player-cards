@@ -2,10 +2,7 @@
 # FUNCTIONS FOR SCRAPING IMAGES
 # ====================================================================================================
 
-import sys
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(f'{DATA_DIR}')
-
+# Imports
 import requests
 from PIL import Image
 from io import BytesIO

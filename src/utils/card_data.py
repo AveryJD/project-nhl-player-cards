@@ -2,13 +2,11 @@
 # FUNCTIONS FOR GETTING DATA USED IN PLAYER CARDS
 # ====================================================================================================
 
-import sys
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(DATA_DIR)
-
 # Imports
 import pandas as pd
+from utils import constants
 
+DATA_DIR = constants.DATA_DIR
 
 def get_player_role(player_row: pd.Series) -> str:
     """

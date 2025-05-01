@@ -2,15 +2,16 @@
 # FUNCTIONS FOR SCRAPING NHL PROFILES AND STATS FROM NATURALSTATTRICK
 # ====================================================================================================
 
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-
 # Imports
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import random
-from src.utils import data_cleaning as dc
+from utils import data_cleaning as dc
+from utils import constants
+
+DATA_DIR = constants.DATA_DIR
 
 
 def get_page(url: str):

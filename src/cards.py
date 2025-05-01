@@ -2,13 +2,9 @@
 # SCRIPT TO GENERATE NHL PLAYER CARDS
 # ====================================================================================================
 
-import sys
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(DATA_DIR)
-
 # Imports
-from src.utils import card_generation as card
-from src.utils import constants
+from utils import card_generation as card
+from utils import constants
 
 
 card.make_player_card('Sidney Crosby', '2024-2025', 'f')

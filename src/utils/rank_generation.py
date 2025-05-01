@@ -2,11 +2,12 @@
 # FUNCTIONS FOR RANKING NHL PLAYERS BASED ON ATTRIBUTE SCORES
 # ====================================================================================================
 
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-
 # Imports
 import pandas as pd
-from src.utils import rank_scores as rs
+from utils import rank_scores as rs
+from utils import constants
+
+DATA_DIR = constants.DATA_DIR
 
 
 def make_skater_rankings(season: str) -> None:

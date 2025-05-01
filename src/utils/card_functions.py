@@ -2,19 +2,17 @@
 # FUNCTIONS FOR PLAYER CARD CREATION
 # ====================================================================================================
 
-import sys
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(DATA_DIR)
-
 # Imports
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import os
-from src.utils import constants
-from src.utils import card_data as cd
-from src.utils import card_helpers as ch
-from src.utils import card_images as ci
+from utils import card_data as cd
+from utils import card_helpers as ch
+from utils import card_images as ci
+from utils import constants
+
+DATA_DIR = constants.DATA_DIR
 
 
 def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:

@@ -2,13 +2,12 @@
 # FUNCTIONS FOR GENERATING DIFFERENT SETS OF PLAYER CARDS
 # ====================================================================================================
 
-import sys
-DATA_DIR = '/Users/averyjdoiron/Documents/GitHub/NHL-Player-Stat-Cards'
-sys.path.append(f'{DATA_DIR}')
-
 # Imports
 import pandas as pd
-from src.utils import card_functions as cf
+from utils import card_functions as cf
+from utils import constants
+
+DATA_DIR = constants.DATA_DIR
 
 
 def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE') -> None:
