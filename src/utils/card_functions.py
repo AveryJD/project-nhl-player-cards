@@ -475,7 +475,7 @@ def make_branding_section(team: str) -> Image:
 
     draw.rectangle([(998, 80), (1002, 220)], fill=secondary_team_color)
 
-    draw.polygon([(60, 260), (2940, 260), (2980, 380), (20, 380)], fill=primary_team_color)
+    draw.polygon([(60, 260), (1940, 260), (1980, 380), (20, 380)], fill=primary_team_color)
     ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=268, x_center=996, fill=(0, 0, 0))
     ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=264, x_center=1000, fill=(255, 255, 255))
 
