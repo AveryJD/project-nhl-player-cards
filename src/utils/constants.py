@@ -2,13 +2,16 @@
 # DATA CONSTANTS
 # ====================================================================================================
 
+# Project file location
 DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
 
 # Seasons to scrape stats and profile data for
 SEASONS = ['2020-2021', '2021-2022', '2022-2023', '2023-2024', '2024-2025'] 
 
+# Situations to get data for
 SITUATIONS = ['all', 'ev', 'pp', 'pk']
 
+# Symbols to be replaced in player names
 SYMBOLS_TO_REPLACE = {
     'ä': 'a',
     'á': 'a',
@@ -39,6 +42,7 @@ SYMBOLS_TO_REPLACE = {
 # NAMING CONSTANTS
 # ====================================================================================================
 
+# Team abreviations with full names
 TEAM_NAMES = {
     'ANA': 'Anaheim Ducks',         'ARI': 'Arizona Coyotes',       'BOS': 'Boston Bruins',
     'BUF': 'Buffalo Sabres',        'CGY': 'Calgary Flames',        'CAR': 'Carolina Hurricanes',
@@ -53,6 +57,7 @@ TEAM_NAMES = {
     'VGK': 'Vegas Golden Knights',  'WSH': 'Washington Capitals',   'WPG': 'Winnipeg Jets'
 }
 
+# Country abreviations with full names
 NATIONALITIES = {
     'AUS': 'Australia',     'AUT': 'Austria',       'BLR': 'Belarus',       'CAN': 'Canada',
     'CZE': 'Czechia',       'DNK': 'Denmark',       'FIN': 'Finland',       'FRA': 'France',
@@ -64,6 +69,7 @@ NATIONALITIES = {
     'USA': 'United States'
 }
 
+# Attribute csv names with full names
 ATRIBUTE_NAMES = {
     'off_rank' : 'Offense',
     'def_rank' : 'Defense',
@@ -75,8 +81,8 @@ ATRIBUTE_NAMES = {
     'plm_rank' : 'Playmaking',
     'phy_rank' : 'Physicality',
     'pen_rank' : 'Penalties',
-    'fof_rank' : 'Faceoffs',
-    'spd_rank' : 'Speed',
+    #'fof_rank' : 'Faceoffs',                   # Might be used in the future
+    #'spd_rank' : 'Speed',                      # Might be used in the future
     'ova_rank' : 'Overall',
     'evs_rank' : 'Ev. Strength',
     'ldg_rank' : 'Low Danger',
@@ -90,6 +96,7 @@ ATRIBUTE_NAMES = {
 # COLOR CONSTANTS
 # ====================================================================================================
 
+# Team primary colors
 PRIMARY_COLORS = {
     'ANA': (252, 76, 2),    'ARI': (140, 38, 51),   'BOS': (252, 181, 20),
     'BUF': (0, 48, 135),    'CGY': (210, 0, 28),    'CAR': (206, 17, 38),
@@ -104,6 +111,7 @@ PRIMARY_COLORS = {
     'VGK': (185, 151, 91),  'WSH': (4, 30, 66),     'WPG': (4, 30, 66)
 }
 
+# Team secondary colors
 SECONDARY_COLORS = {
     'ANA': (185, 151, 91),  'ARI': (226,214,181),   'BOS': (17, 17, 17),
     'BUF': (255, 184, 28),  'CGY': (250, 175, 25),  'CAR': (0, 0, 0),
@@ -118,20 +126,20 @@ SECONDARY_COLORS = {
     'VGK': (51,63,72),      'WSH': (200, 16, 46),   'WPG': (172,22,44)
 }
 
-# SORT BETTER AND CHANGE COLORS
+# Attribute colors for rank components
 ATTRIBUTE_COLORS = {
     'Offense':      (255, 70, 70),
     'Defense':      (22, 115, 193),
+    'ES Offense':   (0, 0, 0),
+    'ES Defense':   (0, 0, 0),
+    'Power Play':   (0, 0, 0),
+    'Penalty Kill': (0, 0, 0),
     'Shooting':     (255, 200, 80),
     'Playmaking':   (180, 220, 120),
     'Physicality':  (143, 121, 193),
     'Penalties':    (221, 185, 218),
-    'ES Offense':   (0, 0, 0),
-    'Power Play':   (0, 0, 0),
-    'ES Defense':   (0, 0, 0),
-    'Penalty Kill': (0, 0, 0),
-    'Faceoffs':     (0, 0, 0),
-    'Speed':        (0, 0, 0),
+    #'Faceoffs':     (0, 0, 0),                 # Might be used in the future
+    #'Speed':        (0, 0, 0),                 # Might be used in the future
     'Overall':      (255, 100, 0),
     'Ev. Strength': (0, 255, 255),
     'Low Danger':   (255, 0, 0),
@@ -139,19 +147,20 @@ ATTRIBUTE_COLORS = {
     'High Danger':  (0, 0, 255)
 }
 
+# Atribute colors for graph components
 PLOT_ATTRIBUTE_COLORS = {
     'off_plot': (255/255, 70/255, 70/255),
     'def_plot': (22/255, 115/255, 193/255),
+    'eso_plot': (0/255, 0/255, 0/255),
+    'esd_plot': (0/255, 0/255, 0/255),
+    'ppl_plot': (0/255, 0/255, 0/255),
+    'pkl_plot': (0/255, 0/255, 0/255),
     'sht_plot': (255/255, 200/255, 80/255),
     'plm_plot': (180/255, 220/255, 120/255),
     'phy_plot': (143/255, 121/255, 193/255),
     'pen_plot': (221/255, 185/255, 218/255),
-    'eso_plot': (0/255, 0/255, 0/255),
-    'ppl_plot': (0/255, 0/255, 0/255),
-    'esd_plot': (0/255, 0/255, 0/255),
-    'pkl_plot': (0/255, 0/255, 0/255),
-    'fof_plot': (0/255, 0/255, 0/255),
-    'spd_plot': (0/255, 0/255, 0/255),
+    #'fof_plot': (0/255, 0/255, 0/255),         # Might be used in the future  
+    #'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     'ova_plot': (255/255, 100/255, 0/255),
     'evs_plot': (0/255, 255/255, 255/255),
     'ldg_plot': (255/255, 0/255, 0/255),
@@ -161,16 +170,15 @@ PLOT_ATTRIBUTE_COLORS = {
 
 
 
-
 # ====================================================================================================
-# PLAYER CONSTANTS
+# PLAYER CARD CREATION CONSTANTS
 # ====================================================================================================
 
 # Players with unique attributes
 UNIQUE_PLAYERS = ['James van Riemsdyk', # ADD MORE
-                          ]
+]
 
-# One forward per team
+# One forward per team (2024-2025 end of season rosters)
 F_PLAYERS = ['Troy Terry', 'David Pastrnak', 'Tage Thompson', 'Nazem Kadri', 'Sebastian Aho',
             'Connor Bedard', 'Nathan MacKinnon', 'Sean Monahan', 'Jason Robertson', 'Dylan Larkin',
             'Connor McDavid', 'Aleksander Barkov', 'Anze Kopitar', 'Kirill Kaprizov', 'Cole Caufield',
@@ -180,7 +188,7 @@ F_PLAYERS = ['Troy Terry', 'David Pastrnak', 'Tage Thompson', 'Nazem Kadri', 'Se
             'Alex Ovechkin', 'Kyle Connor'
 ]
 
-# One defensemen per team
+# One defensemen per team (2024-2025 end of season rosters)
 D_PLAYERS = ['Pavel Mintyukov', 'Charlie McAvoy', 'Rasmus Dahlin', 'MacKenzie Weegar', 'Jaccob Slavin',
             'Alec Martinez', 'Cale Makar', 'Zach Werenski', 'Miro Heiskanen', 'Moritz Seider',
             'Evan Bouchard', 'Gustav Forsling', 'Brandt Clarke', 'Brock Faber', 'Lane Hutson',
@@ -190,7 +198,7 @@ D_PLAYERS = ['Pavel Mintyukov', 'Charlie McAvoy', 'Rasmus Dahlin', 'MacKenzie We
             'John Carlson', 'Josh Morrissey'
 ]
 
-# One goalie per team
+# One goalie per team (2024-2025 end of season rosters)
 G_PLAYERS = ['John Gibson', 'Jeremey Swayman', 'Ukko-Pekka Luukkonen', 'Dustin Wolf', 'Frederik Andersen',
             'Arvid Soderblom', 'Mackenzie Blackwood', 'Elvis Merzļikins', 'Jake Oettinger', 'Cam Talbot',
             'Stuart Skinner', 'Sergei Bobrovsky', 'Darcy Kuemper', 'Filip Gustavsson', 'Sam Montembeault'
