@@ -39,8 +39,10 @@ SYMBOLS_TO_REPLACE = {
 # Total games played in the season
 SEASON_GAMES = 82
 
-# The minimum games a player has to play to qualify for rankings (15% of games/13 games over a full 82 game season)
-MIN_GP = SEASON_GAMES * 0.15
+# The minimum games a skater has to play to qualify for rankings (at least 15% of games/13 games over a full 82 game season)
+MIN_GP_SKATER = SEASON_GAMES * 0.15
+# The minimum games a goalie has to play to qualify for rankings (at least 6% of games/5 games over a full 82 game season)
+MIN_GP_GOALIE = SEASON_GAMES * 0.06
 
 # ====================================================================================================
 # NAMING CONSTANTS

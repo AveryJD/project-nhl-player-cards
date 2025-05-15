@@ -12,47 +12,51 @@ DATA_DIR = constants.DATA_DIR
 
 def make_skater_rankings(season: str) -> None:
     
+    # Read skater data
     all_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_all_skater_stats.csv')
     ev_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_ev_skater_stats.csv')
     pp_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_pp_skater_stats.csv')
     pk_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_pk_skater_stats.csv')
 
-    # Filter out any players who haven't played over 10 games
-    min_gp_skaters = all_skater_data.loc[(all_skater_data['GP'] >= constants.MIN_GP), 'Player']
+    # Filter out any skaters who haven't played over the minimum games played requirement
+    min_gp_skaters = all_skater_data.loc[(all_skater_data['GP'] >= constants.MIN_GP_SKATER), 'Player']
 
     all_skater_data = all_skater_data[all_skater_data['Player'].isin(min_gp_skaters)]
     ev_skater_data = ev_skater_data[ev_skater_data['Player'].isin(min_gp_skaters)]
     pp_skater_data = pp_skater_data[pp_skater_data['Player'].isin(min_gp_skaters)]
     pk_skater_data = pk_skater_data[pk_skater_data['Player'].isin(min_gp_skaters)]
 
-    
     # Start ranking DataFrame with the player names, positions, and teams
     s_rankings = all_skater_data[['Player', 'Position', 'Team']]
 
-
-    # Make a list to store scores for all players
+    # Make a list to store scores for all skaters
     scores_list = []
 
     # For every player in all player data, get their scores
     for _, all_row in all_skater_data.iterrows():
         player_name = all_row['Player']
 
-        # Get even-strength row
-        ev_filtered = ev_skater_data[ev_skater_data['Player'] == player_name]
-        ev_row = ev_filtered.iloc[0] if not ev_filtered.empty else pd.Series(index=ev_skater_data.columns)
+        # Get rows from other dataframes
+        ev_row = ev_skater_data[ev_skater_data['Player'] == player_name]
+        pp_row = pp_skater_data[pp_skater_data['Player'] == player_name]
+        pk_row = pk_skater_data[pk_skater_data['Player'] == player_name]
 
-        # Get power-play row
-        pp_filtered = pp_skater_data[pp_skater_data['Player'] == player_name]
-        pp_row = pp_filtered.iloc[0] if not pp_filtered.empty else pd.Series(index=pp_skater_data.columns)
-
-        # Get penalty-kill row
-        pk_filtered = pk_skater_data[pk_skater_data['Player'] == player_name]
-        pk_row = pk_filtered.iloc[0] if not pk_filtered.empty else pd.Series(index=pk_skater_data.columns)
+        # Get each situation row as a Series
+        ev_row = ev_row.iloc[0]
+        # Account for players who don't play special teams
+        if not pp_row.empty:
+            pp_row = pp_row.iloc[0] 
+        else:
+            pp_row = pd.Series()
+        if not pk_row.empty:
+            pk_row = pk_row.iloc[0] 
+        else:
+            pk_row = pd.Series()
 
         # MAKE OFF SCORE EVO + PPL
         # MAKE OFF SCORE EVD + PKL
 
-        # Dictionary to store player scores
+        # Dictionary to store skater scores
         scores = {
             'off_score': rs.offensive_score(all_row),
             'def_score': rs.defensive_score(all_row),
@@ -68,7 +72,6 @@ def make_skater_rankings(season: str) -> None:
             'spd_score': rs.speed_score(all_row)
         }
 
-
         # Append player scores to list
         scores_list.append(scores)
 
@@ -78,9 +81,8 @@ def make_skater_rankings(season: str) -> None:
     season_list = [season] * len(all_skater_data)
     season_df = pd.DataFrame(season_list, columns=['Season'])
 
-    # Add scores to the player_rankings DataFrame
+    # Add scores to the skater rankings DataFrame
     s_rankings = pd.concat([season_df, s_rankings.reset_index(drop=True), scores_df], axis=1)
-
 
     # Separate forwards and defensemen rankings
     f_rankings = s_rankings[s_rankings['Position'] != 'D'][[
@@ -88,13 +90,12 @@ def make_skater_rankings(season: str) -> None:
         'off_score', 'def_score', 'evo_score', 'evd_score', 'ppl_score', 'pkl_score',
         'sht_score', 'plm_score', 'phy_score', 'pen_score', 'fof_score', 'spd_score' 
     ]]
-    
+
     d_rankings = s_rankings[s_rankings['Position'] == 'D'][[
         'Season', 'Player', 'Position', 'Team',
         'off_score', 'def_score', 'evo_score', 'evd_score', 'ppl_score', 'pkl_score',
         'sht_score', 'plm_score', 'phy_score', 'pen_score', 'fof_score', 'spd_score'
     ]]
-
 
     # List of score columns to rank
     score_columns = [
@@ -134,41 +135,37 @@ def make_goalie_rankings(season: str) -> None:
     pp_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_pp_goalie_stats.csv')
     pk_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_pk_goalie_stats.csv')
 
-    # Filter out any goalies who haven't played over 5 games
-    min_gp = 10
-
-    min_gp_goalies = all_goalie_data.loc[(all_goalie_data['GP'] >= min_gp), 'Player']
+    # Filter out any goalies who haven't played over the minimum games played requirement
+    min_gp_goalies = all_goalie_data.loc[(all_goalie_data['GP'] >= constants.MIN_GP_GOALIE), 'Player']
 
     all_goalie_data = all_goalie_data[all_goalie_data['Player'].isin(min_gp_goalies)]
     ev_goalie_data = ev_goalie_data[ev_goalie_data['Player'].isin(min_gp_goalies)]
     pp_goalie_data = pp_goalie_data[pp_goalie_data['Player'].isin(min_gp_goalies)]
     pk_goalie_data = pk_goalie_data[pk_goalie_data['Player'].isin(min_gp_goalies)]
 
-    # Start ranking DataFrame with the player names, positions, and teams
+    # Start ranking DataFrame with the goalie names, positions, and teams
     g_rankings = all_goalie_data[['Player', 'Team']]
     g_rankings.insert(1, 'Position', 'G')
 
-    # Make a list to store scores for all players
+    # Make a list to store scores for all goalies
     scores_list = []
 
-    # For every player in all player data, get their scores
+    # For every goalie in all goalie data, get their scores
     for _, all_row in all_goalie_data.iterrows():
 
         goalie_name = all_row['Player']
 
-        # Get rows from other dataframes
-        # Get the first row from other dataframes as Series
+        # Get rows from other situation dataframes
         ev_row = ev_goalie_data[ev_goalie_data['Player'] == goalie_name]
         pp_row = pp_goalie_data[pp_goalie_data['Player'] == goalie_name]
         pk_row = pk_goalie_data[pk_goalie_data['Player'] == goalie_name]
 
-        # Check if any rows exist and get the first row as Series
-        ev_row = ev_row.iloc[0] if not ev_row.empty else pd.Series()
-        pp_row = pp_row.iloc[0] if not pp_row.empty else pd.Series()
-        pk_row = pk_row.iloc[0] if not pk_row.empty else pd.Series()
-
+        # Get each situation row as a Series
+        ev_row = ev_row.iloc[0]
+        pp_row = pp_row.iloc[0]
+        pk_row = pk_row.iloc[0]
         
-        # Dictionary to store player scores
+        # Dictionary to store goalie scores
         scores = {
             'all_score': rs.goalie_all_score(all_row),
             'evs_score': rs.goalie_all_score(ev_row),
@@ -178,7 +175,7 @@ def make_goalie_rankings(season: str) -> None:
             'hdg_score': rs.goalie_hdg_score(all_row),
         }
 
-        # Append player scores to list
+        # Append goalie scores to list
         scores_list.append(scores)
 
     # Convert the list of scores into a DataFrame
@@ -187,7 +184,7 @@ def make_goalie_rankings(season: str) -> None:
     season_list = [season] * len(all_goalie_data)
     season_df = pd.DataFrame(season_list, columns=['Season'])
 
-    # Add scores to the player_rankings DataFrame
+    # Add scores to the goalie rankings DataFrame
     g_rankings = pd.concat([season_df, g_rankings.reset_index(drop=True), scores_df], axis=1)
 
 
@@ -199,7 +196,7 @@ def make_goalie_rankings(season: str) -> None:
 
     g_rankings = g_rankings.reset_index(drop=True)
     
-    # Add ranking columns for forwards
+    # Add ranking columns for goalies
     for column in score_columns:
         attribute, _ = column.split('_')
         g_rankings[f'{attribute}_rank'] = g_rankings[column].rank(ascending=False, method='min')

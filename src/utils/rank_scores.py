@@ -269,9 +269,9 @@ def faceoff_score(row):
 # Goalie SCORE FUNCTIONS
 # ====================================================================================================
 
-# Used for ova, evs, ppl, and pkl
-def goalie_ova_score(row):
-    tot_ova_score = (
+# Used for all, evs, ppl, and pkl
+def goalie_all_score(row):
+    tot_all_score = (
         weights['hds'] * row['HD Saves'] +
         weights['hdga'] * row['HD Goals Against'] +
         weights['mds'] * row['MD Saves'] +
@@ -280,8 +280,8 @@ def goalie_ova_score(row):
         weights['ldga'] * row['LD Goals Against']
     )
 
-    ova_score = adjust_goalie_score(tot_ova_score, row)
-    return ova_score
+    all_score = adjust_goalie_score(tot_all_score, row)
+    return all_score
 
 
 def goalie_ldg_score(row):
