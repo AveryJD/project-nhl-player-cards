@@ -36,7 +36,11 @@ SYMBOLS_TO_REPLACE = {
     'ý': 'y',
 }
 
+# Total games played in the season
+SEASON_GAMES = 82
 
+# The minimum games a player has to play to qualify for rankings (15% of games/13 games over a full 82 game season)
+MIN_GP = SEASON_GAMES * 0.15
 
 # ====================================================================================================
 # NAMING CONSTANTS
@@ -83,7 +87,7 @@ ATRIBUTE_NAMES = {
     'pen_rank' : 'Penalties',
     #'fof_rank' : 'Faceoffs',                   # Might be used in the future
     #'spd_rank' : 'Speed',                      # Might be used in the future
-    'ova_rank' : 'Overall',
+    'all_rank' : 'All Situations',
     'evs_rank' : 'Ev. Strength',
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
@@ -128,23 +132,23 @@ SECONDARY_COLORS = {
 
 # Attribute colors for rank components
 ATTRIBUTE_COLORS = {
-    'Offense':      (255, 70, 70),
-    'Defense':      (22, 115, 193),
-    'ES Offense':   (0, 0, 0),
-    'ES Defense':   (0, 0, 0),
-    'Power Play':   (0, 0, 0),
-    'Penalty Kill': (0, 0, 0),
-    'Shooting':     (255, 200, 80),
-    'Playmaking':   (180, 220, 120),
-    'Physicality':  (143, 121, 193),
-    'Penalties':    (221, 185, 218),
-    #'Faceoffs':     (0, 0, 0),                 # Might be used in the future
-    #'Speed':        (0, 0, 0),                 # Might be used in the future
-    'Overall':      (255, 100, 0),
-    'Ev. Strength': (0, 255, 255),
-    'Low Danger':   (255, 0, 0),
-    'Med. Danger':  (0, 255, 0),
-    'High Danger':  (0, 0, 255)
+    'Offense':          (255, 70, 70),
+    'Defense':          (22, 115, 193),
+    'ES Offense':       (0, 0, 0),
+    'ES Defense':       (0, 0, 0),
+    'Power Play':       (0, 0, 0),
+    'Penalty Kill':     (221, 185, 218),
+    'Shooting':         (255, 200, 80),
+    'Playmaking':       (180, 220, 120),
+    'Physicality':      (143, 121, 193),
+    'Penalties':        (221, 185, 218),
+    #'Faceoffs':        (0, 0, 0),                 # Might be used in the future
+    #'Speed':           (0, 0, 0),                 # Might be used in the future
+    'All Situations':   (22, 115, 193),
+    'Ev. Strength':     (143, 121, 193),
+    'Low Danger':       (180, 220, 120),
+    'Med. Danger':      (255, 200, 80),
+    'High Danger':      (255, 70, 70),
 }
 
 # Atribute colors for graph components
@@ -154,19 +158,20 @@ PLOT_ATTRIBUTE_COLORS = {
     'eso_plot': (0/255, 0/255, 0/255),
     'esd_plot': (0/255, 0/255, 0/255),
     'ppl_plot': (0/255, 0/255, 0/255),
-    'pkl_plot': (0/255, 0/255, 0/255),
+    'pkl_plot': (221/255, 185/255, 218/255),
     'sht_plot': (255/255, 200/255, 80/255),
     'plm_plot': (180/255, 220/255, 120/255),
     'phy_plot': (143/255, 121/255, 193/255),
-    'pen_plot': (221/255, 185/255, 218/255),
-    #'fof_plot': (0/255, 0/255, 0/255),         # Might be used in the future  
+    'pen_plot': (221/255, 185/255, 218/255), 
+    #'fof_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     #'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
-    'ova_plot': (255/255, 100/255, 0/255),
-    'evs_plot': (0/255, 255/255, 255/255),
-    'ldg_plot': (255/255, 0/255, 0/255),
-    'mdg_plot': (0/255, 255/255, 0/255),
-    'hdg_plot': (0/255, 0/255, 255/255)
+    'all_plot': (22/255, 115/255, 193/255),
+    'evs_plot': (143/255, 121/255, 193/255),
+    'ldg_plot': (180/255, 220/255, 120/255),
+    'mdg_plot': (255/255, 200/255, 80/255),
+    'hdg_plot': (255/255, 70/255, 70/255)
 }
+
 
 
 

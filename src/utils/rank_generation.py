@@ -18,9 +18,7 @@ def make_skater_rankings(season: str) -> None:
     pk_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_pk_skater_stats.csv')
 
     # Filter out any players who haven't played over 10 games
-    min_gp = 10
-
-    min_gp_skaters = all_skater_data.loc[(all_skater_data['GP'] >= min_gp), 'Player']
+    min_gp_skaters = all_skater_data.loc[(all_skater_data['GP'] >= constants.MIN_GP), 'Player']
 
     all_skater_data = all_skater_data[all_skater_data['Player'].isin(min_gp_skaters)]
     ev_skater_data = ev_skater_data[ev_skater_data['Player'].isin(min_gp_skaters)]
@@ -172,10 +170,9 @@ def make_goalie_rankings(season: str) -> None:
         
         # Dictionary to store player scores
         scores = {
-            'ova_score': rs.goalie_ova_score(all_row),
-            'evs_score': rs.goalie_ova_score(ev_row),
-            'ppl_score': rs.goalie_ova_score(pp_row),
-            'pkl_score': rs.goalie_ova_score(pk_row),
+            'all_score': rs.goalie_all_score(all_row),
+            'evs_score': rs.goalie_all_score(ev_row),
+            'pkl_score': rs.goalie_all_score(pk_row),
             'ldg_score': rs.goalie_ldg_score(all_row),
             'mdg_score': rs.goalie_mdg_score(all_row),
             'hdg_score': rs.goalie_hdg_score(all_row),
@@ -196,7 +193,7 @@ def make_goalie_rankings(season: str) -> None:
 
     # List of score columns to rank
     score_columns = [
-        'ova_score', 'evs_score', 'ppl_score', 'pkl_score',
+        'all_score', 'evs_score', 'pkl_score',
         'ldg_score', 'mdg_score', 'hdg_score'
     ]
 

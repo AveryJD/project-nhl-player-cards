@@ -191,7 +191,10 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
 
     # Get attribute name text and color
     attribute_name = constants.ATRIBUTE_NAMES.get(attribute_rank_name)
-    attribute_color = constants.ATTRIBUTE_COLORS.get(attribute_name)
+    if attribute_rank_name == 'pkl' and player_row['Position'] != 'G':
+        attribute_color = (0,0,0)
+    else:
+        attribute_color = constants.ATTRIBUTE_COLORS.get(attribute_name)
     
     # Get rank and percentile
     if attribute_rank_name == 'ppl_rank':
@@ -279,16 +282,6 @@ def make_ranking_section(player_cur_season: pd.Series, pos) -> Image:
     ranking_section = Image.new("RGB", (ranking_section_width, ranking_section_height), color=(255, 255, 255))
 
     if pos == 'g':
-        evo_rank_section = make_rank_component(player_cur_season, 'ova_rank')
-        ranking_section.paste(evo_rank_section, (455, 20))
-
-        ppl_rank_section = make_rank_component(player_cur_season, 'evs_rank')
-        ranking_section.paste(ppl_rank_section, (850, 20))
-
-        sht_rank_section = make_rank_component(player_cur_season, 'pkl_rank')
-        ranking_section.paste(sht_rank_section, (1245, 20))
-
-
         evd_rank_section = make_rank_component(player_cur_season, 'ldg_rank')
         ranking_section.paste(evd_rank_section, (455, 310))
 
@@ -297,6 +290,17 @@ def make_ranking_section(player_cur_season: pd.Series, pos) -> Image:
 
         phy_rank_section = make_rank_component(player_cur_season, 'hdg_rank')
         ranking_section.paste(phy_rank_section, (1245, 310))
+
+
+        sht_rank_section = make_rank_component(player_cur_season, 'pkl_rank')
+        ranking_section.paste(sht_rank_section, (1245, 20))
+
+        ppl_rank_section = make_rank_component(player_cur_season, 'evs_rank')
+        ranking_section.paste(ppl_rank_section, (850, 20))
+
+        evo_rank_section = make_rank_component(player_cur_season, 'all_rank')
+        ranking_section.paste(evo_rank_section, (455, 20))
+
 
     else:
         # Add skater attribute ranking sections
@@ -355,7 +359,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     graph_section = Image.new("RGB", (graph_section_width, graph_section_height), color=(255, 255, 255))
 
     if pos == 'g':
-        attributes_to_plot = [ 'ova','ldg', 'mdg', 'hdg', 'pkl', 'evs']
+        attributes_to_plot = [ 'all','ldg', 'mdg', 'hdg', 'pkl', 'evs']
     else:
         attributes_to_plot = [ 'def','off', 'pen', 'phy', 'plm', 'sht',]
 
