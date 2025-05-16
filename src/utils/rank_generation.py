@@ -36,36 +36,43 @@ def make_skater_rankings(season: str) -> None:
     for _, all_row in all_skater_data.iterrows():
         player_name = all_row['Player']
 
-        # Get rows from other dataframes
-        ev_row = ev_skater_data[ev_skater_data['Player'] == player_name]
-        pp_row = pp_skater_data[pp_skater_data['Player'] == player_name]
-        pk_row = pk_skater_data[pk_skater_data['Player'] == player_name]
+        # Get skater row dataframes from other dataframes
+        ev_df = ev_skater_data[ev_skater_data['Player'] == player_name]
+        pp_df = pp_skater_data[pp_skater_data['Player'] == player_name]
+        pk_df = pk_skater_data[pk_skater_data['Player'] == player_name]
 
-        # Get each situation row as a Series
-        ev_row = ev_row.iloc[0]
-        # Account for players who don't play special teams
-        if not pp_row.empty:
-            pp_row = pp_row.iloc[0] 
+        # Get each situation row as a Series (account for players who don't play special teams)
+        ev_row = ev_df.iloc[0]
+        if not pp_df.empty:
+            pp_row = pp_df.iloc[0] 
+
+            off_df = pd.concat([ev_df, pp_df], ignore_index=True)
+            off_df = off_df.apply(pd.to_numeric, errors='coerce')
+            off_row = off_df.sum(axis=0)
         else:
             pp_row = pd.Series()
-        if not pk_row.empty:
-            pk_row = pk_row.iloc[0] 
+            off_row = ev_row.copy()
+
+        if not pk_df.empty:
+            pk_row = pk_df.iloc[0] 
+
+            def_df = pd.concat([ev_df, pk_df], ignore_index=True)
+            def_df = def_df.apply(pd.to_numeric, errors='coerce')
+            def_row = def_df.sum(axis=0)
         else:
             pk_row = pd.Series()
-
-        # MAKE OFF SCORE EVO + PPL
-        # MAKE OFF SCORE EVD + PKL
+            def_row = ev_row.copy()
 
         # Dictionary to store skater scores
         scores = {
-            'off_score': rs.offensive_score(all_row),
-            'def_score': rs.defensive_score(all_row),
+            'off_score': rs.offensive_score(off_row),
+            'def_score': rs.defensive_score(def_row),
             'evo_score': rs.offensive_score(ev_row),
             'evd_score': rs.defensive_score(ev_row),
             'ppl_score': rs.power_play_score(pp_row),
             'pkl_score': rs.penalty_kill_score(pk_row),
-            'sht_score': rs.shooting_score(all_row),
-            'plm_score': rs.playmaking_score(all_row),
+            'sht_score': rs.shooting_score(off_row),
+            'plm_score': rs.playmaking_score(off_row),
             'phy_score': rs.physicality_score(all_row),
             'pen_score': rs.penalties_score(all_row),
             'fof_score': rs.faceoff_score(all_row),
@@ -155,15 +162,15 @@ def make_goalie_rankings(season: str) -> None:
 
         goalie_name = all_row['Player']
 
-        # Get rows from other situation dataframes
-        ev_row = ev_goalie_data[ev_goalie_data['Player'] == goalie_name]
-        pp_row = pp_goalie_data[pp_goalie_data['Player'] == goalie_name]
-        pk_row = pk_goalie_data[pk_goalie_data['Player'] == goalie_name]
+        # Get goalie row dataframes from other dataframes
+        ev_df = ev_goalie_data[ev_goalie_data['Player'] == goalie_name]
+        pp_df = pp_goalie_data[pp_goalie_data['Player'] == goalie_name]
+        pk_df = pk_goalie_data[pk_goalie_data['Player'] == goalie_name]
 
         # Get each situation row as a Series
-        ev_row = ev_row.iloc[0]
-        pp_row = pp_row.iloc[0]
-        pk_row = pk_row.iloc[0]
+        ev_row = ev_df.iloc[0]
+        pp_row = pp_df.iloc[0]
+        pk_row = pk_df.iloc[0]
         
         # Dictionary to store goalie scores
         scores = {
