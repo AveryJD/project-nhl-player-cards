@@ -15,80 +15,91 @@ DATA_DIR = constants.DATA_DIR
 # All weight values
 weights = {
     # Shooting Weights
-    'goals': 90,
-    'shots_on_net' : 5,
-    'shots_missed': -3,
-    'shots_were_blocked': -5,
-    'high_danger_chances': 12,
+    'goals': 1.000,
+    'shots_on_net' : 0.104,
+    'shots_missed': 0.052,
+    'shots_were_blocked': 0.026,
+    'high_danger_chances': 0.000,   # ADD ?
 
     # Playmaking Weights
-    'p_assists': 60,
-    's_assists': 20,
-    'rebounds_created': 4,
-    'rush_attempts': 10,
+    'p_assists': 0.780,
+    's_assists': 0.019,             # ADJUST
+    'rebounds_created': 0.104,
+    'rush_attempts': 0.052,         # ADJUST
+
+    # On Ice Offensive Weights
+    'oi_ldsf': 0.043,
+    'oi_mdsf': 0.119,
+    'oi_hdsf': 0.190,
+    'oi_ldgf': 1.000,
+    'oi_mdgf': 1.000,
+    'oi_hdgf': 1.000,
 
     # Defensive Weights
-    'blocks': 22,
-    'takeaways': 20,
-    'giveaways': -20,
-    'oi_goal_differential': 5,
-    'oi_shot_differential': 0.5,
+    'blocks': 0.104,
+    'takeaways': 0.000,             # ADD
+    'giveaways': -0.000,            # ADD
+
+    # On Ice Defensive Weights
+    'oi_ldsa': -0.043,
+    'oi_mdsa': -0.119,
+    'oi_hdsa': -0.190,
+    'oi_ldga': -1.000,
+    'oi_mdga': -1.000,
+    'oi_hdga': -1.000,
 
     # Physicality Weights
-    'hits': 15,
-    'minors': 2,
-    'majors': 10,
-    'misconducts': 15,
-
-    ###### ADD ######
-    # Speed Weights 
-    'spd_speed': 0,
+    'hits': 1.00,                   # ADJUST
+    'minors': 0.50,                 # ADJUST
+    'majors': 2.00,                 # ADJUST
+    'misconducts': 3.00,            # ADJUST
 
     # Penalty Differential Weights
     'penalty_min_taken': -1,
     'penalty_min_drawn': 1,
 
-    # Faceoff Weights
-    'faceoff_wins': 1,
-    'faceoff_losses': -1,
 
-    # Goalie Weights
-    'hds': 0.26,
-    'mds': 0.13,
-    'lds': 0.03,
-    'hdga': -1,
-    'mdga': -1, 
-    'ldga': -0,
+    # Speed Weights                 Might be used in the future
+    'spd_speed': 0.00,
+
+    # Faceoff Weights               Might be used in the future
+    'faceoff_wins': 1.000,
+    'faceoff_losses': -1.000,
+
+
+    # Goalie Weights                # ADJUST ?
+    'hds': 0.190,
+    'mds': 0.119,
+    'lds': 0.043,
+    'hdga': -1.00,
+    'mdga': -1.00, 
+    'ldga': -1.00,
 }
 
 
 """
-Weight Explanations:
-Goal for a team = 200
-    Goal = 90
-    Primary assist = 60
-    Secondary assist = 20
+Weight Explanations - Team data over the past 3 seasons from NaturalStatTrick
+=== Individual ===
+Goal = 1.000                Base weight for offense
+Primary assist = 0.780      Found in blog post - https://analyticswithavery.com/blog/1
+Secondary assist = 0.000    Found in blog post - https://analyticswithavery.com/blog/1
 
-Shot has ~11% chance of going in
-    Block (preventing a shot) = 200 * 0.11 = 22
-    Blocked shot (player's shot prevented) = -5
-    Missed shot = -3
 
-Low danger shot has ~3% chance of going in
-    Low danger shot taken = 3
-    Low danger shot against = -3 / 5 = -0.6
-Medium danger shot has ~13 chance of going in
-    Medium danger shot taken = 13
-    Medium danger shot against = -13 / 5 = -2.6
-High danger shot has ~26 % chance of going in
-    High danger shot taken = 26
-    High danger shot against = -26 / 5 = -5.2
+Shot = 0.103                Chances the average shot goes in the net (SH%)
+LD Shot = 0.043             Chances a MD shot goes in the net (LDSH%)
+MD Shot = 0.119             Chances a LD shot goes in the net (MDSH%)
+HD Shot = 0.190             Chances a HD shot goes in the net (HDSH%)
 
-    Takeaway = 20
-    Giveaway = -20
-    D-Zone giveaway = -5 (on top of -20)
+Rebound Created = 0.103     Created another shot attempt
+Shot Missed = 0.052         Half the weight of a shot that hit
+Shot was Blocked = 0.026    Quater the weight of a shot that hit
 
-    Rebound created
+Block = 0.103               Preventing a shot
+
+=== On Ice ===
+Divide stat weights by amount of players on the ice in functions
+ex. 5v5 on ice high danger shot against = 0.190 / 5 = 0.038
+
 """
 
 
@@ -96,63 +107,60 @@ High danger shot has ~26 % chance of going in
 # SKATER SCORE FUNCTIONS
 # ====================================================================================================
 
-def get_zone_start_percentages(row):
-    total_starts = row['Off. Zone Starts'] + row['Neu. Zone Starts'] + row['Def. Zone Starts']
-    
-    # Default equal weighting if no data available
-    if total_starts == 0:
-        return 0.33, 0.33, 0.33 
-    
-    o_zone_start_percent = row['Off. Zone Starts'] / total_starts
-    n_zone_start_percent = row['Neu. Zone Starts'] / total_starts
-    d_zone_start_percent = row['Def. Zone Starts'] / total_starts
-    
-    return o_zone_start_percent, n_zone_start_percent, d_zone_start_percent
+def adjust_skater_score(score, row, toi_adjust=1):
+    gp = row['GP']
+    toi = row['TOI'] * toi_adjust
 
+    if score >= 0:
+        sigmoid = 1 / (1 + np.exp(-0.2 * (gp - 60)))
+    else:
+        sigmoid = 1 / (1 + np.exp(0.2 * (gp - 60)))
 
-
-def adjust_scores(score, row):
-    SEASON_GAMES = 82
-    
-    per_game_score = score / row['GP']
-    
-    # Apply sqrt scaling for better distribution
-    base_score = np.sign(per_game_score) * np.sqrt(abs(per_game_score) + 1e-10)
-    
-    # Apply games played adjustment
-    game_adjustment = np.sqrt(row['GP'] / SEASON_GAMES)
-    adjusted_score = base_score * game_adjustment
-    
+    adjusted_score = score * sigmoid
+    adjusted_score = (adjusted_score / toi) * 60
     return adjusted_score
+
 
 def adjust_goalie_score(score, row):
+    gp = row['GP']
 
-    k=82
+    if score >= 0:
+        sigmoid = 1 / (1 + np.exp(-0.2 * (gp - 30)))
+    else:
+        sigmoid = 1 / (1 + np.exp(0.2 * (gp - 30)))
 
-    raw_per_60 = (score / row['TOI']) * 60
-
-    # Weighting based on games played
-    weight = row['GP'] / (row['GP'] + k)
-    adjusted_score = (weight * raw_per_60)
-
+    adjusted_score = score * sigmoid
+    adjusted_score = adjusted_score / gp
     return adjusted_score
+
+
+def get_d_zone_percentage(row):
+    off_zone_starts = row['Off. Zone Starts']
+    def_zone_starts = row['Def. Zone Starts']
+    neu_zone_starts = row['Neu. Zone Starts']
+    total_zone_starts = off_zone_starts + def_zone_starts + neu_zone_starts
+
+    def_zone_percentage = def_zone_starts / total_zone_starts
+
+    return def_zone_percentage
 
 
 def shooting_score(row):
+    #Avoid double counting
     shots_on_net = row['Shots']  - row['Goals']
     shots_missed = row['iFF'] - row['Shots']
     shots_were_blocked = row['iCF'] - row['iFF']
-
+    hd_chances = row['iHDCF'] - row['Goals']
 
     tot_sht_score = (
         weights['goals'] * row['Goals'] +
         weights['shots_on_net'] * shots_on_net +
         weights['shots_missed'] * shots_missed +
         weights['shots_were_blocked'] * shots_were_blocked +
-        weights['high_danger_chances'] * row['iHDCF']
+        weights['high_danger_chances'] * hd_chances
     )
 
-    sht_score = adjust_scores(tot_sht_score, row)
+    sht_score = adjust_skater_score(tot_sht_score, row)
     return sht_score
 
 
@@ -164,58 +172,82 @@ def playmaking_score(row):
         weights['rush_attempts'] * row['Rush Attempts']
     )
 
-    plm_score = adjust_scores(tot_plm_score, row)
+    plm_score = adjust_skater_score(tot_plm_score, row)
     return plm_score
 
 
-def defensive_score(row):
-    oi_goal_differential = row['GF'] - row['GA']
-    oi_shot_differential = row['SF'] - row['SA']
+def offensive_score(row, oi_players=5):
 
-    base_def_score = (
-        weights['blocks'] * row['Shots Blocked'] +
-        weights['takeaways'] * row['Takeaways'] +
-        weights['giveaways'] * row['Giveaways'] +
-        weights['oi_goal_differential'] * oi_goal_differential +
-        weights['oi_shot_differential'] * oi_shot_differential
+    #Avoid double counting
+    shots_on_net = row['Shots']  - row['Goals']
+    shots_missed = row['iFF'] - row['Shots']
+    shots_were_blocked = row['iCF'] - row['iFF']
+    hd_chances = row['iHDCF'] - row['Goals']
+
+    tot_sht_score = (
+        weights['goals'] * row['Goals'] +
+        weights['shots_on_net'] * shots_on_net +
+        weights['shots_missed'] * shots_missed +
+        weights['shots_were_blocked'] * shots_were_blocked +
+        weights['high_danger_chances'] * hd_chances
+    )
+    
+    tot_plm_score = (
+        weights['p_assists'] * row['First Assists'] +
+        weights['s_assists'] * row['Second Assists'] +
+        weights['rebounds_created'] * row['Rebounds Created'] +
+        weights['rush_attempts'] * row['Rush Attempts']
     )
 
-    oZS, _, dZS = get_zone_start_percentages(row)
-    
-    # Increase defensive score if player has more defensive responsibilities
-    adjustment_factor = 1 + (dZS - oZS) * 0.15  # Boost by max 15%
-    def_score = base_def_score * adjustment_factor
+    tot_oi_off_score = (
+        weights['oi_ldsf'] * row['LDCF'] +
+        weights['oi_mdsf'] * row['MDCF'] +
+        weights['oi_hdsf'] * row['HDCF'] +
+        weights['oi_ldgf'] * row['LDGF'] +
+        weights['oi_mdgf'] * row['MDGF'] +
+        weights['oi_hdgf'] * row['HDGF']
+    ) / oi_players
 
-    return def_score
-
-
-def offensive_score(row):
-    base_off_score = shooting_score(row) + playmaking_score(row)
+    tot_off_score = tot_sht_score + tot_plm_score + tot_oi_off_score
     
-    oZS, _, dZS = get_zone_start_percentages(row)
-    
-    # Reduce offensive score if a player has an easier offensive workload
-    # adjustment_factor = 1 - (oZS - dZS) * 0.1  # Reduce by max 10%
-    off_score = base_off_score #* adjustment_factor
-    
+    off_score = adjust_skater_score(tot_off_score, row)
     return off_score
 
 
+def defensive_score(row, oi_players=5):
+    d_zone_percent = get_d_zone_percentage(row)
+
+    tot_def_score = (
+        weights['blocks'] * row['Shots Blocked'] +
+        weights['takeaways'] * row['Takeaways'] +
+        weights['giveaways'] * row['Giveaways'] +
+        (weights['oi_ldsa'] * row['LDCA'] +
+        weights['oi_mdsa'] * row['MDCA'] +
+        weights['oi_hdsa'] * row['HDCA'] +
+        weights['oi_ldga'] * row['LDGA'] +
+        weights['oi_mdga'] * row['MDGA'] +
+        weights['oi_hdga'] * row['HDGA']) / oi_players
+    )
+
+    def_score = adjust_skater_score(tot_def_score, row, d_zone_percent)
+    return def_score
+
+
 def power_play_score(row):
-    # Check if 'TOI' is in the Series and is a valid number
+    # Check if pp 'TOI' is in the Series and meets the requirement (0.5 minutes per game played)
     if 'TOI' not in row or row['TOI'] < 41:
         ppl_score = -999999
     else:
-        ppl_score = offensive_score(row)
+        ppl_score = offensive_score(row, oi_players=4)
     return ppl_score
 
 
 def penalty_kill_score(row):
-    # Check if 'TOI' is in the Series and is a valid number
-    if 'TOI' not in row or row['TOI'] < 41:
+    # Check if pk 'TOI' is in the Series and meets the requirement (0.5 minutes per game played)
+    if 'TOI' not in row or row['TOI'] < row['GP'] * 0.5:
         pkl_score = -999999
     else:
-        pkl_score = defensive_score(row)
+        pkl_score = defensive_score(row, oi_players=4)
     return pkl_score
 
 
@@ -227,18 +259,8 @@ def physicality_score(row):
         weights['misconducts'] * row['Misconduct']
     )
 
-    phy_score = adjust_scores(tot_phy_score, row)
+    phy_score = adjust_skater_score(tot_phy_score, row)
     return phy_score
-
-
-##### ADD #####
-def speed_score(row):
-    tot_spd_score = (
-        weights['spd_speed'] * 0
-    )
-
-    spd_score = adjust_scores(tot_spd_score, row)
-    return spd_score
 
 
 def penalties_score(row):
@@ -251,7 +273,7 @@ def penalties_score(row):
     return pen_score
 
 
-def faceoff_score(row):
+def faceoff_score(row):         # Might use int the future
     # Check to see if player meets faceoffs requirement (3 faceoffs taken per game played)
     if row['Faceoffs Won'] + row['Faceoffs Lost'] < row['GP'] * 3:
         fof_score = -999999
@@ -261,8 +283,17 @@ def faceoff_score(row):
             weights['faceoff_losses'] * row['Faceoffs Lost']  
         )
 
-        fof_score = adjust_scores(tot_fof_score, row)
+        fof_score = adjust_skater_score(tot_fof_score, row)
     return fof_score
+
+
+def speed_score(row):         # Might use int the future
+    tot_spd_score = (
+        weights['spd_speed'] * 0
+    )
+
+    spd_score = adjust_skater_score(tot_spd_score, row)
+    return spd_score
 
 
 # ====================================================================================================
