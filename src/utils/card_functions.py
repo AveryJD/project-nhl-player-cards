@@ -199,9 +199,9 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     # Get rank and percentile
     if attribute_rank_name == 'ppl_rank':
         attribute_abrev = 'ppl'
-    if attribute_rank_name == 'pkl_rank':
+    elif attribute_rank_name == 'pkl_rank':
         attribute_abrev = 'pkl'
-    if attribute_rank_name == 'fof_rank':
+    elif attribute_rank_name == 'fof_rank':
         attribute_abrev = 'fof'
     else:
         attribute_abrev = 'all'
@@ -209,7 +209,6 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     total_players = player_row[f'{attribute_abrev}_players']
 
     rank, percentile = cd.get_rank_and_percentile(player_row, attribute_rank_name, total_players)
-
         
     # Get percentile color
     if rank == 'N/A':

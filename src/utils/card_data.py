@@ -198,11 +198,11 @@ def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str ='all'
     if attribute == 'all' or pos == 'g':
         total_players = len(season_data)
 
-    # For attributes that not all players qualify for, ignore player's whose attribute score is -999999
+    # For attributes that not all players qualify for, ignore players whose attribute score is -999999
     else:
         score_column = f"{attribute}_score"
         total_players = (season_data[score_column] != -999999).sum()
-    
+
     return total_players
 
 
@@ -236,7 +236,8 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
     # Iterate through the specified number of past seasons and get total players per attribute
     for _ in range(years_num):
         for attribute in attribute_list:
-            yearly_total_players.update({f'{attribute}_{tot_players_season}': get_total_players(tot_players_season_data, pos, attribute)})
+            value = get_total_players(tot_players_season_data, pos, attribute)
+            yearly_total_players[f'{attribute}_{tot_players_season}'] = int(value)
         
         # Get previous season str
         tot_players_season = get_prev_season(tot_players_season)
@@ -284,6 +285,10 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     player_seasons['all_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
 
     if pos == 'g':
+        player_seasons['ppl_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
+        player_seasons['pkl_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
+        player_seasons['fof_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
+    else:
         player_seasons['ppl_players'] = yearly_total_players.get(f'ppl_{cur_season}', 0)
         player_seasons['pkl_players'] = yearly_total_players.get(f'pkl_{cur_season}', 0)
         player_seasons['fof_players'] = yearly_total_players.get(f'fof_{cur_season}', 0)

@@ -6,7 +6,9 @@
 from utils import card_generation as card
 from utils import constants
 
-
+#card.make_player_card('Andrei Vasilevskiy', '2024-2025', 'g')
+card.make_player_card('Zach Werenski', '2024-2025', 'd')
+card.make_player_card('Nathan MacKinnon', '2024-2025', 'f')
 card.make_player_card('Sidney Crosby', '2024-2025', 'f')
 
 """
