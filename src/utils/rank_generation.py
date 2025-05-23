@@ -35,11 +35,20 @@ def make_skater_rankings(season: str) -> None:
     # For every player in all player data, get their scores
     for _, all_row in all_skater_data.iterrows():
         player_name = all_row['Player']
+        player_position = all_row['Position']
 
-        # Get skater row dataframes from other dataframes
-        ev_df = ev_skater_data[ev_skater_data['Player'] == player_name]
-        pp_df = pp_skater_data[pp_skater_data['Player'] == player_name]
-        pk_df = pk_skater_data[pk_skater_data['Player'] == player_name]
+
+        # Get skater row dataframes from other dataframes (Use name and position to avoid players with the same name having stats combined)
+        ev_df = ev_skater_data[
+            (ev_skater_data['Player'] == player_name) &
+            (ev_skater_data['Position'] == player_position)]
+        pp_df = pp_skater_data[
+            (pp_skater_data['Player'] == player_name) &
+            (pp_skater_data['Position'] == player_position)]
+        pk_df = pk_skater_data[
+            (pk_skater_data['Player'] == player_name) &
+            (pk_skater_data['Position'] == player_position)]
+
 
         # Get each situation row as a Series (account for players who don't play special teams)
         ev_row = ev_df.iloc[0]
