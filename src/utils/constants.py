@@ -9,7 +9,8 @@ DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
 SEASONS = ['2020-2021', '2021-2022', '2022-2023', '2023-2024', '2024-2025'] 
 
 # Situations to get data for
-SITUATIONS = ['all', 'ev', 'pp', 'pk']
+PLAYER_SITUATIONS = ['all', 'ev', 'pp', 'pk']
+GOALIE_SITUATIONS = ['all', 'ev', 'pk']
 
 # Symbols to be replaced in player names
 SYMBOLS_TO_REPLACE = {

@@ -164,12 +164,10 @@ def make_goalie_rankings(season: str) -> None:
 
         # Get goalie row dataframes from other dataframes
         ev_df = ev_goalie_data[ev_goalie_data['Player'] == goalie_name]
-        pp_df = pp_goalie_data[pp_goalie_data['Player'] == goalie_name]
         pk_df = pk_goalie_data[pk_goalie_data['Player'] == goalie_name]
 
         # Get each situation row as a Series
         ev_row = ev_df.iloc[0]
-        pp_row = pp_df.iloc[0]
         pk_row = pk_df.iloc[0]
         
         # Dictionary to store goalie scores
