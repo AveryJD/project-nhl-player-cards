@@ -10,8 +10,7 @@
 
 ### Player Attributes Ranking Model
 - Built a ranking model that scores each player across various performance attributes based on scraped statistics  
-- Adjusts attribute scores based on external variables  
-    - (currently only games played; plans include teammate quality and other context-based adjustments)  
+- Adjusts attribute scores based on games played and time on ice
 - Compares players' scores to assign a ranking for each attribute  
 - Outputs a CSV file containing all player attribute scores and rankings  
 
@@ -29,12 +28,13 @@
 - Improved player and (especially) goalie models  
 
 ## Languages and Libraries/Frameworks Used
-- Python  
-- Pandas  
-- NumPy  
-- Matplotlib  
-- BeautifulSoup4  
-- PIL  
+- Python
+- Pandas
+- BeautifulSoup4
+- Requests
+- NumPy
+- Matplotlib
+- PIL
 
 ## Resources
 - NHL player data from [NaturalStatTrick.com](https://www.naturalstattrick.com)  

@@ -459,7 +459,7 @@ def make_branding_section(team: str) -> Image:
     draw.text(xy=(100, 156), text='Socials:', font=basic_font, fill=(0,0,0))
 
     ch.draw_righted_text(draw, 'analyticswithavery.com', basic_font, 73, 940)
-    ch.draw_righted_text(draw, 'Analytics With Avery', basic_font, 156, 940)
+    ch.draw_righted_text(draw, 'analyticswavery', basic_font, 156, 940)
 
     
     # Resources text
