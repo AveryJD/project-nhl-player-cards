@@ -10,17 +10,16 @@ from utils import constants
 DATA_DIR = constants.DATA_DIR
 
 
-def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE') -> None:
+def make_player_card(player_name: str, season: str, pos: str) -> None:
     """
     Generate a player card for a specific player.
 
     :param player_name: a str of the player's full name ('First Last')
     :param season: a str representing the season ('YYYY-YYYY')
     :param pos: a str representing the player's position ('f', 'd', or 'g')
-    :param custom_team: an optional str for changing the player's team on the card
     :return: None
     """
-    cf.make_player_card(player_name, season, pos, custom_team)
+    cf.make_player_card(player_name, season, pos)
 
 
 def make_specific_player_cards(specific_players: list, cur_season: str, pos: str) -> None:

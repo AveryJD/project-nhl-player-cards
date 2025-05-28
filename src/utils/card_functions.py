@@ -15,23 +15,19 @@ from utils import constants
 DATA_DIR = constants.DATA_DIR
 
 
-def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:
+def make_header_section(player_row: pd.Series) -> Image:
     """
     Creates the header section of a player card as a PIL Image. The header includes player profile information, team and season 
     banner, headshot, team logo, contract status (placeholder), and key stats.
 
     :param player_row: a Series containing player data
-    :param custom_team: an optional str for the team abbreviation to override the player's default team
     :return: an Image of the header section
     """
 
     # Get banner variables
     name = player_row['Player']
     season = player_row['Season']
-    if custom_team == 'NONE':
-        team = player_row['Team']
-    else:
-        team = custom_team
+    team = player_row['Team']
     team_full_name = constants.TEAM_NAMES.get(team)
     primary_team_color = constants.PRIMARY_COLORS.get(team)
     secondary_team_color = constants.SECONDARY_COLORS.get(team)
@@ -175,7 +171,6 @@ def make_header_section(player_row: pd.Series, custom_team='NONE') -> Image:
     return header_section
 
 
-# ORGANIZE CODE BETTER
 def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Image:
     """
     Creates a ranking component for a specific player attribute, displaying the player's rank, total players, 
@@ -500,7 +495,7 @@ def make_branding_section(team: str) -> Image:
 # WHOLE CARD CREATION FUNCTIONS
 # ====================================================================================================
 
-def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE') -> None:
+def make_player_card(player_name: str, season: str, pos: str) -> None:
     """
     Generate and save a full player card image for a given player and season.
 
@@ -511,7 +506,6 @@ def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE'
     :param player_name: a str of the full name of the player (e.g. 'Auston Matthews')
     :param season: a str of the season that the data for the card comes from('YYYY-YYYY')
     :param pos: a str of the first letter of the player's position ('f', 'd', or 'g')
-    :param custom_team: an optional str for the team abbreviation to override the player's default team
     :return: none
     """
 
@@ -524,10 +518,13 @@ def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE'
     # Get the player's header information
     player_header_row = cd.get_player_header_row(player_name, season, pos)
 
-    if custom_team == 'NONE':
-        team = player_cur_season['Team']
-    else:
-        team = custom_team
+    # Get correct team
+    team = player_cur_season['Team']
+    if ',' in team:
+        print(f'{player_name}\'s teams are {team}. Choose active team (abreviation):')
+        team = input()
+        player_cur_season['Team'] = team
+        player_header_row['Team'] = team
 
     # Create player card
     card_width = 2000
@@ -535,7 +532,7 @@ def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE'
     player_card = Image.new('RGB', (card_width, card_height), color=(255, 255, 255))
 
     # Add header section
-    header_section = make_header_section(player_header_row, custom_team)
+    header_section = make_header_section(player_header_row)
     player_card.paste(header_section, (0, 0))
 
     # Add ranking section
@@ -563,5 +560,3 @@ def make_player_card(player_name: str, season: str, pos: str, custom_team='NONE'
     player_card.save(save_path, 'PNG')
 
     print(f'{player_name} card created')
-
-

@@ -19,19 +19,19 @@ def get_team_image(team: str) -> Image:
     # Get URL for team logo
     # Special case where a player has played for multiple teams and their team str in the DataFrame has multiple teams (e.g. 'EDM,LAK')
     if ',' in team:
-        return Image.new(mode='RGBA', size=(1,1), color=(255, 255, 255, 255))
+        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png&w=500&h=500&transparent=true'
     
     # Cases where team abreviations are different in the ESPN url
     elif team == 'LAK':
-        team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/LA.png'
+        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/LA.png'
     elif team == "NJD":
-        team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/NJ.png'
+        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/NJ.png'
     elif team == "SJS":
-        team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/SJ.png'
+        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/SJ.png'
     elif team == "TBL":
-        team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/TB.png'
+        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/TB.png'
     elif team == "UTA":
-        team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/utah.png'
+        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/utah.png'
     
     else:
         team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/{team}.png'
@@ -89,9 +89,10 @@ def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
         if full_name.lower() == name.lower():
             headshot_url = player["headshot"]
             break
+    # If player headshot is not found use a template image
     else:
-        print("Player not found.")
-        return None
+        headshot_url = 'https://a.espncdn.com/combiner/i?img=/i/headshots/nophoto.png&w=110&h=80&scale=crop'
+
 
     # Fetch and process the player's headshot
     response = requests.get(headshot_url, stream=True)
@@ -106,8 +107,5 @@ def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
             for pixel in face_img_data
         ]
         face_img.putdata(transparent_face)
-
-        return face_img
-    
-    print("Failed to fetch player image.")
-    return None
+      
+    return face_img
