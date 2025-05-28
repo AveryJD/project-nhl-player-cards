@@ -9,19 +9,28 @@ from utils import constants
 
 def clean_symbols(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Replace any unusual characters in player names with typical characters.
+    Replace any unusual in the DataFrame with typical characters.
+
+    :param df: the DataFrame to be cleaned
+    :return: the cleaned DataFrame
     """
 
+    # Replace symbols in the DataFrame
     for original, replacement in constants.SYMBOLS_TO_REPLACE.items():
         df = df.map(lambda x: x.replace(original, replacement) if isinstance(x, str) else x)
 
     return df
 
 
-def clean_player_names(df: pd.DataFrame):
+def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize player names for consistency.
+
+    :param df: the DataFrame to be cleaned
+    :return: the cleaned DataFrame
     """
+
+    # Replace names with most commonly used names for consistency
     name_replacements = {
         'Christopher Tanev': 'Chris Tanev',
         'Mitchell Marner': 'Mitch Marner'
@@ -35,33 +44,45 @@ def clean_player_names(df: pd.DataFrame):
 def clean_team_names(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize team abbreviations in the DataFrame.
+
+    :param df: the DataFrame to be cleaned
+    :return: the cleaned DataFrame
     """
+
+    # Replace team abbreviations with most commonly used abbreviations for consistency
     team_replacements = {
         'L.A': 'LAK', 
         'S.J': 'SJS', 
         'N.J': 'NJD', 
         'T.B': 'TBL'
     }
-
     # Only replace specific abbreviations without breaking multi-team entries
     df['Team'] = df['Team'].apply(lambda x: ", ".join([team_replacements.get(team, team) for team in x.split(', ')]) if isinstance(x, str) else x)
 
     return df
 
 
-def clean_positions(df: pd.DataFrame):
+def clean_positions(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize positions in the DataFrame.
+
+    :param df: the DataFrame to be cleaned
+    :return: the cleaned DataFrame
     """
+
+    # Replace player positions with most commonly used position abbreviations for consistency
     if 'Position' in df.columns:
         df['Position'] = df['Position'].apply(lambda x: x.replace('L', 'LW').replace('R', 'RW'))
 
     return df
 
 
-def clean_dataframe(df: pd.DataFrame):
+def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Clean entire dataframe
+    Clean entire DataFrame with helper functions.
+
+    :param df: the DataFrame to be cleaned
+    :return: the cleaned DataFrame
     """
     
     # Drop unnecessary columns
@@ -73,6 +94,7 @@ def clean_dataframe(df: pd.DataFrame):
     # Replace weird symbol in column headers
     df.columns = [col.strip().replace(" ", " ") for col in df.columns]
     
+    # Use helper cleaning functions
     df = clean_symbols(df)
     df = clean_player_names(df)
     df = clean_team_names(df)
