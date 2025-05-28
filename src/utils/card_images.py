@@ -9,10 +9,20 @@ from io import BytesIO
 
 
 def get_team_image(team: str) -> Image:
-    # Team logo image from ESPN.com
-    # 'https://assets.nhle.com/logos/nhl/svg/SEA_light.svg' NHL logos but in svg !!!
+    """
+    Fetches and returns a team's logo image using the ESPN.com.
+
+    :param team: str of the team abbreviation (ex., "TOR")
+    :return: A PIL Image object of the team's logo
+    """
+
+    # Get URL for team logo
+    # Special case where a player has played for multiple teams and their team str in the DataFrame has multiple teams (e.g. 'EDM,LAK')
+    if ',' in team:
+        return Image.new(mode='RGBA', size=(1,1), color=(255, 255, 255, 255))
     
-    if team == 'LAK':
+    # Cases where team abreviations are different in the ESPN url
+    elif team == 'LAK':
         team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/LA.png'
     elif team == "NJD":
         team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/NJ.png'
@@ -23,14 +33,11 @@ def get_team_image(team: str) -> Image:
     elif team == "UTA":
         team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/utah.png'
     
-    elif ',' in team:   # TEMPORARY
-        return Image.new(mode='RGBA', size=(1,1), color=(255, 255, 255, 255))
-    
     else:
         team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/{team}.png'
     
+    # Get Image of the team logo
     response_team = requests.get(team_url, stream=True)
-
     if response_team.status_code == 200:
         team_img = Image.open(response_team.raw).convert("RGBA")
         team_img = Image.alpha_composite(
@@ -38,7 +45,6 @@ def get_team_image(team: str) -> Image:
         )
     
     return team_img
-
 
 
 def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
@@ -51,10 +57,11 @@ def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
     :param pos: str of the first letter of the player's position (ex. 'f')
     :return: A PIL Image object of the player's headshot
     """
+
     # Format season correctly (removes hyphen)
     years = season.replace('-', '')
 
-    # NHL API URL to fetch the team's roster
+    # Get NHL API URL to fetch the team's roster
     api_team_page = f'https://api-web.nhle.com/v1/roster/{team}/{years}'
 
     # Fetch the team's roster data
