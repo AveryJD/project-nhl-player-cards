@@ -510,7 +510,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     """
 
     # Get the data for a player's five seasons
-    player_five_seasons = cd.get_player_multiple_seasons(player_name, season, pos,)
+    player_five_seasons = cd.get_player_multiple_seasons(player_name, season, pos)
 
     # Get the player's current season data
     player_cur_season = player_five_seasons.iloc[0]

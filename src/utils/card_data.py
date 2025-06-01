@@ -206,14 +206,14 @@ def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str ='all'
     return total_players
 
 
-def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: str, years_num: int=5) -> dict[str, int]:
+def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: str, seasons_num) -> dict[str, int]:
     """
     Return the total number of players for multiple past seasons based on different attributes.
 
     :param season: a str of the most recent season ('YYYY-YYYY')
     :param cur_season_data: a DataFrame containing player stats for the given season
     :param pos: a str of the first letter of the player's position ('f', 'd', or 'g')
-    :param years_num: an int specifying the number of past seasons to retrieve player totals for (default is 5)
+    :param seasons_num: an int specifying the number of past seasons to retrieve player totals for (default is 5)
     :return: a dict mapping attribute-year keys to the corresponding total number of players
     """
 
@@ -234,7 +234,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
         position_str = 'defense'
 
     # Iterate through the specified number of past seasons and get total players per attribute
-    for _ in range(years_num):
+    for _ in range(seasons_num):
         for attribute in attribute_list:
             value = get_total_players(tot_players_season_data, pos, attribute)
             yearly_total_players[f'{attribute}_{tot_players_season}'] = int(value)
@@ -246,7 +246,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
         try:
             tot_players_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{tot_players_season}_{pos}_rankings.csv')
         except FileNotFoundError:
-            print(f'Warning: Data for {tot_players_season} not found. Stopping iteration.')
+            print(f'Warning: Data for {tot_players_season} total players not found. Stopping iteration.')
             break
 
     return yearly_total_players
@@ -259,7 +259,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     :param player_name: a str of the full name of the player to return the multiple seasons for ('First Last')
     :param cur_season: a str of the most recent season ('YYYY-YYYY')
     :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
-    :param seasons_num: an int of the number of past seasons to include (default is 5)
+    :param seasons_num: an int of the number of seasons to include (default is 5)
     :return: a DataFrame containing player stats and total player counts over the specified seasons
     """
 
@@ -277,8 +277,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     # Get player row
     player_seasons = season_zero_data[season_zero_data['Player'] == player_name].copy()
 
-    # Initialize previous season and total players dictionary
-    prev_season = get_prev_season(cur_season)
+    # Initialize total players dictionary
     yearly_total_players = get_yearly_total_players(cur_season, season_zero_data, pos, seasons_num)
 
     # Add total players stats for the current season
@@ -293,27 +292,29 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
         player_seasons['pkl_players'] = yearly_total_players.get(f'pkl_{cur_season}', 0)
         player_seasons['fof_players'] = yearly_total_players.get(f'fof_{cur_season}', 0)
     
-    # Loop to get previous seasons
-    for _ in range(seasons_num - 1):
+
+    # Loop to get previous seasons data
+    season = get_prev_season(cur_season)
+    for _ in range(seasons_num):
         try:
-            season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{prev_season}_{pos}_rankings.csv')
+            season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{season}_{pos}_rankings.csv')
         except FileNotFoundError:
-            print(f"Warning: Data for {prev_season} not found. Skipping this season.")
+            print(f"Warning: Data for {season} season not found. Skipping this season.")
             break
 
         player_row = season_data[season_data['Player'] == player_name]
         if not player_row.empty:
             # Add player row to the DataFrame
             player_row = player_row.copy()
-            player_row['all_players'] = yearly_total_players.get(f'all_{prev_season}', 0)
+            player_row['all_players'] = yearly_total_players.get(f'all_{season}', 0)
             if pos != 'g':
-                player_row['ppl_players'] = yearly_total_players.get(f'ppl_{prev_season}', 0)
-                player_row['pkl_players'] = yearly_total_players.get(f'pkl_{prev_season}', 0)
-                player_row['fof_players'] = yearly_total_players.get(f'fof_{prev_season}', 0)
+                player_row['ppl_players'] = yearly_total_players.get(f'ppl_{season}', 0)
+                player_row['pkl_players'] = yearly_total_players.get(f'pkl_{season}', 0)
+                player_row['fof_players'] = yearly_total_players.get(f'fof_{season}', 0)
             player_seasons = pd.concat([player_seasons, player_row], ignore_index=True)
 
-        # Move to the next previous season
-        prev_season = get_prev_season(prev_season)
+        # Move to the previous season
+        season = get_prev_season(season)
 
     return player_seasons
 

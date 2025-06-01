@@ -148,7 +148,6 @@ def make_goalie_rankings(season: str) -> None:
 
     all_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_all_goalie_stats.csv')
     ev_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_ev_goalie_stats.csv')
-    pp_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_pp_goalie_stats.csv')
     pk_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_pk_goalie_stats.csv')
 
     # Filter out any goalies who haven't played over the minimum games played requirement
@@ -156,7 +155,6 @@ def make_goalie_rankings(season: str) -> None:
 
     all_goalie_data = all_goalie_data[all_goalie_data['Player'].isin(min_gp_goalies)]
     ev_goalie_data = ev_goalie_data[ev_goalie_data['Player'].isin(min_gp_goalies)]
-    pp_goalie_data = pp_goalie_data[pp_goalie_data['Player'].isin(min_gp_goalies)]
     pk_goalie_data = pk_goalie_data[pk_goalie_data['Player'].isin(min_gp_goalies)]
 
     # Start ranking DataFrame with the goalie names, positions, and teams

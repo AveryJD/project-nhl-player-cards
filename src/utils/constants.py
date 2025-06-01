@@ -6,7 +6,7 @@
 DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
 
 # Seasons to scrape stats and profile data for
-SEASONS = ['2020-2021', '2021-2022', '2022-2023', '2023-2024', '2024-2025'] 
+SEASONS = ['2018-2019', '2019-2020', '2020-2021', '2021-2022', '2022-2023', '2023-2024', '2024-2025'] 
 
 # Situations to get data for
 PLAYER_SITUATIONS = ['all', 'ev', 'pp', 'pk']
