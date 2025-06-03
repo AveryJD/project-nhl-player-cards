@@ -135,45 +135,46 @@ SECONDARY_COLORS = {
 
 # Attribute colors for rank components
 ATTRIBUTE_COLORS = {
-    'Offense':          (255, 70, 70),
-    'Defense':          (22, 115, 193),
-    'ES Offense':       (0, 0, 0),
-    'ES Defense':       (0, 0, 0),
-    'Power Play':       (0, 0, 0),
-    'Penalty Kill':     (221, 185, 218),
-    'Shooting':         (255, 200, 80),
-    'Playmaking':       (180, 220, 120),
-    'Physicality':      (143, 121, 193),
-    'Penalties':        (221, 185, 218),
+    'Offense':          (0, 0, 0),
+    'Defense':          (0, 0, 0),
+    'ES Offense':       (255, 80, 80),
+    'ES Defense':       (80, 80, 255),
+    'Power Play':       (255, 130, 130),
+    'Penalty Kill':     (130, 130, 255),
+    'Shooting':         (0, 0, 0),
+    'Playmaking':       (0, 0, 0),
+    'Physicality':      (0, 0, 0),
+    'Penalties':        (0, 0, 0),
     #'Faceoffs':        (0, 0, 0),                 # Might be used in the future
     #'Speed':           (0, 0, 0),                 # Might be used in the future
-    'All Situations':   (22, 115, 193),
-    'Ev. Strength':     (143, 121, 193),
-    'Low Danger':       (180, 220, 120),
-    'Med. Danger':      (255, 200, 80),
-    'High Danger':      (255, 70, 70),
+    'All Situations':   (255, 80, 80),
+    'Ev. Strength':     (255, 130, 130),
+    'Low Danger':       (0, 0, 0),
+    'Med. Danger':      (0, 0, 0),
+    'High Danger':      (0, 0, 0),
 }
 
 # Atribute colors for graph components
 PLOT_ATTRIBUTE_COLORS = {
-    'off_plot': (255/255, 70/255, 70/255),
-    'def_plot': (22/255, 115/255, 193/255),
-    'eso_plot': (0/255, 0/255, 0/255),
-    'esd_plot': (0/255, 0/255, 0/255),
-    'ppl_plot': (0/255, 0/255, 0/255),
-    'pkl_plot': (221/255, 185/255, 218/255),
-    'sht_plot': (255/255, 200/255, 80/255),
-    'plm_plot': (180/255, 220/255, 120/255),
-    'phy_plot': (143/255, 121/255, 193/255),
-    'pen_plot': (221/255, 185/255, 218/255), 
+    'off_plot': (0/255, 0/255, 0/255),
+    'def_plot': (0/255, 0/255, 0/255),
+    'evo_plot': (255/255, 80/255, 80/255),
+    'evd_plot': (80/255, 80/255, 255/255),
+    'ppl_plot': (255/255, 130/255, 130/255),
+    'pkl_plot': (130/255, 130/255, 255/255),
+    'sht_plot': (0/255, 0/255, 0/255),
+    'plm_plot': (0/255, 0/255, 0/255),
+    'phy_plot': (0/255, 0/255, 0/255),
+    'pen_plot': (0/255, 0/255, 0/255),
     #'fof_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     #'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
-    'all_plot': (22/255, 115/255, 193/255),
-    'evs_plot': (143/255, 121/255, 193/255),
-    'ldg_plot': (180/255, 220/255, 120/255),
-    'mdg_plot': (255/255, 200/255, 80/255),
-    'hdg_plot': (255/255, 70/255, 70/255)
+    'all_plot': (255/255, 80/255, 80/255),
+    'evs_plot': (255/255, 130/255, 130/255),
+    'ldg_plot': (0/255, 0/255, 0/255),
+    'mdg_plot': (0/255, 0/255, 0/255),
+    'hdg_plot': (0/255, 0/255, 0/255)
 }
+
 
 
 

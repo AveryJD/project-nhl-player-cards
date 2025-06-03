@@ -361,9 +361,9 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     graph_section = Image.new("RGB", (graph_section_width, graph_section_height), color=(255, 255, 255))
 
     if pos == 'g':
-        attributes_to_plot = ['pkl', 'evs', 'all', 'ldg', 'mdg', 'hdg']
+        attributes_to_plot = ['all', 'pkl', 'evs',]
     else:
-        attributes_to_plot = ['def','off', 'pen', 'phy', 'plm', 'sht']
+        attributes_to_plot = ['evd', 'evo', 'pkl','ppl', ]
 
     # Make a list with the current season
     cur_season = max(player_multiple_seasons['Season'])
@@ -400,13 +400,13 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
 
 
         # Plot lines
-        dashed_line_attributes = ['sht', 'plm', 'phy', 'pen', 'ldg', 'mdg', 'hdg']
+        dashed_line_attributes = ['evs', 'pkl', 'ppl']
 
         valid_data = [(x, y) for x, y in zip(x_vals, percentiles) if y is not None]
         if valid_data:
             if attribute_name in dashed_line_attributes:
                 x_plot, y_plot = zip(*valid_data)
-                ax.plot(x_plot, y_plot, linewidth=1.5, linestyle='--', marker='o', markersize=6, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
+                ax.plot(x_plot, y_plot, linewidth=3, linestyle='--', marker='o', markersize=6, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
             else:
                 x_plot, y_plot = zip(*valid_data)
                 ax.plot(x_plot, y_plot, linewidth=5, linestyle='-', marker='o', markersize=10, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
