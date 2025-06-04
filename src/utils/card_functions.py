@@ -471,7 +471,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     player_card.paste(header_section, (0, 0))
 
     # For skater cards
-    if pos == 'f':
+    if pos != 'g':
         # Add offense and defense ranks
         off_rank_section = make_rank_component(player_cur_season, 'off_rank')
         player_card.paste(off_rank_section, (50, 720))
@@ -545,16 +545,21 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         phy_rank_section = make_rank_component(player_cur_season, 'hdg_rank')
         player_card.paste(phy_rank_section, (1245, 1700))
 
-
     # Add branding section
     branding_section = make_branding_section(team)
     player_card.paste(branding_section, (0, 2000))
 
+    if pos == 'f':
+        pos_file = 'forwards' 
+    elif pos == 'd':
+        pos_file = 'defensemen'
+    elif pos == 'g':
+        pos_file = 'goalies'
 
     # Save card as a PNG in the proper folder (create it if it doesnt exist)
-    save_dir = os.path.join(DATA_DIR, 'cards', season,)
+    save_dir = os.path.join(DATA_DIR, 'cards', season, pos_file)
     os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, f"{team}_{pos.upper()}_{player_name.replace(' ', '_')}_{season}.png")
+    save_path = os.path.join(save_dir, f"{team}_{player_name.replace(' ', '_')}_{season}.png")
     player_card = player_card.convert('RGB')
     player_card.save(save_path, 'PNG')
 
