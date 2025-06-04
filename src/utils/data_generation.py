@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import random
+import os
 from utils import data_cleaning as dc
 from utils import constants
 
@@ -28,7 +29,7 @@ def random_delay():
     """"
     Random delay between requests to prevent server overload
     """
-    delay = random.uniform(10, 15)
+    delay = random.uniform(10, 20)
     print(f"Waiting {delay:.2f} seconds before next request")
     time.sleep(delay)
 
@@ -60,17 +61,19 @@ def get_skater_profiles(season: str,):
     # Cleanup
     df = dc.clean_dataframe(df)
 
-    # Save player profiles DataFrame as a CSV
-    csv_path = f'{DATA_DIR}/data/player_data/skater_profiles/{season}_skater_profiles.csv'
-    df.to_csv(csv_path, index=False)
-    print(f"{season} skater profiles data saved")
+    # Save skater profiles as a CSV in the proper location
+    save_dir = os.path.join(DATA_DIR, 'data', 'player_data', 'skater_profiles')
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, f'{season}_skater_profiles.csv')
+    df.to_csv(save_path, index=False)
+    print(f"{season} skater profiles saved")
 
     random_delay()
     
 
 def get_skater_stats(season: str, situation: str):
 
-    url_season = season.replace("-", "")  # Remove hyphen for URL formatting
+    url_season = season.replace("-", "")
 
     # Scrape skater individual stats
     std_url = f'https://www.naturalstattrick.com/playerteams.php?fromseason={url_season}&thruseason={url_season}&stype=2&sit={situation}&score=all&stdoi=std&rate=n&team=ALL&pos=S&loc=B&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
@@ -112,10 +115,12 @@ def get_skater_stats(season: str, situation: str):
     # Cleanup 
     df = dc.clean_dataframe(df)
 
-    # Save player stats DataFrame as a CSV
-    csv_path = f'{DATA_DIR}/data/player_data/skater_stats/{season}_{situation}_skater_stats.csv'
-    df.to_csv(csv_path, index=False)
-    print(f"{season} {situation} skater stats saved")
+    # Save player stats as a CSV in the proper location
+    save_dir = os.path.join(DATA_DIR, 'data', 'player_data', 'skater_stats')
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, f'{season}_skater_{situation}_stats.csv')
+    df.to_csv(save_path, index=False)
+    print(f"{season} skater {situation} stats saved")
 
     random_delay()
 
@@ -146,10 +151,12 @@ def get_goalie_profiles(season: str,):
     # Cleanup
     df = dc.clean_dataframe(df)
 
-    # Save goalie profiles DataFrame as a CSV
-    csv_path = f'{DATA_DIR}/data/player_data/goalie_profiles/{season}_goalie_profiles.csv'
-    df.to_csv(csv_path, index=False)
-    print(f"{season} goalie profiles data saved")
+    # Save goalie profiles as a CSV in the proper location
+    save_dir = os.path.join(DATA_DIR, 'data', 'player_data', 'goalie_profiles')
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, f'{season}_goalie_profiles.csv')
+    df.to_csv(save_path, index=False)
+    print(f"{season} goalie profiles saved")
 
     random_delay()
 
@@ -178,10 +185,12 @@ def get_goalie_stats(season: str, situation: str):
     # Cleanup 
     df = dc.clean_dataframe(df)
 
-    # Save goalie stats DataFrame as a CSV
-    csv_path = f'{DATA_DIR}/data/player_data/goalie_stats/{season}_{situation}_goalie_stats.csv'
-    df.to_csv(csv_path, index=False)
-    print(f"{season} {situation} goalie stats saved")
+    # Save goalie stats as a CSV in the proper location
+    save_dir = os.path.join(DATA_DIR, 'data', 'player_data', 'goalie_stats')
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, f'{season}_goalie_{situation}_stats.csv')
+    df.to_csv(save_path, index=False)
+    print(f"{season} goalie {situation} stats saved")
 
     random_delay()
 

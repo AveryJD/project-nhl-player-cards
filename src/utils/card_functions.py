@@ -556,7 +556,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     elif pos == 'g':
         pos_file = 'goalies'
 
-    # Save card as a PNG in the proper folder (create it if it doesnt exist)
+    # Save card as a PNG in the proper location
     save_dir = os.path.join(DATA_DIR, 'cards', season, pos_file)
     os.makedirs(save_dir, exist_ok=True)
     save_path = os.path.join(save_dir, f"{team}_{player_name.replace(' ', '_')}_{season}.png")

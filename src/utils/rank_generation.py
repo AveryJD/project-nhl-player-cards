@@ -4,6 +4,7 @@
 
 # Imports
 import pandas as pd
+import os
 from utils import rank_scores as rs
 from utils import constants
 
@@ -133,14 +134,19 @@ def make_skater_rankings(season: str) -> None:
         attribute, _ = column.split('_')
         d_rankings[f'{attribute}_rank'] = d_rankings[column].rank(ascending=False, method='min')
 
-    # Save rankings to CSV
-    f_rankings_path = f'{DATA_DIR}/data/player_rankings/forward_rankings/{season}_f_rankings.csv'
-    d_rankings_path = f'{DATA_DIR}/data/player_rankings/defense_rankings/{season}_d_rankings.csv'
+    # Save forward rankings as a CSV in the proper location
+    f_save_dir = os.path.join(DATA_DIR, 'data', 'player_rankings', 'forward_rankings')
+    os.makedirs(f_save_dir, exist_ok=True)
+    f_save_path = os.path.join(f_save_dir, f'{season}_f_rankings.csv')
+    f_rankings.to_csv(f_save_path, index=False)
 
-    f_rankings.to_csv(f_rankings_path, index=False)
-    d_rankings.to_csv(d_rankings_path, index=False)
+    # Save defense rankings as a CSV in the proper location
+    d_save_dir = os.path.join(DATA_DIR, 'data', 'player_rankings', 'defense_rankings')
+    os.makedirs(d_save_dir, exist_ok=True)
+    d_save_path = os.path.join(d_save_dir, f'{season}_d_rankings.csv')
+    d_rankings.to_csv(d_save_path, index=False)
 
-    print(f'{season} skater rankings created')
+    print(f"{season} skater rankings created")
 
 
 
@@ -213,8 +219,10 @@ def make_goalie_rankings(season: str) -> None:
         attribute, _ = column.split('_')
         g_rankings[f'{attribute}_rank'] = g_rankings[column].rank(ascending=False, method='min')
 
-    # Save ranking to CSV
-    g_rankings_path = f'{DATA_DIR}/data/player_rankings/goalie_rankings/{season}_g_rankings.csv'
-    g_rankings.to_csv(g_rankings_path, index=False)
+    # Save goalie rankings as a CSV in the proper location
+    g_save_dir = os.path.join(DATA_DIR, 'data', 'player_rankings', 'goalie_rankings')
+    os.makedirs(g_save_dir, exist_ok=True)
+    g_save_path = os.path.join(g_save_dir, f'{season}_g_rankings.csv')
+    g_rankings.to_csv(g_save_path, index=False)
 
     print(f'{season} goalie rankings created')
