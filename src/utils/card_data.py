@@ -69,18 +69,16 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
     :return: a tuple of the player's rank and percentile for the given attribute
     """
 
-    # For player's that do not qualify for certain attributes (power play and penalty kill)
+    # For player's that do not qualify for certain attributes (power play, penalty kill, and faceoffs)
     if attribute_rank_name == "ppl_rank" and player_row['ppl_score'] == -999999:
         rank = 'N/A'
         percentile = 100
     elif attribute_rank_name == "pkl_rank" and player_row['pkl_score'] == -999999:
         rank = 'N/A'
         percentile = 100
-
-    # Faceoff attribute logic - might be used in the future
-    # elif attribute_rank_name == "fof_rank" and player_row['fof_score'] == -999999:
-    #     rank = 'N/A'
-    #     percentile = 100
+    elif attribute_rank_name == "fof_rank" and player_row['fof_score'] == -999999:
+        rank = 'N/A'
+        percentile = 100
     
     # Calculate a player's attribute rank and percentile among total players
     else:

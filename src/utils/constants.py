@@ -88,9 +88,9 @@ ATRIBUTE_NAMES = {
     'plm_rank' : 'Playmaking',
     'phy_rank' : 'Physicality',
     'pen_rank' : 'Penalties',
-    #'fof_rank' : 'Faceoffs',                   # Might be used in the future
+    'fof_rank' : 'Faceoffs',
     #'spd_rank' : 'Speed',                      # Might be used in the future
-    'all_rank' : 'All Situations',
+    'all_rank' : 'Overall',
     'evs_rank' : 'Ev. Strength',
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
@@ -137,18 +137,18 @@ SECONDARY_COLORS = {
 ATTRIBUTE_COLORS = {
     'Offense':          (0, 0, 0),
     'Defense':          (0, 0, 0),
-    'ES Offense':       (255, 80, 80),
-    'ES Defense':       (80, 80, 255),
-    'Power Play':       (255, 130, 130),
-    'Penalty Kill':     (130, 130, 255),
+    'ES Offense':       (255, 70, 70),
+    'ES Defense':       (70, 70, 255),
+    'Power Play':       (255, 150, 130),
+    'Penalty Kill':     (130, 150, 255),
     'Shooting':         (0, 0, 0),
     'Playmaking':       (0, 0, 0),
     'Physicality':      (0, 0, 0),
     'Penalties':        (0, 0, 0),
-    #'Faceoffs':        (0, 0, 0),                 # Might be used in the future
+    'Faceoffs':         (0, 0, 0),
     #'Speed':           (0, 0, 0),                 # Might be used in the future
-    'All Situations':   (255, 80, 80),
-    'Ev. Strength':     (255, 130, 130),
+    'Overall':   (255, 70, 70),
+    'Ev. Strength':     (255, 150, 150),
     'Low Danger':       (0, 0, 0),
     'Med. Danger':      (0, 0, 0),
     'High Danger':      (0, 0, 0),
@@ -158,18 +158,18 @@ ATTRIBUTE_COLORS = {
 PLOT_ATTRIBUTE_COLORS = {
     'off_plot': (0/255, 0/255, 0/255),
     'def_plot': (0/255, 0/255, 0/255),
-    'evo_plot': (255/255, 80/255, 80/255),
-    'evd_plot': (80/255, 80/255, 255/255),
-    'ppl_plot': (255/255, 130/255, 130/255),
-    'pkl_plot': (130/255, 130/255, 255/255),
+    'evo_plot': (255/255, 70/255, 70/255),
+    'evd_plot': (70/255, 70/255, 255/255),
+    'ppl_plot': (255/255, 150/255, 150/255),
+    'pkl_plot': (150/255, 150/255, 255/255),
     'sht_plot': (0/255, 0/255, 0/255),
     'plm_plot': (0/255, 0/255, 0/255),
     'phy_plot': (0/255, 0/255, 0/255),
     'pen_plot': (0/255, 0/255, 0/255),
     #'fof_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     #'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
-    'all_plot': (255/255, 80/255, 80/255),
-    'evs_plot': (255/255, 130/255, 130/255),
+    'all_plot': (255/255, 70/255, 70/255),
+    'evs_plot': (255/255, 150/255, 150/255),
     'ldg_plot': (0/255, 0/255, 0/255),
     'mdg_plot': (0/255, 0/255, 0/255),
     'hdg_plot': (0/255, 0/255, 0/255)
