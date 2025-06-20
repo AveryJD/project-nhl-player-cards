@@ -31,22 +31,24 @@ weights = {
     'oi_ldsf': 0.043,
     'oi_mdsf': 0.119,
     'oi_hdsf': 0.190,
-    'oi_ldgf': 1.000,
-    'oi_mdgf': 1.000,
-    'oi_hdgf': 1.000,
+    'oi_ldgf': 0.000,
+    'oi_mdgf': 0.000,
+    'oi_hdgf': 0.000,
+    'oi_xgf': 1.000,
 
     # Defensive Weights
     'blocks': 0.104,
-    'takeaways': 0.000,             # ADD
-    'giveaways': -0.000,            # ADD
+    'takeaways': 0.104,             # ADJUST
+    'giveaways': -0.104,            # ADJUST
 
     # On Ice Defensive Weights
     'oi_ldsa': -0.043,
     'oi_mdsa': -0.119,
     'oi_hdsa': -0.190,
-    'oi_ldga': -1.000,
-    'oi_mdga': -1.000,
-    'oi_hdga': -1.000,
+    'oi_ldga': -0.000,
+    'oi_mdga': -0.000,
+    'oi_hdga': -0.000,
+    'oi_xga': -1.000,
 
     # Physicality Weights
     'hits': 1.00,                   # ADJUST
@@ -55,8 +57,8 @@ weights = {
     'misconducts': 3.00,            # ADJUST
 
     # Penalty Differential Weights
-    'penalty_min_taken': -1,
-    'penalty_min_drawn': 1,
+    'penalty_min_taken': -1.000,
+    'penalty_min_drawn': 1.000,
 
 
     # Speed Weights                 Might be used in the future
@@ -100,6 +102,12 @@ Block = 0.103               Preventing a shot
 Divide stat weights by amount of players on the ice in functions
 ex. 5v5 on ice high danger shot against = 0.190 / 5 = 0.038
 
+
+=== Physicality ===
+
+
+=== Penalty Differential ===
+
 """
 
 
@@ -112,9 +120,9 @@ def adjust_skater_score(score, row, toi_adjust=1):
     toi = row['TOI'] * toi_adjust
 
     if score >= 0:
-        sigmoid = 1 / (1 + np.exp(-0.2 * (gp - 60)))
+        sigmoid = 0.3 + (1 / (1.43 + np.exp(-0.1 * (gp - 25))))
     else:
-        sigmoid = 1 / (1 + np.exp(0.2 * (gp - 60)))
+        sigmoid = 0.3 + (1 / (1.43 + np.exp(0.1 * (gp - 25))))
 
     adjusted_score = score * sigmoid
     adjusted_score = (adjusted_score / toi) * 60
@@ -205,7 +213,8 @@ def offensive_score(row, oi_players=5):
         weights['oi_hdsf'] * row['HDCF'] +
         weights['oi_ldgf'] * row['LDGF'] +
         weights['oi_mdgf'] * row['MDGF'] +
-        weights['oi_hdgf'] * row['HDGF']
+        weights['oi_hdgf'] * row['HDGF'] +
+        weights['oi_xgf'] * row['xGF']
     ) / oi_players
 
     tot_off_score = tot_sht_score + tot_plm_score + tot_oi_off_score
@@ -226,7 +235,8 @@ def defensive_score(row, oi_players=5):
         weights['oi_hdsa'] * row['HDCA'] +
         weights['oi_ldga'] * row['LDGA'] +
         weights['oi_mdga'] * row['MDGA'] +
-        weights['oi_hdga'] * row['HDGA']) / oi_players
+        weights['oi_hdga'] * row['HDGA'] +
+        weights['oi_xga'] * row['xGA']) / oi_players
     )
 
     def_score = adjust_skater_score(tot_def_score, row, d_zone_percent)
