@@ -156,7 +156,7 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     # Header row for goalies
     if pos == 'g':
         all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_profiles/{season}_goalie_profiles.csv')
-        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_all_goalie_stats.csv')
+        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_goalie_all_stats.csv')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
@@ -167,7 +167,7 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     # Header row for skaters
     else:
         all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_profiles/{season}_skater_profiles.csv')
-        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_all_skater_stats.csv')
+        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_skater_all_stats.csv')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()

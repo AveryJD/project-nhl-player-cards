@@ -14,10 +14,10 @@ DATA_DIR = constants.DATA_DIR
 def make_skater_rankings(season: str) -> None:
     
     # Read skater data
-    all_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_all_skater_stats.csv')
-    ev_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_ev_skater_stats.csv')
-    pp_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_pp_skater_stats.csv')
-    pk_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_pk_skater_stats.csv')
+    all_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_skater_all_stats.csv')
+    ev_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_skater_ev_stats.csv')
+    pp_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_skater_pp_stats.csv')
+    pk_skater_data = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_skater_pk_stats.csv')
 
     # Filter out any skaters who haven't played over the minimum games played requirement
     min_gp_skaters = all_skater_data.loc[(all_skater_data['GP'] >= constants.MIN_GP_SKATER), 'Player']
@@ -152,9 +152,9 @@ def make_skater_rankings(season: str) -> None:
 
 def make_goalie_rankings(season: str) -> None:
 
-    all_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_all_goalie_stats.csv')
-    ev_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_ev_goalie_stats.csv')
-    pk_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_pk_goalie_stats.csv')
+    all_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_goalie_all_stats.csv')
+    ev_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_goalie_ev_stats.csv')
+    pk_goalie_data = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_goalie_pk_stats.csv')
 
     # Filter out any goalies who haven't played over the minimum games played requirement
     min_gp_goalies = all_goalie_data.loc[(all_goalie_data['GP'] >= constants.MIN_GP_GOALIE), 'Player']

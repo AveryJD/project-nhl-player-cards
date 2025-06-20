@@ -147,7 +147,7 @@ ATTRIBUTE_COLORS = {
     'Penalties':        (0, 0, 0),
     'Faceoffs':         (0, 0, 0),
     #'Speed':           (0, 0, 0),                 # Might be used in the future
-    'Overall':   (255, 70, 70),
+    'Overall':          (255, 70, 70),
     'Ev. Strength':     (255, 150, 150),
     'Low Danger':       (0, 0, 0),
     'Med. Danger':      (0, 0, 0),
@@ -166,7 +166,7 @@ PLOT_ATTRIBUTE_COLORS = {
     'plm_plot': (0/255, 0/255, 0/255),
     'phy_plot': (0/255, 0/255, 0/255),
     'pen_plot': (0/255, 0/255, 0/255),
-    #'fof_plot': (0/255, 0/255, 0/255),         # Might be used in the future
+    'fof_plot': (0/255, 0/255, 0/255),
     #'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     'all_plot': (255/255, 70/255, 70/255),
     'evs_plot': (255/255, 150/255, 150/255),
@@ -174,8 +174,6 @@ PLOT_ATTRIBUTE_COLORS = {
     'mdg_plot': (0/255, 0/255, 0/255),
     'hdg_plot': (0/255, 0/255, 0/255)
 }
-
-
 
 
 
@@ -216,5 +214,4 @@ G_PLAYERS = ['John Gibson', 'Jeremey Swayman', 'Ukko-Pekka Luukkonen', 'Dustin W
             'Andrei Vasilevskiy', 'Joseph Woll', 'Karel Vejmelka', 'Kevin Lankinen', 'Adin Hill',
             'Logan Thompson', 'Connor Hellebuyck'
 ]
-
 
