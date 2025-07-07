@@ -35,7 +35,7 @@ def random_delay():
 
 
 
-def get_skater_profiles(season: str,):
+def get_skater_profiles(season: str):
 
     # Scrape skater profiles
     url_season = season.replace("-", "")
