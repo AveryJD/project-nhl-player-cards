@@ -5,11 +5,14 @@
 # Project file location
 DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
 
-# Seasons to scrape stats and profile data for
-SEASONS = ['2018-2019', '2019-2020', '2020-2021', '2021-2022', '2022-2023', '2023-2024', '2024-2025'] 
+# Seasons to scrape stats and bio data for
+SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020']
+
+# Positions to scrape stats and bio data for
+POSITIONS = ['F', 'D', 'G']
 
 # Situations to get data for
-PLAYER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
+SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 
 # Symbols to be replaced in player names
