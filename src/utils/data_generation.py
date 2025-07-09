@@ -29,7 +29,7 @@ def save_data_csv(df: pd.DataFrame, folder: str, filename: str):
     save_path = os.path.join(save_dir, filename)
     # Save the CSV file
     df.to_csv(save_path, index=False)
-    print(f"Saved {filename} to {folder}")
+    print(f"Saved {filename}")
 
 
 def make_nst_url(
