@@ -9,7 +9,7 @@ from utils import constants
 
 def clean_symbols(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Replace any unusual in the DataFrame with typical characters.
+    Replace any unusual symbols in the DataFrame with typical characters.
 
     :param df: the DataFrame to be cleaned
     :return: the cleaned DataFrame
