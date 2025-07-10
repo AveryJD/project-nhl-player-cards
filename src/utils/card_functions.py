@@ -6,11 +6,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
-import os
 from utils import card_data as cd
 from utils import card_helpers as ch
 from utils import card_images as ci
 from utils import constants
+from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
@@ -56,7 +56,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     role = cd.get_player_role(player_row)
     games_played = player_row['GP']
     if position == 'G':
-        save_percentage = format(player_row['SV%'], '.3f')
+        save_percentage = format(float(player_row['SV%']), '.3f')
         goals_against_avg = format(player_row['GAA'], '.2f')
     else:
         goals = player_row['Goals']
@@ -556,11 +556,9 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     elif pos == 'G':
         pos_file = 'goalies'
 
-    # Save card as a PNG in the proper location
-    save_dir = os.path.join(DATA_DIR, 'cards', season, pos_file)
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, f"{team}_{player_name.replace(' ', '_')}_{season}.png")
     player_card = player_card.convert('RGB')
-    player_card.save(save_path, 'PNG')
 
-    print(f'{player_name} card created')
+    file_name = f'{season}_{team}_{pos}_{player_name.replace(' ', '_')}.png'
+
+    file.save_card(player_card, season, pos_file, team, file_name)
+

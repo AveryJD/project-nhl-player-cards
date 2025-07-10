@@ -86,18 +86,18 @@ def save_csv(df: pd.DataFrame, main_folder: str, sub_folder: str, filename: str)
     print(f"Saved {filename}")
 
 
-def save_card(card: Image, year: str, team: str, position: str, filename: str) -> None:
+def save_card(card: Image, season: str, team: str, position: str, filename: str) -> None:
     """
     Save a card PNG to a specified folder.
 
     :param card: The card image to save
-    :param year: The year folder to save to
+    :param season: The season folder to save to
     :param team: The team folder inside the year folder to save to 
     :param position: The position folder inside the team folder to save to 
     :param filename: Name of the card to save
     :return: None
     """
-    save_dir = os.path.join(DATA_DIR, 'cards', year, team, position)
+    save_dir = os.path.join(DATA_DIR, 'cards', season, team, position)
     os.makedirs(save_dir, exist_ok=True)
 
     save_path = os.path.join(save_dir, filename)
