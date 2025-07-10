@@ -21,7 +21,7 @@
 - Visualized ranking trends over time with graphs generated using Matplotlib  
 
 ## Sample Card
-![Sidney Crosby Player Card](cards/2024-2025/PIT_F_Sidney_Crosby_2024-2025.png)
+![Sidney Crosby Player Card](assets/2024-2025_FLA_F_Matthew_Tkachuk.png)
 
 ## Upcoming Additions
 - Player salary information  
