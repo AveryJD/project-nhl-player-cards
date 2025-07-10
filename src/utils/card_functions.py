@@ -560,5 +560,5 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
     file_name = f'{season}_{team}_{pos}_{player_name.replace(' ', '_')}.png'
 
-    file.save_card(player_card, season, pos_file, team, file_name)
+    file.save_card(player_card, season, team, pos_file, file_name)
 
