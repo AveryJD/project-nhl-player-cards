@@ -38,9 +38,6 @@ def load_stats_csv(season: str, position: str, situation: str) -> pd.DataFrame:
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
     stats_file_path = os.path.join(DATA_DIR, 'data', 'stats', stats_filename)
 
-    if not os.path.exists(stats_file_path):
-        raise FileNotFoundError(f"Stats file not found: {stats_file_path}")
-
     stats_df = pd.read_csv(stats_file_path)
     return stats_df
 

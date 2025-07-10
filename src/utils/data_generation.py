@@ -6,31 +6,13 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
-import os
 import time
 import random
+from utils import data_cleaning as dc
 from utils import constants
+from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
-
-
-def save_data_csv(df: pd.DataFrame, folder: str, filename: str) -> None:
-    """
-    Save a DataFrame as a CSV file in the specified folder.
-
-    :param df: DataFrame to save
-    :param folder: Subfolder name inside 'data'
-    :param filename: Name of the CSV file to create
-    :return: None
-    """
-    # Make the save directory path
-    save_dir = os.path.join(DATA_DIR, 'data', folder)
-    os.makedirs(save_dir, exist_ok=True)
-    # Make the save path
-    save_path = os.path.join(save_dir, filename)
-    # Save the CSV file
-    df.to_csv(save_path, index=False)
-    print(f"Saved {filename}")
 
 
 def make_nst_url(
@@ -135,6 +117,42 @@ def scrape_data(url: str) -> pd.DataFrame:
     return df
 
 
+def scrape_and_save_bios(season: str, position: str) -> None:
+    """
+    Scrape player bios from NST and save using the standardized save function.
+    """
+    bios_url = make_nst_url(season=season, situation='all', stdoi='bio', position=position)
+    bios_df = scrape_data(bios_url)
+    bios_df = dc.clean_dataframe(bios_df)
+
+    filename = f'{season}_{position}_bios.csv'
+    file.save_csv(bios_df, main_folder='data', sub_folder='bios', filename=filename)
+
+
+def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
+    """
+    Scrape player stats from NST and save using the standardized save function.
+    """
+
+    if position != 'G':
+        std_url = make_nst_url(season=season, situation=situation, stdoi='std', position=position)
+        std_stats_df = scrape_data(std_url)
+
+        oi_url = make_nst_url(season=season, situation=situation, stdoi='oi', position=position)
+        oi_stats_df = scrape_data(oi_url)
+
+        merge_keys = ['Player', 'Team', 'Position', 'GP', 'TOI']
+        stats_df = merge_data(std_stats_df, oi_stats_df, merge_keys)
+        stats_df = dc.clean_dataframe(stats_df)
+    else:
+        g_stats_url = make_nst_url(season=season, situation=situation, stdoi='g', position=position)
+        g_stats_df = scrape_data(g_stats_url)
+        stats_df = dc.clean_dataframe(g_stats_df)
+
+    stats_filename = f'{season}_{position}_{situation}_stats.csv'
+    file.save_csv(stats_df, 'data', 'stats', stats_filename)
+
+
 def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> pd.DataFrame:
     """
     Merge two DataFrames on specified keys using an inner join.
@@ -144,7 +162,6 @@ def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> 
     :param merge_keys: List of column names to merge on
     :return: Merged DataFrame
     """
-    # Merge DataFrames
     merged_df = pd.merge(df_one, df_two, on=merge_keys, how='inner')
 
     return merged_df
