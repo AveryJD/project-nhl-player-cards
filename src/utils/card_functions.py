@@ -83,11 +83,11 @@ def make_header_section(player_row: pd.Series) -> Image:
 
     # Get player image
     if position == 'G':
-        pos = 'g'
+        pos = 'G'
     elif position == 'D':
-        pos = 'd'
+        pos = 'D'
     else:
-        pos = 'f'
+        pos = 'F'
 
     player_img = ci.get_player_image(name, team, season, pos)
     player_img = player_img.resize((500, 500))
@@ -277,7 +277,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     over multiple seasons.
 
     :param player_multiple_seasons: a DataFrame containing player data over multiple seasons
-    :param pos: a str of the first letter of the player's position ('f', 'd', or 'g')
+    :param pos: a str of the first letter of the player's position ('F', 'D', or 'G')
     :return: an Image of the graph section
     """
 
@@ -289,7 +289,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     draw = ImageDraw.Draw(graph_section)
     draw.rectangle([(0, 0), (1230, 1000)], fill=(0,0,0))
 
-    if pos == 'g':
+    if pos == 'G':
         attributes_to_plot = ['all', 'pkl', 'evs',]
     else:
         attributes_to_plot = ['evd', 'evo', 'pkl','ppl', ]
@@ -437,7 +437,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
     :param player_name: a str of the full name of the player (e.g. 'Auston Matthews')
     :param season: a str of the season that the data for the card comes from('YYYY-YYYY')
-    :param pos: a str of the first letter of the player's position ('f', 'd', or 'g')
+    :param pos: a str of the first letter of the player's position ('F', 'D', or 'G')
     :return: none
     """
 
@@ -471,7 +471,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     player_card.paste(header_section, (0, 0))
 
     # For skater cards
-    if pos != 'g':
+    if pos != 'G':
         # Add offense and defense ranks
         off_rank_section = make_rank_component(player_cur_season, 'off_rank')
         player_card.paste(off_rank_section, (50, 720))
@@ -549,11 +549,11 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     branding_section = make_branding_section(team)
     player_card.paste(branding_section, (0, 2000))
 
-    if pos == 'f':
+    if pos == 'F':
         pos_file = 'forwards' 
-    elif pos == 'd':
+    elif pos == 'D':
         pos_file = 'defensemen'
-    elif pos == 'g':
+    elif pos == 'G':
         pos_file = 'goalies'
 
     # Save card as a PNG in the proper location

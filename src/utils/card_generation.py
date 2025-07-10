@@ -16,7 +16,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
     :param player_name: a str of the player's full name ('First Last')
     :param season: a str representing the season ('YYYY-YYYY')
-    :param pos: a str representing the player's position ('f', 'd', or 'g')
+    :param pos: a str representing the player's position ('F', 'D', or 'G')
     :return: None
     """
     cf.make_player_card(player_name, season, pos)
@@ -28,7 +28,7 @@ def make_specific_player_cards(specific_players: list, cur_season: str, pos: str
 
     :param specific_players: a list of str player names ('First Last')
     :param cur_season: a str representing the season ('YYYY-YYYY')
-    :param pos: a str representing the players' position ('f', 'd', or 'g')
+    :param pos: a str representing the players' position ('F', 'D', or 'G')
     :return: None
     """
     for player_name in specific_players:
@@ -43,23 +43,23 @@ def make_team_player_cards(team: str, season: str) -> None:
     :param season: a str representing the season ('YYYY-YYYY')
     :return: None
     """
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/forward_rankings/{season}_f_rankings.csv')
+    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
     for _, player_row in cur_season_data.iterrows():
         if player_row['Team'] == team:
             player_name = player_row['Player']
-            cf.make_player_card(player_name, season, 'f')
+            cf.make_player_card(player_name, season, 'F')
 
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/defense_rankings/{season}_d_rankings.csv')
+    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
     for _, player_row in cur_season_data.iterrows():
         if player_row['Team'] == team:
             player_name = player_row['Player']
-            cf.make_player_card(player_name, season, 'd')
+            cf.make_player_card(player_name, season, 'D')
 
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/goalie_rankings/{season}_g_rankings.csv')
+    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
     for _, player_row in cur_season_data.iterrows():
         if player_row['Team'] == team:
             player_name = player_row['Player']
-            cf.make_player_card(player_name, season, 'g')
+            cf.make_player_card(player_name, season, 'G')
 
 
 def make_position_player_cards(season: str, pos: str) -> None:
@@ -67,15 +67,15 @@ def make_position_player_cards(season: str, pos: str) -> None:
     Generate player cards for all players of a given position during a specific season.
 
     :param season: a str representing the season ('YYYY-YYYY')
-    :param pos: a str representing the position ('f', 'd', or 'g')
+    :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None
     """
-    if pos == 'f':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/forward_rankings/{season}_f_rankings.csv')
-    elif pos == 'd':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/defense_rankings/{season}_d_rankings.csv')
-    elif pos == 'g':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/goalie_rankings/{season}_g_rankings.csv')
+    if pos == 'F':
+        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
+    elif pos == 'D':
+        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
+    elif pos == 'G':
+        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
     else:
         return
 
@@ -91,20 +91,20 @@ def make_all_player_cards(season: str) -> None:
     :param season: a str representing the season ('YYYY-YYYY')
     :return: None
     """
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/forward_rankings/{season}_f_rankings.csv')
+    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
     for _, player_row in cur_season_data.iterrows():
         player_name = player_row['Player']
-        cf.make_player_card(player_name, season, 'f')
+        cf.make_player_card(player_name, season, 'F')
 
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/defense_rankings/{season}_d_rankings.csv')
+    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
     for _, player_row in cur_season_data.iterrows():
         player_name = player_row['Player']
-        cf.make_player_card(player_name, season, 'd')
+        cf.make_player_card(player_name, season, 'D')
 
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/goalie_rankings/{season}_g_rankings.csv')
+    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
     for _, player_row in cur_season_data.iterrows():
         player_name = player_row['Player']
-        cf.make_player_card(player_name, season, 'g')
+        cf.make_player_card(player_name, season, 'G')
 
 
 def make_rank_player_cards(rank: str, season: str, pos: str) -> None:
@@ -113,15 +113,15 @@ def make_rank_player_cards(rank: str, season: str, pos: str) -> None:
 
     :param rank: a str of the attribute name to sort by (e.g. 'off')
     :param season: a str representing the season ('YYYY-YYYY')
-    :param pos: a str representing the position ('f', 'd', or 'g')
+    :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None
     """
-    if pos == 'f':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/forward_rankings/{season}_f_rankings.csv')
-    elif pos == 'd':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/defense_rankings/{season}_d_rankings.csv')
-    elif pos == 'g':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/goalie_rankings/{season}_g_rankings.csv')
+    if pos == 'F':
+        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
+    elif pos == 'D':
+        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
+    elif pos == 'G':
+        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
     else:
         return
 

@@ -14,13 +14,14 @@ from utils import constants
 DATA_DIR = constants.DATA_DIR
 
 
-def save_data_csv(df: pd.DataFrame, folder: str, filename: str):
+def save_data_csv(df: pd.DataFrame, folder: str, filename: str) -> None:
     """
     Save a DataFrame as a CSV file in the specified folder.
 
     :param df: DataFrame to save
     :param folder: Subfolder name inside 'data'
     :param filename: Name of the CSV file to create
+    :return: None
     """
     # Make the save directory path
     save_dir = os.path.join(DATA_DIR, 'data', folder)
@@ -84,9 +85,11 @@ def make_nst_url(
     return url
 
 
-def random_delay():
+def random_delay() -> None:
     """
     Introduce a random delay between web requests to reduce server load and avoid rate limiting.
+
+    :return: None
     """
     # Make delay by a random time of 10-20 seconds
     delay = random.uniform(10, 20)
@@ -94,7 +97,7 @@ def random_delay():
     time.sleep(delay)
 
 
-def get_page(url: str):
+def get_page(url: str) -> str:
     """
     Fetch the HTML content of a given URL.
 

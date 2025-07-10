@@ -149,14 +149,14 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     
     :param player_name: a str of the player's full name name that the Series is being retrieved for ('First Last')
     :param season: a str of the season to return the header information (YYYY-YYYY')
-    :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
+    :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
     :return: a Series containing all the header information
     """
 
     # Header row for goalies
-    if pos == 'g':
-        all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_profiles/{season}_goalie_profiles.csv')
-        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/goalie_stats/{season}_goalie_all_stats.csv')
+    if pos == 'G':
+        all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/bios/{season}_G_bios.csv')
+        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/stats/{season}_G_all_stats.csv')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
@@ -166,8 +166,8 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
 
     # Header row for skaters
     else:
-        all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_profiles/{season}_skater_profiles.csv')
-        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/player_data/skater_stats/{season}_skater_all_stats.csv')
+        all_player_profiles = pd.read_csv(f'{DATA_DIR}/data/bios/{season}_{pos}_bios.csv')
+        all_player_stats = pd.read_csv(f'{DATA_DIR}/data/stats/{season}_{pos}_all_stats.csv')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
@@ -188,12 +188,12 @@ def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str ='all'
 
     :param season_data: a DataFrame of player stats
     :param attribute: a str of the attribute to return the total players for
-    :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
+    :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
     :return: an int of the total players that are included in an attribute
     """
     
     # Total players for when attribute is specified as 'all' or for any goalie attriibutes is all players
-    if attribute == 'all' or pos == 'g':
+    if attribute == 'all' or pos == 'G':
         total_players = len(season_data)
 
     # For attributes that not all players qualify for, ignore players whose attribute score is -999999
@@ -210,7 +210,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
 
     :param season: a str of the most recent season ('YYYY-YYYY')
     :param cur_season_data: a DataFrame containing player stats for the given season
-    :param pos: a str of the first letter of the player's position ('f', 'd', or 'g')
+    :param pos: a str of the first letter of the player's position ('F', 'D', or 'G')
     :param seasons_num: an int specifying the number of past seasons to retrieve player totals for (default is 5)
     :return: a dict mapping attribute-year keys to the corresponding total number of players
     """
@@ -221,15 +221,15 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
     tot_players_season_data = cur_season_data
 
     # Set which attributes to count players by depending on position
-    if pos == 'g':
+    if pos == 'G':
         attribute_list = ['all']
-        position_str = 'goalie'
-    elif pos == 'f':
+        position_str = 'goalies'
+    elif pos == 'F':
         attribute_list = ['all', 'ppl', 'pkl', 'fof']
-        position_str = 'forward'
-    elif pos == 'd':
+        position_str = 'forwards'
+    elif pos == 'D':
         attribute_list = ['all', 'ppl', 'pkl', 'fof']
-        position_str = 'defense'
+        position_str = 'defensemen'
 
     # Iterate through the specified number of past seasons and get total players per attribute
     for _ in range(seasons_num):
@@ -242,7 +242,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
         
         # Load data from previous season,, but break if the file is not found
         try:
-            tot_players_season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{tot_players_season}_{pos}_rankings.csv')
+            tot_players_season_data = pd.read_csv(f'{DATA_DIR}/rankings/{position_str}/{tot_players_season}_{pos}_rankings.csv')
         except FileNotFoundError:
             print(f'Warning: Data for {tot_players_season} total players not found. Stopping iteration.')
             break
@@ -256,21 +256,21 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
 
     :param player_name: a str of the full name of the player to return the multiple seasons for ('First Last')
     :param cur_season: a str of the most recent season ('YYYY-YYYY')
-    :param pos: a str of the player's position's first letter ('f', 'd', or 'g')
+    :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
     :param seasons_num: an int of the number of seasons to include (default is 5)
     :return: a DataFrame containing player stats and total player counts over the specified seasons
     """
 
     # Set position strings
-    if pos == 'g':
-        position_str = 'goalie'
-    elif pos == 'd':
-        position_str = 'defense'
-    elif pos == 'f':
-        position_str = 'forward'
+    if pos == 'G':
+        position_str = 'goalies'
+    elif pos == 'D':
+        position_str = 'defensemen'
+    elif pos == 'F':
+        position_str = 'forwards'
 
     # Load the current season's data
-    season_zero_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{cur_season}_{pos}_rankings.csv')
+    season_zero_data = pd.read_csv(f'{DATA_DIR}/rankings/{position_str}/{cur_season}_{pos}_rankings.csv')
     
     # Get player row
     player_seasons = season_zero_data[season_zero_data['Player'] == player_name].copy()
@@ -281,7 +281,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     # Add total players stats for the current season
     player_seasons['all_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
 
-    if pos == 'g':
+    if pos == 'G':
         player_seasons['ppl_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
         player_seasons['pkl_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
         player_seasons['fof_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
@@ -295,7 +295,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     season = get_prev_season(cur_season)
     for _ in range(seasons_num):
         try:
-            season_data = pd.read_csv(f'{DATA_DIR}/data/player_rankings/{position_str}_rankings/{season}_{pos}_rankings.csv')
+            season_data = pd.read_csv(f'{DATA_DIR}/rankings/{position_str}/{season}_{pos}_rankings.csv')
         except FileNotFoundError:
             print(f"Warning: Data for {season} season not found. Skipping this season.")
             break
@@ -305,7 +305,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
             # Add player row to the DataFrame
             player_row = player_row.copy()
             player_row['all_players'] = yearly_total_players.get(f'all_{season}', 0)
-            if pos != 'g':
+            if pos != 'G':
                 player_row['ppl_players'] = yearly_total_players.get(f'ppl_{season}', 0)
                 player_row['pkl_players'] = yearly_total_players.get(f'pkl_{season}', 0)
                 player_row['fof_players'] = yearly_total_players.get(f'fof_{season}', 0)

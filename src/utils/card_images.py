@@ -54,7 +54,7 @@ def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
     :param name: str of the player's full name (ex., "Matty Beniers")
     :param team: str of the team abbreviation (ex., "SEA")
     :param season: str of the season (ex., "2024-2025")
-    :param pos: str of the first letter of the player's position (ex. 'f')
+    :param pos: str of the first letter of the player's position (ex. 'F')
     :return: A PIL Image object of the player's headshot
     """
 
@@ -73,11 +73,11 @@ def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
 
     roster_data = response.json()
 
-    if pos == 'f':
+    if pos == 'F':
         position = 'forwards'
-    if pos == 'd':
+    if pos == 'D':
         position = 'defensemen'
-    if pos == 'g':
+    if pos == 'G':
         position = 'goalies'
         
     # Search for the player by name
