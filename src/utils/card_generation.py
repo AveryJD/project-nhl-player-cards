@@ -6,6 +6,7 @@
 import pandas as pd
 from utils import card_functions as cf
 from utils import constants
+from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
@@ -43,23 +44,12 @@ def make_team_player_cards(team: str, season: str) -> None:
     :param season: a str representing the season ('YYYY-YYYY')
     :return: None
     """
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
-    for _, player_row in cur_season_data.iterrows():
-        if player_row['Team'] == team:
-            player_name = player_row['Player']
-            cf.make_player_card(player_name, season, 'F')
-
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
-    for _, player_row in cur_season_data.iterrows():
-        if player_row['Team'] == team:
-            player_name = player_row['Player']
-            cf.make_player_card(player_name, season, 'D')
-
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
-    for _, player_row in cur_season_data.iterrows():
-        if player_row['Team'] == team:
-            player_name = player_row['Player']
-            cf.make_player_card(player_name, season, 'G')
+    for pos in ['F', 'D', 'G']:
+        cur_season_data = file.load_rankings_csv(season, pos)
+        for _, player_row in cur_season_data.iterrows():
+            if player_row['Team'] == team:
+                player_name = player_row['Player']
+                cf.make_player_card(player_name, season, pos)
 
 
 def make_position_player_cards(season: str, pos: str) -> None:
@@ -70,15 +60,7 @@ def make_position_player_cards(season: str, pos: str) -> None:
     :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None
     """
-    if pos == 'F':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
-    elif pos == 'D':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
-    elif pos == 'G':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
-    else:
-        return
-
+    cur_season_data = file.load_rankings_csv(season, pos)
     for _, player_row in cur_season_data.iterrows():
         player_name = player_row['Player']
         cf.make_player_card(player_name, season, pos)
@@ -91,20 +73,11 @@ def make_all_player_cards(season: str) -> None:
     :param season: a str representing the season ('YYYY-YYYY')
     :return: None
     """
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
-    for _, player_row in cur_season_data.iterrows():
-        player_name = player_row['Player']
-        cf.make_player_card(player_name, season, 'F')
-
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
-    for _, player_row in cur_season_data.iterrows():
-        player_name = player_row['Player']
-        cf.make_player_card(player_name, season, 'D')
-
-    cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
-    for _, player_row in cur_season_data.iterrows():
-        player_name = player_row['Player']
-        cf.make_player_card(player_name, season, 'G')
+    for pos in ['F', 'D', 'G']:
+        cur_season_data = file.load_rankings_csv(season, pos)
+        for _, player_row in cur_season_data.iterrows():
+            player_name = player_row['Player']
+            cf.make_player_card(player_name, season, pos)
 
 
 def make_rank_player_cards(rank: str, season: str, pos: str) -> None:
@@ -116,16 +89,9 @@ def make_rank_player_cards(rank: str, season: str, pos: str) -> None:
     :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None
     """
-    if pos == 'F':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/forwards/{season}_F_rankings.csv')
-    elif pos == 'D':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/defensemen/{season}_D_rankings.csv')
-    elif pos == 'G':
-        cur_season_data = pd.read_csv(f'{DATA_DIR}/rankings/goalies/{season}_G_rankings.csv')
-    else:
-        return
-
+    cur_season_data = file.load_rankings_csv(season, pos)
     cur_season_data = cur_season_data.sort_values(by=f'{rank}_rank', ascending=True)
+
     for _, player_row in cur_season_data.iterrows():
         player_name = player_row['Player']
         cf.make_player_card(player_name, season, pos)
