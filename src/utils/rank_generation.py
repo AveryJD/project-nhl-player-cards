@@ -10,51 +10,62 @@ from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
+forward_scorer = rs.SkaterScorer(constants.F_WEIGHTS)
+defensemen_scorer = rs.SkaterScorer(constants.D_WEIGHTS)
+goalie_scorer = rs.GoalieScorer(constants.G_WEIGHTS)
+
 
 def calculate_scores(position: str, all_row: pd.Series, evs_row: pd.Series, pkl_row: pd.Series, ppl_row: pd.Series=pd.Series()) -> dict:
     """
-    Calculate all attribute scores for a single player.
-
-    :param position: Player's position ('F', 'D', or 'G')
-    :param all_row: Player's all-situations stats row
-    :param evs_row: Player's 5v5 stats row
-    :param ppl_row: Player's power play stats row
-    :param pkl_row: Player's penalty kill stats row
-    :return: Dictionary of calculated attribute scores for the player
+    ADD
     """
-
-    if position != 'G':
-        # Calculate skater scores using scoring functions
+    if position == 'G':
         scores = {
-            'off_score': rs.offensive_score(all_row),
-            'def_score': rs.defensive_score(all_row),
-            'evo_score': rs.offensive_score(evs_row),
-            'evd_score': rs.defensive_score(evs_row),
-            'ppl_score': rs.power_play_score(ppl_row),
-            'pkl_score': rs.penalty_kill_score(pkl_row),
-            'sht_score': rs.shooting_score(all_row),
-            'plm_score': rs.playmaking_score(all_row),
-            'phy_score': rs.physicality_score(all_row),
-            'pen_score': rs.penalties_score(all_row),
-            'fof_score': rs.faceoff_score(all_row),
-            'spd_score': rs.speed_score(all_row),
+            'all_score': goalie_scorer.total_score(all_row),
+            'evs_score': goalie_scorer.total_score(evs_row),
+            'pkl_score': goalie_scorer.total_score(pkl_row),
+            'ldg_score': goalie_scorer.score_by_zone(all_row, 'LD'),
+            'mdg_score': goalie_scorer.score_by_zone(all_row, 'MD'),
+            'hdg_score': goalie_scorer.score_by_zone(all_row, 'HD'),
         }
-    
+    elif position == 'D':
+        scores = {
+            'off_score': defensemen_scorer.offensive_score(all_row),
+            'def_score': defensemen_scorer.defensive_score(all_row),
+            'evo_score': defensemen_scorer.offensive_score(evs_row),
+            'evd_score': defensemen_scorer.defensive_score(evs_row),
+            'ppl_score': defensemen_scorer.offensive_score(ppl_row),
+            'pkl_score': defensemen_scorer.defensive_score(pkl_row),
+            'sht_score': defensemen_scorer.shooting_score(all_row),
+            'plm_score': defensemen_scorer.playmaking_score(all_row),
+            'phy_score': defensemen_scorer.physicality_score(all_row),
+            'pen_score': defensemen_scorer.penalties_score(all_row),
+            'fof_score': defensemen_scorer.faceoff_score(all_row),
+            'spd_score': 0          # Might be used in the future
+        }
     else:
-        # Calculate goalie scores using scoring functions
         scores = {
-            'all_score': rs.goalie_all_score(all_row),
-            'evs_score': rs.goalie_all_score(evs_row),
-            'pkl_score': rs.goalie_all_score(pkl_row),
-            'ldg_score': rs.goalie_ldg_score(all_row),
-            'mdg_score': rs.goalie_mdg_score(all_row),
-            'hdg_score': rs.goalie_hdg_score(all_row),
+            'off_score': forward_scorer.offensive_score(all_row),
+            'def_score': forward_scorer.defensive_score(all_row),
+            'evo_score': forward_scorer.offensive_score(evs_row),
+            'evd_score': forward_scorer.defensive_score(evs_row),
+            'ppl_score': forward_scorer.offensive_score(ppl_row),
+            'pkl_score': forward_scorer.defensive_score(pkl_row),
+            'sht_score': forward_scorer.shooting_score(all_row),
+            'plm_score': forward_scorer.playmaking_score(all_row),
+            'phy_score': forward_scorer.physicality_score(all_row),
+            'pen_score': forward_scorer.penalties_score(all_row),
+            'fof_score': forward_scorer.faceoff_score(all_row),
+            'spd_score': 0          # Might be used in the future
         }
-
+        
     return scores
 
 
 def make_player_rankings(season: str, position: str) -> None:
+    """
+    ADD
+    """
 
     if position != 'G':
 
@@ -73,7 +84,6 @@ def make_player_rankings(season: str, position: str) -> None:
         ppl_data = pp_data[pp_data['Player'].isin(valid_players)]
         pkl_data = pk_data[pk_data['Player'].isin(valid_players)]
 
-
         # Initialize ranking and scores lists
         rankings = all_data[['Player', 'Position', 'Team']].copy()
         scores_list = []
@@ -88,7 +98,8 @@ def make_player_rankings(season: str, position: str) -> None:
             if name in ppl_data['Player'].values:
                 ppl_row = ppl_data.loc[ppl_data['Player'] == name].iloc[0]
             else:
-                pkl_row = pd.Series()
+                ppl_row = pd.Series()
+
             if name in pkl_data['Player'].values:
                 pkl_row = pkl_data.loc[pkl_data['Player'] == name].iloc[0]
             else:
