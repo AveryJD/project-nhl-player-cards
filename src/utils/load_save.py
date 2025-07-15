@@ -55,14 +55,20 @@ def load_stats_csv(season: str, position: str, situation: str) -> pd.DataFrame:
     return stats_df
 
 
-def load_rankings_csv(season: str, position: str) -> pd.DataFrame:
+def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.DataFrame:
     """
     Load the player rankings CSV for a given season and position.
 
     :param season: a str representing the season ('YYYY-YYYY')
     :param pos: a str representing the player's position ('F', 'D', or 'G')
+    :param weighted: a bool to check if the weightings to load are yearly or weighted
     :return: DataFrame of the loaded rankings
     """
+    if weighted:
+        ranking_str = 'weighted'
+    else:
+        ranking_str = 'yearly'
+
     if position == 'F':
         pos_folder = 'forwards'
     elif position == 'D':
@@ -70,8 +76,8 @@ def load_rankings_csv(season: str, position: str) -> pd.DataFrame:
     elif position == 'G':
         pos_folder = 'goalies'
 
-    filename = f'{season}_{position}_rankings.csv'
-    file_path = os.path.join(DATA_DIR, 'rankings', pos_folder, filename)
+    filename = f'{season}_{position}_{ranking_str}_rankings.csv'
+    file_path = os.path.join(DATA_DIR, 'rankings', f'{ranking_str}_{pos_folder}', filename)
     
     ranking_df = pd.read_csv(file_path)
     return ranking_df
