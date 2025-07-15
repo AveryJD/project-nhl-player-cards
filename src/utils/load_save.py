@@ -11,6 +11,19 @@ from utils import constants
 DATA_DIR = constants.DATA_DIR
 
 
+def get_prev_season(cur_season: str) -> str:
+    """
+    Return the str for previous season from a given season's str.
+
+    :param cur_season: a str of the current season ('YYYY-YYYY')
+    :return: a str of the season previous to the current season
+    """
+    start_year, end_year = map(int, cur_season.split("-"))
+    prev_season = f"{start_year - 1}-{end_year - 1}"
+
+    return prev_season
+
+
 def load_bios_csv(season: str, position: str) -> pd.DataFrame:
     """
     Load the player bios CSV for a given season and position.

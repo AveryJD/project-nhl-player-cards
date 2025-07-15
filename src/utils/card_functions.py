@@ -300,7 +300,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     # Add the previous four seasons to the list and put the oldest season first
     seasons = [cur_season]
     for _ in range(4):
-        seasons.append(cd.get_prev_season(seasons[-1]))
+        seasons.append(file.get_prev_season(seasons[-1]))
     seasons.reverse()
 
     # Store x-axis positions (fixed for 5 seasons)

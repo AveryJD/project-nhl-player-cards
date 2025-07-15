@@ -9,19 +9,6 @@ from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
-def get_prev_season(cur_season: str) -> str:
-    """
-    Return the str for previous season from a given season's str.
-
-    :param cur_season: a str of the current season ('YYYY-YYYY')
-    :return: a str of the season previous to the current season
-    """
-    start_year, end_year = map(int, cur_season.split("-"))
-    prev_season = f"{start_year - 1}-{end_year - 1}"
-
-    return prev_season
-
-
 def get_player_role(player_row: pd.Series) -> str:
     """
     Return a str for a player's time on ice allocation based on their time on ice and games played.
@@ -228,7 +215,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
             yearly_total_players[f'{attribute}_{tot_players_season}'] = int(value)
         
         # Get previous season str
-        tot_players_season = get_prev_season(tot_players_season)
+        tot_players_season = file.get_prev_season(tot_players_season)
         
         # Load data from previous season, but break if the file is not found
         try:
@@ -274,7 +261,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     
 
     # Loop to get previous seasons data
-    season = get_prev_season(cur_season)
+    season = file.get_prev_season(cur_season)
     for _ in range(seasons_num):
         try:
             season_data = file.load_rankings_csv(season, pos)
@@ -294,7 +281,7 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
             player_seasons = pd.concat([player_seasons, player_row], ignore_index=True)
 
         # Move to the previous season
-        season = get_prev_season(season)
+        season = file.get_prev_season(season)
 
     return player_seasons
 
