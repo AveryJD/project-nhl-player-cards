@@ -7,7 +7,7 @@ from utils import data_generation as dg
 from utils import constants
 
 
-for season in constants.SEASONS:
+for season in constants.DATA_SEASONS:
     for position in constants.POSITIONS:
         dg.scrape_and_save_bios(season, position)
         if position != 'G':

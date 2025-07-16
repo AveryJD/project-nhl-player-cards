@@ -6,12 +6,13 @@
 DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
 
 # Seasons to scrape stats and bio data for
-SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020']
+DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+                '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014']
 
 # Positions to scrape stats and bio data for
 POSITIONS = ['F', 'D', 'G']
 
-# Situations to get data for
+# Situations to scrape stats for
 SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 
@@ -40,13 +41,173 @@ SYMBOLS_TO_REPLACE = {
     'ý': 'y',
 }
 
-# Total games played in the season
-SEASON_GAMES = 82
+
+
+# ====================================================================================================
+# RANKING CONSTANTS
+# ====================================================================================================
+YEARLY_RANK_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+                       '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014']
+
+WEIGHTED_RANK_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+                         '2018-2019', '2017-2018', '2016-2017', '2015-2016']
+
+CURRENT_SEASON = '2024-2025'
+
+# Total games played by season
+SEASON_GAMES = {
+    '2024-2025': 82,
+    '2023-2024': 82,
+    '2022-2023': 82,
+    '2021-2022': 82,
+    '2020-2021': 56,  # Shortened due to COVID
+    '2019-2020': 70,  # Season paused due to COVID
+    '2018-2019': 82,
+    '2017-2018': 82,
+    '2016-2017': 82,
+    '2015-2016': 82,
+    '2014-2015': 82,
+    '2013-2014': 82
+}
 
 # The minimum games a skater has to play to qualify for rankings (at least 15% of games/13 games over a full 82 game season)
-MIN_GP_SKATER = SEASON_GAMES * 0.15
-# The minimum games a goalie has to play to qualify for rankings (at least 6% of games/5 games over a full 82 game season)
-MIN_GP_GOALIE = SEASON_GAMES * 0.06
+MIN_GP_SKATER = SEASON_GAMES.get(CURRENT_SEASON) * 0.15
+# The minimum games a goalie has to play to qualify for rankings (at least 6% of games/9 games over a full 82 game season)
+MIN_GP_GOALIE = SEASON_GAMES.get(CURRENT_SEASON) * 0.10
+
+# The minimum time on ice a skater has to play to qualify for power play rankings (30 seconds per game/42 minutes over a full 82 game season)
+MIN_TOI_PP = SEASON_GAMES.get(CURRENT_SEASON) * 0.5
+# The minimum time on ice a skater has to play to qualify for penalty kill rankings (30 seconds per game/42 minutes over a full 82 game season)
+MIN_TOI_PK = SEASON_GAMES.get(CURRENT_SEASON) * 0.5
+# The minimum faceoffs a skater has to have taken to qualify for faceoff rankings (3 faceoffs per game/246 faceoffs over a full 82 game season)
+MIN_FACEOFFS = SEASON_GAMES.get(CURRENT_SEASON) * 3
+
+
+
+# ====================================================================================================
+# SCORE WEIGHT CONSTANTS
+# ====================================================================================================
+
+# All weight values                 BIG ADJUSTMENTS COMING
+F_WEIGHTS = {
+    # Shooting Weights
+    'goals': 1.000,
+    'shots_on_net' : 0.104,
+    'shots_missed': 0.052,
+    'shots_were_blocked': 0.026,
+    'high_danger_chances': 0.000,   # ADD ?
+
+    # Playmaking Weights
+    'p_assists': 0.900,             # ADJUST (0.780)
+    's_assists': 0.300,             # ADJUST (0.019)
+    'rebounds_created': 0.204,      # Adjust (0.104)
+    'rush_attempts': 0.152,         # ADJUST (0.052)
+
+    # On Ice Offensive Weights
+    #'oi_ldsf': 0.043,
+    #'oi_mdsf': 0.119,              # ADJUST !!!
+    'oi_lmdsf': 0.100,
+    'oi_hdsf': 0.190,
+    'oi_ldgf': 0.000,               # ADJUST (0.000)
+    'oi_mdgf': 0.000,               # ADJUST (0.000)
+    'oi_hdgf': 0.000,               # ADJUST (0.000)
+    'oi_xgf': 1.000,
+
+    # Defensive Weights
+    'blocks': 0.104,
+    'takeaways': 0.104,             # ADJUST
+    'giveaways': -0.104,            # ADJUST
+
+    # On Ice Defensive Weights
+    'oi_ldsa': -0.043,
+    'oi_mdsa': -0.119,
+    'oi_hdsa': -0.190,
+    'oi_ldga': -0.000,
+    'oi_mdga': -0.000,
+    'oi_hdga': -0.000,
+    'oi_xga': -1.000,
+
+    # Physicality Weights
+    'hits': 1.00,                   # ADJUST
+    'minors': 0.50,                 # ADJUST
+    'majors': 2.00,                 # ADJUST
+    'misconducts': 3.00,            # ADJUST
+
+    # Penalty Differential Weights
+    'penalty_min_taken': -1.000,
+    'penalty_min_drawn': 1.000,
+
+    # Faceoff Weights
+    'faceoff_wins': 1.000,
+    'faceoff_losses': -1.000,
+
+    # Speed Weights                 Might be used in the future
+    'spd_speed': 0.00,
+}
+
+D_WEIGHTS = {
+    # Shooting Weights
+    'goals': 1.000,
+    'shots_on_net' : 0.104,
+    'shots_missed': 0.052,
+    'shots_were_blocked': 0.026,
+    'high_danger_chances': 0.000,   # ADD ?
+
+    # Playmaking Weights
+    'p_assists': 0.780,
+    's_assists': 0.190,             # ADJUST (0.019)
+    'rebounds_created': 0.204,      # Adjust (0.104)
+    'rush_attempts': 0.152,         # ADJUST (0.052)
+
+    # On Ice Offensive Weights
+    #'oi_ldsf': 0.043,
+    #'oi_mdsf': 0.119,              # ADJUST !!!
+    'oi_lmdsf': 0.050,
+    'oi_hdsf': 0.100,
+    'oi_ldgf': 0.000,               # ADJUST (0.000)
+    'oi_mdgf': 0.000,               # ADJUST (0.000)
+    'oi_hdgf': 0.000,               # ADJUST (0.000)
+    'oi_xgf': 1.000,
+
+    # Defensive Weights
+    'blocks': 0.104,
+    'takeaways': 0.104,             # ADJUST
+    'giveaways': -0.104,            # ADJUST
+
+    # On Ice Defensive Weights
+    'oi_ldsa': -0.043,
+    'oi_mdsa': -0.119,
+    'oi_hdsa': -0.190,
+    'oi_ldga': -0.000,
+    'oi_mdga': -0.000,
+    'oi_hdga': -0.000,
+    'oi_xga': -1.000,
+
+    # Physicality Weights
+    'hits': 1.00,                   # ADJUST
+    'minors': 0.50,                 # ADJUST
+    'majors': 2.00,                 # ADJUST
+    'misconducts': 3.00,            # ADJUST
+
+    # Penalty Differential Weights
+    'penalty_min_taken': -1.000,
+    'penalty_min_drawn': 1.000,
+
+    # Speed Weights                 Might be used in the future
+    'spd_speed': 0.00,
+}
+
+G_WEIGHTS = {
+    # Goalie Weights                # ADJUST ?
+    'hds': 0.190,
+    'mds': 0.119,
+    'lds': 0.043,
+    'hdga': -1.00,
+    'mdga': -1.00, 
+    'ldga': -1.00,
+}
+
+
 
 # ====================================================================================================
 # NAMING CONSTANTS
@@ -217,4 +378,5 @@ G_PLAYERS = ['John Gibson', 'Jeremey Swayman', 'Ukko-Pekka Luukkonen', 'Dustin W
             'Andrei Vasilevskiy', 'Joseph Woll', 'Karel Vejmelka', 'Kevin Lankinen', 'Adin Hill',
             'Logan Thompson', 'Connor Hellebuyck'
 ]
+
 
