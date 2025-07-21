@@ -4,6 +4,7 @@
 
 # Imports
 import numpy as np
+import pandas as pd
 from utils import constants
 
 
@@ -12,9 +13,9 @@ class SkaterScorer:
         self.weights = weights
 
 
-    def adjust_score(self, score, row, season, toi_adjust=1):
+    def adjust_score(self, score: float, row: pd.Series, season: str) -> float:
         gp = row['GP']
-        toi = row['TOI'] * toi_adjust
+        toi = row['TOI']
 
         # Adjust based on number of games in the season (default to 82)
         total_games = constants.SEASON_GAMES.get(season, 82)
@@ -32,16 +33,7 @@ class SkaterScorer:
         return adjusted_score
 
 
-    def get_d_zone_percentage(self, row):
-        off_starts, def_starts, neu_starts = row['Off. Zone Starts'], row['Def. Zone Starts'], row['Neu. Zone Starts']
-        total_starts = off_starts + def_starts + neu_starts
-
-        dzone_percent = def_starts / total_starts
-
-        return dzone_percent if total_starts > 0 else 0.33
-
-
-    def shooting_score(self, row, season):
+    def shooting_score(self, row: pd.Series, season: str) -> float:
         shots_on_net = row['Shots'] - row['Goals']
         shots_missed = row['iFF'] - row['Shots']
         shots_blocked = row['iCF'] - row['iFF']
@@ -58,7 +50,7 @@ class SkaterScorer:
         return self.adjust_score(score, row, season)
 
 
-    def playmaking_score(self, row, season):
+    def playmaking_score(self, row: pd.Series, season: str) -> float:
         score = (
             self.weights['p_assists'] * row['First Assists'] +
             self.weights['s_assists'] * row['Second Assists'] +
@@ -69,7 +61,7 @@ class SkaterScorer:
         return self.adjust_score(score, row, season)
 
 
-    def offensive_score(self, row, season, oi_players=5):
+    def offensive_score(self, row: pd.Series, season: str, oi_players:int=5) -> float:
         if row.empty:
             return -999999
         else:
@@ -103,11 +95,10 @@ class SkaterScorer:
             return self.adjust_score(score, row, season)
 
 
-    def defensive_score(self, row, season, oi_players=5):
+    def defensive_score(self, row: pd.Series, season: str, oi_players:int=5) -> float:
         if row.empty:
             return -999999
         else:
-            d_zone_percent = self.get_d_zone_percentage(row)
             score = (
                 self.weights['blocks'] * row['Shots Blocked'] +
                 self.weights['takeaways'] * row['Takeaways'] +
@@ -121,10 +112,10 @@ class SkaterScorer:
                 self.weights['oi_xga'] * row['xGA']) / oi_players
             )
 
-            return self.adjust_score(score, row, season, toi_adjust=d_zone_percent,)
+            return self.adjust_score(score, row, season)
 
 
-    def physicality_score(self, row, season):
+    def physicality_score(self, row: pd.Series, season: str) -> float:
         score = (
             self.weights['hits'] * row['Hits'] +
             self.weights['minors'] * row['Minor'] +
@@ -135,7 +126,7 @@ class SkaterScorer:
         return self.adjust_score(score, row, season)
 
 
-    def penalties_score(self, row, season):
+    def penalties_score(self, row: pd.Series, season: str) -> float:
         score = (
             self.weights['penalty_min_taken'] * row['Total Penalties'] +
             self.weights['penalty_min_drawn'] * row['Penalties Drawn']
@@ -144,7 +135,7 @@ class SkaterScorer:
         return self.adjust_score(score, row, season)
 
 
-    def faceoff_score(self, row, season):
+    def faceoff_score(self, row: pd.Series, season: str) -> float:
         total_fo = row['Faceoffs Won'] + row['Faceoffs Lost']
         if total_fo < row['GP'] * 3:
             return -999999
@@ -162,7 +153,7 @@ class GoalieScorer:
         self.weights = weights
 
 
-    def adjust_score(self, score, row, season=None):
+    def adjust_score(self, score: float, row: pd.Series, season:str=None) -> float:
         gp = row['GP']
 
         # Adjust based on number of games in the season (default is 82)
@@ -180,7 +171,7 @@ class GoalieScorer:
         return adjusted_score / gp if gp > 0 else 0
 
 
-    def total_score(self, row, season):
+    def total_score(self, row: pd.Series, season: str) -> float:
         score = (
             self.weights['hds'] * row['HD Saves'] +
             self.weights['hdga'] * row['HD Goals Against'] +
@@ -193,7 +184,7 @@ class GoalieScorer:
         return self.adjust_score(score, row, season)
 
 
-    def zone_score(self, row, season, zone):
+    def zone_score(self, row: pd.Series, season: str, zone) -> float:
         if zone == 'LD':
             score = (
                 self.weights['lds'] * row['LD Saves'] +
@@ -209,8 +200,6 @@ class GoalieScorer:
                 self.weights['hds'] * row['HD Saves'] +
                 self.weights['hdga'] * row['HD Goals Against']
             )
-        else:
-            score = 0
 
         return self.adjust_score(score, row, season)
 
