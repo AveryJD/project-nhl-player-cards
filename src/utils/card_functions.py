@@ -177,7 +177,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     percentile, and a visual percentile bar.
 
     :param player_row: a Series containing player data
-    :param attribute_rank_name: a str representing the name of the attribute that is being ranked (e.g. 'off_rank')
+    :param attribute_rank_name: a str representing the name of the attribute that is being ranked (e.g. 'sht_rank')
     :return: an Image of the rank component
     """
 

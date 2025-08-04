@@ -84,7 +84,7 @@ def make_rank_player_cards(rank: str, season: str, pos: str) -> None:
     """
     Generate player cards for all players of a specific position, sorted by a given attribute rank.
 
-    :param rank: a str of the attribute name to sort by (e.g. 'off')
+    :param rank: a str of the attribute name to sort by (e.g. 'evo')
     :param season: a str representing the season ('YYYY-YYYY')
     :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None

@@ -13,7 +13,7 @@ DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021',
 POSITIONS = ['F', 'D', 'G']
 
 # Situations to scrape stats for
-SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
+SKATER_SITUATIONS = ['5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 
 # Symbols to be replaced in player names
@@ -242,18 +242,16 @@ NATIONALITIES = {
 
 # Attribute csv names with full names
 ATRIBUTE_NAMES = {
-    'off_rank' : 'Offense',
-    'def_rank' : 'Defense',
-    'evo_rank' : 'ES Offense',
-    'evd_rank' : 'ES Defense',
-    'ppl_rank' : 'Power Play',
-    'pkl_rank' : 'Penalty Kill',
+    'evo_rank' : '5v5 Offense',
+    'evd_rank' : '5v5 Defense',
+    'ppl_rank' : '5v4 Offense',
+    'pkl_rank' : '4v5 Defense',
     'sht_rank' : 'Shooting',
     'plm_rank' : 'Playmaking',
     'phy_rank' : 'Physicality',
     'pen_rank' : 'Penalties',
     'fof_rank' : 'Faceoffs',
-    #'spd_rank' : 'Speed',                      # Might be used in the future
+    'spd_rank' : 'Speed',                      # Might be used in the future
     'all_rank' : 'Overall',
     'evs_rank' : 'Ev. Strength',
     'ldg_rank' : 'Low Danger',
@@ -299,18 +297,16 @@ SECONDARY_COLORS = {
 
 # Attribute colors for rank components
 ATTRIBUTE_COLORS = {
-    'Offense':          (0, 0, 0),
-    'Defense':          (0, 0, 0),
-    'ES Offense':       (255, 70, 70),
-    'ES Defense':       (70, 70, 255),
-    'Power Play':       (255, 150, 130),
-    'Penalty Kill':     (130, 150, 255),
+    '5v5 Offense':       (255, 70, 70),
+    '5v5 Defense':       (70, 70, 255),
+    '5v4 Offense':       (255, 150, 130),
+    '4v5 Defense':     (130, 150, 255),
     'Shooting':         (0, 0, 0),
     'Playmaking':       (0, 0, 0),
     'Physicality':      (0, 0, 0),
     'Penalties':        (0, 0, 0),
     'Faceoffs':         (0, 0, 0),
-    #'Speed':           (0, 0, 0),                 # Might be used in the future
+    'Speed':            (0, 0, 0),                 # Might be used in the future
     'Overall':          (255, 70, 70),
     'Ev. Strength':     (255, 150, 150),
     'Low Danger':       (0, 0, 0),
@@ -320,8 +316,6 @@ ATTRIBUTE_COLORS = {
 
 # Atribute colors for graph components
 PLOT_ATTRIBUTE_COLORS = {
-    'off_plot': (0/255, 0/255, 0/255),
-    'def_plot': (0/255, 0/255, 0/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
     'ppl_plot': (255/255, 150/255, 150/255),
@@ -331,7 +325,7 @@ PLOT_ATTRIBUTE_COLORS = {
     'phy_plot': (0/255, 0/255, 0/255),
     'pen_plot': (0/255, 0/255, 0/255),
     'fof_plot': (0/255, 0/255, 0/255),
-    #'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
+    'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     'all_plot': (255/255, 70/255, 70/255),
     'evs_plot': (255/255, 150/255, 150/255),
     'ldg_plot': (0/255, 0/255, 0/255),
