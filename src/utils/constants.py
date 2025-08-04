@@ -246,6 +246,7 @@ ATRIBUTE_NAMES = {
     'evd_rank' : '5v5 Defense',
     'ppl_rank' : '5v4 Offense',
     'pkl_rank' : '4v5 Defense',
+    'fin_rank' : 'Finishing',
     'sht_rank' : 'Shooting',
     'plm_rank' : 'Playmaking',
     'phy_rank' : 'Physicality',
@@ -297,10 +298,11 @@ SECONDARY_COLORS = {
 
 # Attribute colors for rank components
 ATTRIBUTE_COLORS = {
-    '5v5 Offense':       (255, 70, 70),
-    '5v5 Defense':       (70, 70, 255),
-    '5v4 Offense':       (255, 150, 130),
-    '4v5 Defense':     (130, 150, 255),
+    '5v5 Offense':      (255, 70, 70),
+    '5v5 Defense':      (70, 70, 255),
+    '5v4 Offense':      (255, 150, 130),
+    '4v5 Defense':      (130, 150, 255),
+    'Finishing':        (0, 0, 0),
     'Shooting':         (0, 0, 0),
     'Playmaking':       (0, 0, 0),
     'Physicality':      (0, 0, 0),
@@ -320,6 +322,7 @@ PLOT_ATTRIBUTE_COLORS = {
     'evd_plot': (70/255, 70/255, 255/255),
     'ppl_plot': (255/255, 150/255, 150/255),
     'pkl_plot': (150/255, 150/255, 255/255),
+    'fin_plot': (0/255, 0/255, 0/255),
     'sht_plot': (0/255, 0/255, 0/255),
     'plm_plot': (0/255, 0/255, 0/255),
     'phy_plot': (0/255, 0/255, 0/255),

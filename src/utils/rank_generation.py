@@ -10,53 +10,37 @@ from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
-forward_scorer = rs.SkaterScorer(constants.F_WEIGHTS)
-defensemen_scorer = rs.SkaterScorer(constants.D_WEIGHTS)
-goalie_scorer = rs.GoalieScorer(constants.G_WEIGHTS)
+skater_scorer = rs.SkaterScorer()
+defensemen_scorer = rs.SkaterScorer()
+goalie_scorer = rs.GoalieScorer()
 
 
-def calculate_scores(position: str, all_row: pd.Series, evs_row: pd.Series, pkl_row: pd.Series, ppl_row: pd.Series=pd.Series()) -> dict:
+def calculate_scores(position: str, season, all_row: pd.Series, evs_row: pd.Series, pkl_row: pd.Series, ppl_row: pd.Series=pd.Series()) -> dict:
     """
     ADD
     """
     if position == 'G':
         scores = {
-            'all_score': goalie_scorer.total_score(all_row),
-            'evs_score': goalie_scorer.total_score(evs_row),
-            'pkl_score': goalie_scorer.total_score(pkl_row),
-            'ldg_score': goalie_scorer.score_by_zone(all_row, 'LD'),
-            'mdg_score': goalie_scorer.score_by_zone(all_row, 'MD'),
-            'hdg_score': goalie_scorer.score_by_zone(all_row, 'HD'),
-        }
-    elif position == 'D':
-        scores = {
-            'off_score': defensemen_scorer.offensive_score(all_row),
-            'def_score': defensemen_scorer.defensive_score(all_row),
-            'evo_score': defensemen_scorer.offensive_score(evs_row),
-            'evd_score': defensemen_scorer.defensive_score(evs_row),
-            'ppl_score': defensemen_scorer.offensive_score(ppl_row),
-            'pkl_score': defensemen_scorer.defensive_score(pkl_row),
-            'sht_score': defensemen_scorer.shooting_score(all_row),
-            'plm_score': defensemen_scorer.playmaking_score(all_row),
-            'phy_score': defensemen_scorer.physicality_score(all_row),
-            'pen_score': defensemen_scorer.penalties_score(all_row),
-            'fof_score': defensemen_scorer.faceoff_score(all_row),
-            'spd_score': 0          # Might be used in the future
+            'all_score': goalie_scorer.total_score(all_row, season),
+            'evs_score': goalie_scorer.total_score(evs_row, season),
+            'pkl_score': goalie_scorer.total_score(pkl_row, season),
+            'ldg_score': goalie_scorer.zone_score(all_row, season, 'LD'),
+            'mdg_score': goalie_scorer.zone_score(all_row, season, 'MD'),
+            'hdg_score': goalie_scorer.zone_score(all_row, season, 'HD'),
         }
     else:
         scores = {
-            'off_score': forward_scorer.offensive_score(all_row),
-            'def_score': forward_scorer.defensive_score(all_row),
-            'evo_score': forward_scorer.offensive_score(evs_row),
-            'evd_score': forward_scorer.defensive_score(evs_row),
-            'ppl_score': forward_scorer.offensive_score(ppl_row),
-            'pkl_score': forward_scorer.defensive_score(pkl_row),
-            'sht_score': forward_scorer.shooting_score(all_row),
-            'plm_score': forward_scorer.playmaking_score(all_row),
-            'phy_score': forward_scorer.physicality_score(all_row),
-            'pen_score': forward_scorer.penalties_score(all_row),
-            'fof_score': forward_scorer.faceoff_score(all_row),
-            'spd_score': 0          # Might be used in the future
+            'evo_score': skater_scorer.offensive_score(evs_row, season),
+            'evd_score': skater_scorer.defensive_score(evs_row, season),
+            'ppl_score': skater_scorer.offensive_score(ppl_row, season),
+            'pkl_score': skater_scorer.defensive_score(pkl_row, season, 4),
+            'sht_score': skater_scorer.shooting_score(all_row, season),
+            'fin_score': skater_scorer.finishing_score(all_row, season),
+            'plm_score': skater_scorer.playmaking_score(all_row, season),
+            'phy_score': skater_scorer.physicality_score(all_row, season),
+            'pen_score': skater_scorer.penalties_score(all_row, season),
+            'fof_score': skater_scorer.faceoff_score(all_row, season),
+            'spd_score': 0,          # Might be used in the future
         }
         
     return scores

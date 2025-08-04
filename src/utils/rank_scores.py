@@ -48,6 +48,21 @@ class SkaterScorer:
         )
 
         return self.adjust_score(score, row, season)
+    
+
+    def finishing_score(self, row: pd.Series, season: str) -> float:
+        goals = row['Goals']
+        xgoals = row['ixG']
+
+        goals_above_expected = goals - xgoals
+
+        score = (
+            self.weights['goals'] * goals +
+            self.weights['goals_above_expected'] * goals_above_expected
+        )
+
+        return self.adjust_score(score, row, season)
+
 
 
     def playmaking_score(self, row: pd.Series, season: str) -> float:
