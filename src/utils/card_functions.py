@@ -207,7 +207,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
         attribute_abrev = 'all'
 
     # Get total players
-    total_players = player_row[f'{attribute_abrev}_players']
+    total_players = int(player_row[f'{attribute_abrev}_players'])
 
     # Get rank and percentile
     rank, percentile = cd.get_rank_and_percentile(player_row, attribute_rank_name, total_players)
@@ -283,11 +283,9 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
 
     # Create graph component card
     graph_section_width = 1180
-    graph_section_height = 860
+    graph_section_height = 650
     graph_section = Image.new("RGB", (graph_section_width, graph_section_height), color=(255, 255, 255))
 
-    draw = ImageDraw.Draw(graph_section)
-    draw.rectangle([(0, 0), (1230, 1000)], fill=(0,0,0))
 
     if pos == 'G':
         attributes_to_plot = ['all', 'pkl', 'evs',]
@@ -335,10 +333,10 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
         if valid_data:
             if attribute_name in dashed_line_attributes:
                 x_plot, y_plot = zip(*valid_data)
-                ax.plot(x_plot, y_plot, linewidth=3, linestyle='--', marker='o', markersize=6, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
+                ax.plot(x_plot, y_plot, linewidth=2, linestyle='--', marker='o', markersize=6, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
             else:
                 x_plot, y_plot = zip(*valid_data)
-                ax.plot(x_plot, y_plot, linewidth=5, linestyle='-', marker='o', markersize=10, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
+                ax.plot(x_plot, y_plot, linewidth=4, linestyle='-', marker='o', markersize=9, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
     
     # X-axis settings
     ax.set_xticks(x_vals)
@@ -416,7 +414,7 @@ def make_branding_section(team: str) -> Image:
 
     # Draw branding shape
     draw.polygon([(60, 260), (1940, 260), (1980, 380), (20, 380)], fill=primary_team_color)
-    ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=268, x_center=996, fill=(0, 0, 0))
+    ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=268, x_center=996, fill=secondary_team_color)
     ch.draw_centered_text(draw, 'Analytics With Avery', font=heading_font, y_position=264, x_center=1000, fill=(255, 255, 255))
 
     return branding_section
@@ -472,48 +470,53 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
     # For skater cards
     if pos != 'G':
-        # Add offense and defense ranks
-        off_rank_section = make_rank_component(player_cur_season, 'off_rank')
-        player_card.paste(off_rank_section, (50, 720))
+        # Add offense and defense ranks    
+        evo_rank_section = make_rank_component(player_cur_season, 'evo_rank')
+        player_card.paste(evo_rank_section, (50, 750))
 
-        def_rank_section = make_rank_component(player_cur_season, 'def_rank')
-        player_card.paste(def_rank_section, (455, 720))
-    
-        evo_rank_secition = make_rank_component(player_cur_season, 'evo_rank')
-        player_card.paste(evo_rank_secition, (50, 1010))
+        evd_rank_section = make_rank_component(player_cur_season, 'evd_rank')
+        player_card.paste(evd_rank_section, (455, 750))
 
-        evd_rank_secition = make_rank_component(player_cur_season, 'evd_rank')
-        player_card.paste(evd_rank_secition, (455, 1010))
+        ppl_rank_section = make_rank_component(player_cur_season, 'ppl_rank')
+        player_card.paste(ppl_rank_section, (50, 1050))
 
-        ppl_rank_secition = make_rank_component(player_cur_season, 'ppl_rank')
-        player_card.paste(ppl_rank_secition, (50, 1300))
-
-        pkl_rank_secition = make_rank_component(player_cur_season, 'pkl_rank')
-        player_card.paste(pkl_rank_secition, (455, 1300))
+        pkl_rank_section = make_rank_component(player_cur_season, 'pkl_rank')
+        player_card.paste(pkl_rank_section, (455, 1050))
 
         # Add graph section
         graph_section = make_graph_section(player_five_seasons, pos)
-        player_card.paste(graph_section, (800, 720))
+        player_card.paste(graph_section, (800, 700))
 
         # Draw divider rectangle
         draw = ImageDraw.Draw(player_card)
-        draw.rectangle([(60, 1600), (1940, 1640)], fill=primary_team_color)
+        draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
         # Add skills ranks
+
+        oio_rank_section = make_rank_component(player_cur_season, 'oio_rank')
+        player_card.paste(oio_rank_section, (50, 1425))
+
         sht_rank_section = make_rank_component(player_cur_season, 'sht_rank')
-        player_card.paste(sht_rank_section, (50, 1700))
+        player_card.paste(sht_rank_section, (455, 1425))
+
+        fin_rank_section = make_rank_component(player_cur_season, 'fin_rank')
+        player_card.paste(fin_rank_section, (850, 1425))
 
         plm_rank_section = make_rank_component(player_cur_season, 'plm_rank')
-        player_card.paste(plm_rank_section, (455, 1700))
-
-        phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
-        player_card.paste(phy_rank_section, (850, 1700))
+        player_card.paste(plm_rank_section, (1245, 1425))
 
         pen_rank_section = make_rank_component(player_cur_season, 'pen_rank')
-        player_card.paste(pen_rank_section, (1245, 1700))
+        player_card.paste(pen_rank_section, (1640, 1425))
+
+
+        oid_rank_section = make_rank_component(player_cur_season, 'oid_rank')
+        player_card.paste(oid_rank_section, (50, 1715))
+
+        phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
+        player_card.paste(phy_rank_section, (455, 1715))
 
         fof_rank_section = make_rank_component(player_cur_season, 'fof_rank')
-        player_card.paste(fof_rank_section, (1640, 1700))
+        player_card.paste(fof_rank_section, (1640, 1715))
 
     # For goalie cards
     else:
@@ -529,7 +532,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
         # Add graph section
         graph_section = make_graph_section(player_five_seasons, pos)
-        player_card.paste(graph_section, (800, 720))
+        player_card.paste(graph_section, (800, 700))
 
         # Draw divider rectangle
         draw = ImageDraw.Draw(player_card)
