@@ -91,6 +91,20 @@ class SkaterScorer:
         return self.adjust_score(score, row, season)
 
 
+    def offensive_score(self, row: pd.Series, season: str) -> float:
+        if row.empty:
+            return -999999
+        else:
+            score = (
+                self.finishing_score(row, season) +
+                self.shooting_score(row, season) * 0.5 +
+                self.playmaking_score(row, season) +
+                self.oniceoffense_score(row, season) * 0.15
+            )
+
+            return score
+
+
     def onicedefense_score(self, row: pd.Series, season: str) -> float:
         if row.empty:
             return -999999
@@ -99,27 +113,10 @@ class SkaterScorer:
                 self.weights['oi_ldsa'] * row['LDCA'] +
                 self.weights['oi_mdsa'] * row['MDCA'] +
                 self.weights['oi_hdsa'] * row['HDCA'] +
-                self.weights['oi_ldga'] * row['LDGA'] +
-                self.weights['oi_mdga'] * row['MDGA'] +
-                self.weights['oi_hdga'] * row['HDGA'] +
                 self.weights['oi_xga'] * row['xGA']
             )
 
             return self.adjust_score(score, row, season)
-
-
-    def offensive_score(self, row: pd.Series, season: str) -> float:
-        if row.empty:
-            return -999999
-        else:
-            score = (
-                self.finishing_score(row, season) * 0.30 +
-                self.shooting_score(row, season) * 0.30 +
-                self.playmaking_score(row, season) * 0.35 +
-                self.oniceoffense_score(row, season) * 0.05
-            )
-
-            return score
 
 
     def defensive_score(self, row: pd.Series, season: str) -> float:
@@ -132,7 +129,7 @@ class SkaterScorer:
                 self.weights['giveaways'] * row['Giveaways']
             )
 
-            score = self.adjust_score(score, row, season) * 0.70 + self.onicedefense_score(row, season) * 0.30
+            score = self.adjust_score(score, row, season) + self.onicedefense_score(row, season) * 0.50
 
             return score
         
