@@ -66,7 +66,6 @@ def make_header_section(player_row: pd.Series) -> Image:
     # Get contract variables
     cap_hit = '-.---'                   # TEMPORARY
     contract_years_left = '-'           # TEMPORARY
-    expiry_status = '-FA'               # TEMPORARY
 
     # Create header section card
     header_section_width = 2000
@@ -103,8 +102,9 @@ def make_header_section(player_row: pd.Series) -> Image:
     
     # Draw subheaders text
     ch.draw_centered_text(draw, 'PROFILE', font=basic_subheading_font, y_position=180, x_center=1000)
-    ch.draw_centered_text(draw, 'CONTRACT', font=basic_subheading_font, y_position=180, x_center=1650)
-    ch.draw_centered_text(draw, 'STATS', font=basic_subheading_font, y_position=420, x_center=1650)
+    ch.draw_centered_text(draw, 'STATS', font=basic_subheading_font, y_position=180, x_center=1650)
+    ch.draw_centered_text(draw, 'CONTRACT', font=basic_subheading_font, y_position=420, x_center=1650)
+
 
     # Draw profile segment text
     draw.text(xy=(680, 270), text='POSITION:', font=basic_font, fill=(0,0,0))
@@ -125,29 +125,29 @@ def make_header_section(player_row: pd.Series) -> Image:
     ch.draw_righted_text(draw, text=draft_position, font=basic_font, y_position=510, x_right=1320)
     ch.draw_righted_text(draw, text=nationality, font=basic_font, y_position=550, x_right=1320)
 
-    # Draw salary segment text
-    draw.text(xy=(1400, 270), text='CAP HIT:', font=basic_font, fill=(0,0,0))
-    draw.text(xy=(1400, 310), text='YEARS REMAINING:', font=basic_font, fill=(0,0,0))
-    draw.text(xy=(1400, 350), text='EXPIRY STATUS:', font=basic_font, fill=(0,0,0))
-
-    ch.draw_righted_text(draw, text=f'${cap_hit} M', font=basic_font, y_position=270, x_right=1900)
-    ch.draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=310, x_right=1900)
-    ch.draw_righted_text(draw, text=expiry_status, font=basic_font, y_position=350, x_right=1900)
 
     # Draw stats segment text
     if position == 'G':
-        draw.text(xy=(1400, 510), text='ROLE:', font=basic_font, fill=(0,0,0))
-        draw.text(xy=(1400, 550), text='GP-SV%-GAA:', font=basic_font, fill=(0,0,0))
+        draw.text(xy=(1400, 270), text='ROLE:', font=basic_font, fill=(0,0,0))
+        draw.text(xy=(1400, 310), text='GP-SV%-GAA:', font=basic_font, fill=(0,0,0))
 
-        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=510, x_right=1900)
-        ch.draw_righted_text(draw, text=f'{games_played}-{save_percentage}-{goals_against_avg}', font=basic_font, y_position=550, x_right=1900)
+        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=270, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{games_played}-{save_percentage}-{goals_against_avg}', font=basic_font, y_position=310, x_right=1900)
     else:
-        draw.text(xy=(1400, 510), text='ROLE:', font=basic_font, fill=(0,0,0))
-        draw.text(xy=(1400, 550), text='GP-G-A-P:', font=basic_font, fill=(0,0,0))
+        draw.text(xy=(1400, 270), text='ROLE:', font=basic_font, fill=(0,0,0))
+        draw.text(xy=(1400, 310), text='GP-G-A-P:', font=basic_font, fill=(0,0,0))
 
-        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=510, x_right=1900)
-        ch.draw_righted_text(draw, text=f'{games_played}-{goals}-{assists}-{points}', font=basic_font, y_position=550, x_right=1900)
-    
+        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=270, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{games_played}-{goals}-{assists}-{points}', font=basic_font, y_position=310, x_right=1900)
+
+
+    # Draw salary segment text
+    draw.text(xy=(1400, 510), text='CAP HIT:', font=basic_font, fill=(0,0,0))
+    draw.text(xy=(1400, 550), text='YEARS REMAINING:', font=basic_font, fill=(0,0,0))
+
+    ch.draw_righted_text(draw, text=f'${cap_hit} M', font=basic_font, y_position=510, x_right=1900)
+    ch.draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=550, x_right=1900)
+
 
     # Draw banner
     draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
@@ -252,7 +252,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
 
     # Load fonts
     basic_font_path = f'{DATA_DIR}/assets/fonts/basic.ttf'
-    attribute_name_font = ImageFont.truetype(basic_font_path, 60)
+    attribute_name_font = ImageFont.truetype(basic_font_path, 55)
     rank_font = ImageFont.truetype(basic_font_path, 160)
     total_players_font = ImageFont.truetype(basic_font_path, 40)
     percentile_font = ImageFont.truetype(basic_font_path, 50)
@@ -264,7 +264,35 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
         ch.draw_centered_text(draw, f'/ {total_players}', total_players_font, y_position=200, x_center=110)
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=174, x_center=250)
     
-    draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
+    if attribute_name in ['5v4 Offense', '4v5 Defense']:
+        # Draw dashed line
+        draw.rectangle([(10, 64), (33, 70)], fill=attribute_color)
+        draw.rectangle([(42, 64), (65, 70)], fill=attribute_color)
+        draw.rectangle([(74, 64), (97, 70)], fill=attribute_color)
+        draw.rectangle([(106, 64), (129, 70)], fill=attribute_color)
+        draw.rectangle([(138, 64), (161, 70)], fill=attribute_color)
+        draw.rectangle([(170, 64), (193, 70)], fill=attribute_color)
+        draw.rectangle([(202, 64), (225, 70)], fill=attribute_color)
+        draw.rectangle([(234, 64), (257, 70)], fill=attribute_color)
+        draw.rectangle([(266, 64), (289, 70)], fill=attribute_color)
+
+        # Draw circles at both ends
+        r = 9
+        draw.ellipse([(10 - r, 64 + 3 - r), (10 + r, 64 + 3 + r)], fill=attribute_color)
+        draw.ellipse([(289 - r, 64 + 3 - r), (289 + r, 64 + 3 + r)], fill=attribute_color)
+
+    elif attribute_name in ['5v5 Offense', '5v5 Defense']:
+        # Draw rectangle
+        draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
+
+        # Draw circles at both ends
+        r = 9
+        draw.ellipse([(10 - r, 64 + 3 - r), (10 + r, 64 + 3 + r)], fill=attribute_color)
+        draw.ellipse([(290 - r, 64 + 3 - r), (290 + r, 64 + 3 + r)], fill=attribute_color)
+
+    else:
+        # Draw rectangle
+        draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
 
     plt.close()
     
@@ -341,7 +369,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     # X-axis settings
     ax.set_xticks(x_vals)
     ax.set_xticklabels(seasons, fontsize=15, fontweight='bold')
-    ax.tick_params(axis='x', labelsize=10, length=7, direction='inout')
+    ax.tick_params(axis='x', labelsize=9, length=9, direction='inout')
     ax.set_xlim(min(x_vals) - 1, max(x_vals) + 1)
 
     # Y-axis settings
@@ -470,7 +498,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
     # For skater cards
     if pos != 'G':
-        # Add offense and defense ranks    
+        # Add offense and defense rankings    
         evo_rank_section = make_rank_component(player_cur_season, 'evo_rank')
         player_card.paste(evo_rank_section, (50, 750))
 
@@ -491,26 +519,24 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         draw = ImageDraw.Draw(player_card)
         draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
-        # Add skills ranks
-
+        # Add skill rankings
         oio_rank_section = make_rank_component(player_cur_season, 'oio_rank')
         player_card.paste(oio_rank_section, (50, 1425))
 
+        oid_rank_section = make_rank_component(player_cur_season, 'oid_rank')
+        player_card.paste(oid_rank_section, (455, 1425))
+
         sht_rank_section = make_rank_component(player_cur_season, 'sht_rank')
-        player_card.paste(sht_rank_section, (455, 1425))
+        player_card.paste(sht_rank_section, (850, 1425))
 
         fin_rank_section = make_rank_component(player_cur_season, 'fin_rank')
-        player_card.paste(fin_rank_section, (850, 1425))
+        player_card.paste(fin_rank_section, (1245, 1425))
 
         plm_rank_section = make_rank_component(player_cur_season, 'plm_rank')
-        player_card.paste(plm_rank_section, (1245, 1425))
+        player_card.paste(plm_rank_section, (1640, 1425))
 
         pen_rank_section = make_rank_component(player_cur_season, 'pen_rank')
-        player_card.paste(pen_rank_section, (1640, 1425))
-
-
-        oid_rank_section = make_rank_component(player_cur_season, 'oid_rank')
-        player_card.paste(oid_rank_section, (50, 1715))
+        player_card.paste(pen_rank_section, (50, 1715))
 
         phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
         player_card.paste(phy_rank_section, (455, 1715))
@@ -538,7 +564,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         draw = ImageDraw.Draw(player_card)
         draw.rectangle([(60, 1600), (1940, 1640)], fill=primary_team_color)
 
-        # Add danger chances rankings
+        # Add skill rankings
         evd_rank_section = make_rank_component(player_cur_season, 'ldg_rank')
         player_card.paste(evd_rank_section, (455, 1700))
 
