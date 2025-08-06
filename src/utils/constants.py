@@ -179,8 +179,8 @@ ATRIBUTE_NAMES = {
     'evd_rank' : '5v5 Defense',
     'ppl_rank' : '5v4 Offense',
     'pkl_rank' : '4v5 Defense',
-    'oio_rank' : 'On Ice Off',
-    'oid_rank' : 'On Ice Def',
+    'oio_rank' : 'On Ice Offense',
+    'oid_rank' : 'On Ice Defense',
     'fin_rank' : 'Finishing',
     'sht_rank' : 'Shooting',
     'plm_rank' : 'Playmaking',
@@ -218,7 +218,7 @@ PRIMARY_COLORS = {
 
 # Team secondary colors
 SECONDARY_COLORS = {
-    'ANA': (185, 151, 91),  'ARI': (226,214,181),   'BOS': (17, 17, 17),
+    'ANA': (185, 151, 91),  'ARI': (21,71,52),      'BOS': (17, 17, 17),
     'BUF': (255, 184, 28),  'CGY': (250, 175, 25),  'CAR': (0, 0, 0),
     'CHI': (0, 0, 0),       'COL': (35, 97, 146),   'CBJ': (206,17,38),
     'DAL': (143, 143, 140), 'DET': (0, 0, 0),       'EDM': (4, 30, 66),
@@ -227,7 +227,7 @@ SECONDARY_COLORS = {
     'NYI': (0,83,155),      'NYR': (206,17,38),     'OTT': (0, 0, 0),
     'PHI': (0, 0, 0),       'PIT': (0, 0, 0),       'SJS': (0, 0, 0),
     'SEA': (0, 22, 40),     'STL': (252, 181, 20),  'TBL': (0, 0, 0),
-    'TOR': (0, 0, 0),       'VAN': (0, 132, 61),     'UTA': (0, 0, 0),
+    'TOR': (0, 0, 0),       'VAN': (0, 132, 61),    'UTA': (0, 0, 0),
     'VGK': (51,63,72),      'WSH': (200, 16, 46),   'WPG': (172,22,44)
 }
 
@@ -237,8 +237,8 @@ ATTRIBUTE_COLORS = {
     '5v5 Defense':      (70, 70, 255),
     '5v4 Offense':      (255, 150, 130),
     '4v5 Defense':      (130, 150, 255),
-    'On Ice Off':       (0, 0, 0),
-    'On Ice Def':       (0, 0, 0),
+    'On Ice Offense':       (0, 0, 0),
+    'On Ice Defense':       (0, 0, 0),
     'Finishing':        (0, 0, 0),
     'Shooting':         (0, 0, 0),
     'Playmaking':       (0, 0, 0),
@@ -274,45 +274,3 @@ PLOT_ATTRIBUTE_COLORS = {
     'mdg_plot': (0/255, 0/255, 0/255),
     'hdg_plot': (0/255, 0/255, 0/255)
 }
-
-
-
-# ====================================================================================================
-# PLAYER CARD CREATION CONSTANTS
-# ====================================================================================================
-
-# Players with unique attributes
-UNIQUE_PLAYERS = ['James van Riemsdyk', # ADD MORE
-]
-
-# One forward per team (2024-2025 end of season rosters)
-F_PLAYERS = ['Troy Terry', 'David Pastrnak', 'Tage Thompson', 'Nazem Kadri', 'Sebastian Aho',
-            'Connor Bedard', 'Nathan MacKinnon', 'Sean Monahan', 'Jason Robertson', 'Dylan Larkin',
-            'Connor McDavid', 'Aleksander Barkov', 'Anze Kopitar', 'Kirill Kaprizov', 'Cole Caufield',
-            'Filip Forsberg', 'Jack Hughes', 'Mathew Barzal', 'Artemi Panarin', 'Brady Tkachuk',
-            'Travis Konecny', 'Sidney Crosby', 'Macklin Celebrini', 'Jared McCann', 'Robert Thomas',
-            'Nikita Kucherov', 'Auston Matthews', 'Clayton Keller', 'Elias Pettersson', 'Jack Eichel',
-            'Alex Ovechkin', 'Kyle Connor'
-]
-
-# One defensemen per team (2024-2025 end of season rosters)
-D_PLAYERS = ['Pavel Mintyukov', 'Charlie McAvoy', 'Rasmus Dahlin', 'MacKenzie Weegar', 'Jaccob Slavin',
-            'Alec Martinez', 'Cale Makar', 'Zach Werenski', 'Miro Heiskanen', 'Moritz Seider',
-            'Evan Bouchard', 'Gustav Forsling', 'Brandt Clarke', 'Brock Faber', 'Lane Hutson',
-            'Roman Josi', 'Dougie Hamilton', 'Noah Dobson', 'Adam Fox', 'Jake Sanderson',
-            'Travis Sanheim', 'Erik Karlsson', 'Marc-Edouard Vlasic', 'Vince Dunn', 'Colton Parayko',
-            'Victor Hedman', 'Chris Tanev', 'Mikhail Sergachev', 'Quinn Hughes', 'Shea Theodore',
-            'John Carlson', 'Josh Morrissey'
-]
-
-# One goalie per team (2024-2025 end of season rosters)
-G_PLAYERS = ['John Gibson', 'Jeremey Swayman', 'Ukko-Pekka Luukkonen', 'Dustin Wolf', 'Frederik Andersen',
-            'Arvid Soderblom', 'Mackenzie Blackwood', 'Elvis Merzļikins', 'Jake Oettinger', 'Cam Talbot',
-            'Stuart Skinner', 'Sergei Bobrovsky', 'Darcy Kuemper', 'Filip Gustavsson', 'Sam Montembeault'
-            'Juuse Saros', 'Jacob Markström', 'Ilya Sorokin', 'Ilya Shesterkin', 'Linus Ullmark',
-            'Samuel Ersson', 'Tristan Jarry', 'Alexandar Georgiev', 'Joey Daccord', 'Jordan Binnington',
-            'Andrei Vasilevskiy', 'Joseph Woll', 'Karel Vejmelka', 'Kevin Lankinen', 'Adin Hill',
-            'Logan Thompson', 'Connor Hellebuyck'
-]
-
-
