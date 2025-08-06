@@ -529,8 +529,8 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         sht_rank_section = make_rank_component(player_cur_season, 'sht_rank')
         player_card.paste(sht_rank_section, (850, 1425))
 
-        fin_rank_section = make_rank_component(player_cur_season, 'fin_rank')
-        player_card.paste(fin_rank_section, (1245, 1425))
+        scr_rank_section = make_rank_component(player_cur_season, 'scr_rank')
+        player_card.paste(scr_rank_section, (1245, 1425))
 
         plm_rank_section = make_rank_component(player_cur_season, 'plm_rank')
         player_card.paste(plm_rank_section, (1640, 1425))

@@ -52,7 +52,7 @@ class SkaterScorer:
         return self.adjust_score(score, row, season)
     
 
-    def finishing_score(self, row: pd.Series, season: str) -> float:
+    def scoring_score(self, row: pd.Series, season: str) -> float:
         goals = row['Goals']
         xgoals = row['ixG']
 
@@ -96,7 +96,7 @@ class SkaterScorer:
             return -999999
         else:
             score = (
-                self.finishing_score(row, season) +
+                self.scoring_score(row, season) +
                 self.shooting_score(row, season) * 0.5 +
                 self.playmaking_score(row, season) +
                 self.oniceoffense_score(row, season) * 0.15

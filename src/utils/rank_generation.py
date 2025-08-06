@@ -19,16 +19,7 @@ def calculate_scores(position: str, season, all_row: pd.Series, evs_row: pd.Seri
     """
     ADD
     """
-    if position == 'G':
-        scores = {
-            'all_score': goalie_scorer.total_score(all_row, season),
-            'evs_score': goalie_scorer.total_score(evs_row, season),
-            'pkl_score': goalie_scorer.total_score(pkl_row, season),
-            'ldg_score': goalie_scorer.zone_score(all_row, season, 'LD'),
-            'mdg_score': goalie_scorer.zone_score(all_row, season, 'MD'),
-            'hdg_score': goalie_scorer.zone_score(all_row, season, 'HD'),
-        }
-    else:
+    if position != 'G':
         scores = {
             'evo_score': skater_scorer.offensive_score(evs_row, season),
             'evd_score': skater_scorer.defensive_score(evs_row, season),
@@ -37,14 +28,23 @@ def calculate_scores(position: str, season, all_row: pd.Series, evs_row: pd.Seri
             'oio_score': skater_scorer.oniceoffense_score(evs_row, season),
             'oid_score': skater_scorer.onicedefense_score(evs_row, season),
             'sht_score': skater_scorer.shooting_score(all_row, season),
-            'fin_score': skater_scorer.finishing_score(all_row, season),
+            'scr_score': skater_scorer.scoring_score(all_row, season),
             'plm_score': skater_scorer.playmaking_score(all_row, season),
             'phy_score': skater_scorer.physicality_score(all_row, season),
             'pen_score': skater_scorer.penalties_score(all_row, season),
             'fof_score': skater_scorer.faceoff_score(all_row, season),
             'spd_score': 0,          # Might be used in the future
         }
-        
+    else:
+        scores = {
+            'all_score': goalie_scorer.total_score(all_row, season),
+            'evs_score': goalie_scorer.total_score(evs_row, season),
+            'pkl_score': goalie_scorer.total_score(pkl_row, season),
+            'ldg_score': goalie_scorer.zone_score(all_row, season, 'LD'),
+            'mdg_score': goalie_scorer.zone_score(all_row, season, 'MD'),
+            'hdg_score': goalie_scorer.zone_score(all_row, season, 'HD'),
+        }    
+
     return scores
 
 
