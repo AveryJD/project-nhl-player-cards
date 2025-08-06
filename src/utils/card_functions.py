@@ -55,13 +55,16 @@ def make_header_section(player_row: pd.Series) -> Image:
     # Get stats variables
     role = cd.get_player_role(player_row)
     games_played = player_row['GP']
-    if position == 'G':
+    if position != 'G':
+        goals = player_row['Goals']
+        primary_assists = player_row['First Assists']
+        primary_points = goals + primary_assists
+    else:
         save_percentage = format(float(player_row['SV%']), '.3f')
         goals_against_avg = format(player_row['GAA'], '.2f')
-    else:
-        goals = player_row['Goals']
-        assists = player_row['Total Assists']
-        points = player_row['Total Points']
+        xgoals_against = player_row['xG Against']
+        goals_against = player_row['Goals Against']
+        gsax = format(xgoals_against - goals_against, '.2f')
 
     # Get contract variables
     cap_hit = '-.---'                   # TEMPORARY
@@ -127,18 +130,20 @@ def make_header_section(player_row: pd.Series) -> Image:
 
 
     # Draw stats segment text
-    if position == 'G':
+    if position != 'G':
         draw.text(xy=(1400, 270), text='ROLE:', font=basic_font, fill=(0,0,0))
-        draw.text(xy=(1400, 310), text='GP-SV%-GAA:', font=basic_font, fill=(0,0,0))
+        draw.text(xy=(1400, 310), text='GP-G-A1-P1:', font=basic_font, fill=(0,0,0))
 
         ch.draw_righted_text(draw, text=role, font=basic_font, y_position=270, x_right=1900)
-        ch.draw_righted_text(draw, text=f'{games_played}-{save_percentage}-{goals_against_avg}', font=basic_font, y_position=310, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{games_played}-{goals}-{primary_assists}-{primary_points}', font=basic_font, y_position=310, x_right=1900)
+
+
     else:
         draw.text(xy=(1400, 270), text='ROLE:', font=basic_font, fill=(0,0,0))
-        draw.text(xy=(1400, 310), text='GP-G-A-P:', font=basic_font, fill=(0,0,0))
+        draw.text(xy=(1400, 310), text='SV%-GAA-GSAx:', font=basic_font, fill=(0,0,0))
 
-        ch.draw_righted_text(draw, text=role, font=basic_font, y_position=270, x_right=1900)
-        ch.draw_righted_text(draw, text=f'{games_played}-{goals}-{assists}-{points}', font=basic_font, y_position=310, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{role} ({games_played} GP)', font=basic_font, y_position=270, x_right=1900)
+        ch.draw_righted_text(draw, text=f'{save_percentage}-{goals_against_avg}-{gsax}', font=basic_font, y_position=310, x_right=1900)
 
 
     # Draw salary segment text

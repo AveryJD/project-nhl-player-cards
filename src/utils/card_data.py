@@ -136,25 +136,25 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
     :return: a Series containing all the header information
     """
-    # Header row for goalies
-    if pos == 'G':
+    # Header row for skaters
+    if pos != 'G':
         all_player_profiles = file.load_bios_csv(season, pos)
         all_player_stats = file.load_stats_csv(season, pos, 'all')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
-        player_stats_row = player_stats_row[['Player', 'GP', 'SV%', 'GAA']]
+        player_stats_row = player_stats_row[['Player', 'GP', 'TOI', 'Goals', 'First Assists']]
 
         player_header_row = pd.merge(player_profile_row, player_stats_row, on=['Player'])
 
-    # Header row for skaters
+    # Header row for goalies
     else:
         all_player_profiles = file.load_bios_csv(season, pos)
         all_player_stats = file.load_stats_csv(season, pos, 'all')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
-        player_stats_row = player_stats_row[['Player', 'GP', 'TOI', 'Goals', 'Total Assists', 'Total Points']]
+        player_stats_row = player_stats_row[['Player', 'GP', 'SV%', 'GAA', 'Goals Against', 'xG Against']]
 
         player_header_row = pd.merge(player_profile_row, player_stats_row, on=['Player'])
 
