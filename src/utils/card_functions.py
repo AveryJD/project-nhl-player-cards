@@ -319,7 +319,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     graph_section_height = 650
     graph_section = Image.new("RGB", (graph_section_width, graph_section_height), color=(255, 255, 255))
 
-
+    # Define attributes top plot depending on the position
     if pos == 'G':
         attributes_to_plot = ['all', 'pkl', 'evs',]
     else:
@@ -345,18 +345,29 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     for attribute_name in attributes_to_plot:
         percentiles = []
         for season in seasons:
-            if season in player_multiple_seasons['Season'].values:
-                cur_player_row = player_multiple_seasons[player_multiple_seasons['Season'] == season].iloc[0]
-                total_players = player_multiple_seasons.loc[player_multiple_seasons['Season'] == season, 'all_players'].iloc[0]
-
-                if total_players:
-                    rank, percentile = cd.get_rank_and_percentile(cur_player_row, f"{attribute_name}_rank", total_players)
-                    if rank != 'N/A':
-                        percentiles.append(percentile)
+            season_rows = player_multiple_seasons[player_multiple_seasons['Season'] == season]
+            if not season_rows.empty:
+                cur_player_row = season_rows.iloc[0]
+                
+                # Check if attribute data exists and keep track of percentiles to graph
+                attr_rank_col = f"{attribute_name}_rank"
+                if pd.notna(cur_player_row.get(attr_rank_col)) and cur_player_row.get(attr_rank_col) != 'N/A':
+                    if attribute_name not in ['ppl', 'pkl', 'fof']:
+                        total_players = cur_player_row.get('all_players')
+                    else:
+                        total_players = cur_player_row.get(f'{attribute_name}_players')
+                    if pd.notna(total_players) and total_players > 0:
+                        rank, percentile = cd.get_rank_and_percentile(cur_player_row, attr_rank_col, total_players)
+                        if rank == 'N/A':
+                            percentiles.append(None)
+                        else:
+                            percentiles.append(percentile)
+                    else:
+                        percentiles.append(None)
                 else:
                     percentiles.append(None)
             else:
-                percentiles.append(None) 
+                percentiles.append(None)
 
 
         # Plot lines
@@ -371,6 +382,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
                 x_plot, y_plot = zip(*valid_data)
                 ax.plot(x_plot, y_plot, linewidth=4, linestyle='-', marker='o', markersize=9, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
     
+
     # X-axis settings
     ax.set_xticks(x_vals)
     ax.set_xticklabels(seasons, fontsize=15, fontweight='bold')

@@ -164,18 +164,18 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     return player_header_row.iloc[0]
 
 
-def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str ='all',) -> int:
+def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str,) -> int:
     """
     Return the total amount of players that qualify for the given attribute rank 
     (some players are not given a rank for certain attributes).
 
     :param season_data: a DataFrame of player stats
-    :param attribute: a str of the attribute to return the total players for
     :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
+    :param attribute: a str of the attribute to return the total players for
     :return: an int of the total players that are included in an attribute
     """
-    # Total players for when attribute is specified as 'all' or for any goalie attriibutes is all players
-    if attribute == 'all' or pos == 'G':
+    # Total players for when attribute is not a special case or for any goalie attriibutes is all players
+    if attribute not in ['ppl', 'pkl', 'fof'] or pos == 'G':
         total_players = len(season_data)
 
     # For attributes that not all players qualify for, ignore players whose attribute score is -999999
