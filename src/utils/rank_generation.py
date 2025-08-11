@@ -12,28 +12,36 @@ from utils import load_save as file
 DATA_DIR = constants.DATA_DIR
 
 skater_scorer = rs.SkaterScorer()
-defensemen_scorer = rs.SkaterScorer()
 goalie_scorer = rs.GoalieScorer()
 
 
-def calculate_scores(position: str, season, all_row: pd.Series, evs_row: pd.Series, pkl_row: pd.Series, ppl_row: pd.Series=pd.Series()) -> dict:
+def calculate_player_scores(position: str, all_row: pd.Series, evs_row: pd.Series, pkl_row: pd.Series, ppl_row: pd.Series=pd.Series(), season: str=None) -> dict:
     """
-    ADD
+    Calculate player scores for all attributes.
+
+    :param position: a str representing the player's position ('F', 'D', or 'G')
+    :param all_row: a Series containing the players stats from all situations
+    :param evs_row: a Series containing the players 5v5 stats
+    :param pkl_row: a Series containing the players 4v5 stats
+    :param ppl_row: a Series containing the players 5v4 stats (default is an empty Series)
+    :param season: a str representing the season ('YYYY-YYYY') (default is None)
+    :return: None
     """
+
     if position != 'G':
         scores = {
-            'evo_score': skater_scorer.offensive_score(evs_row, season),
-            'evd_score': skater_scorer.defensive_score(evs_row, season),
-            'ppl_score': skater_scorer.offensive_score(ppl_row, season),
-            'pkl_score': skater_scorer.defensive_score(pkl_row, season),
-            'oio_score': skater_scorer.oniceoffense_score(evs_row, season),
-            'oid_score': skater_scorer.onicedefense_score(evs_row, season),
-            'sht_score': skater_scorer.shooting_score(all_row, season),
-            'scr_score': skater_scorer.scoring_score(all_row, season),
-            'plm_score': skater_scorer.playmaking_score(all_row, season),
-            'phy_score': skater_scorer.physicality_score(all_row, season),
-            'pen_score': skater_scorer.penalties_score(all_row, season),
-            'fof_score': skater_scorer.faceoff_score(all_row, season),
+            'evo_score': skater_scorer.offensive_score(evs_row),
+            'evd_score': skater_scorer.defensive_score(evs_row),
+            'ppl_score': skater_scorer.offensive_score(ppl_row),
+            'pkl_score': skater_scorer.defensive_score(pkl_row),
+            'oio_score': skater_scorer.oniceoffense_score(evs_row),
+            'oid_score': skater_scorer.onicedefense_score(evs_row),
+            'sht_score': skater_scorer.shooting_score(evs_row),
+            'scr_score': skater_scorer.scoring_score(evs_row),
+            'plm_score': skater_scorer.playmaking_score(evs_row),
+            'phy_score': skater_scorer.physicality_score(evs_row),
+            'pen_score': skater_scorer.penalties_score(evs_row),
+            'fof_score': skater_scorer.faceoff_score(all_row),
             'spd_score': 0,          # Might be used in the future
         }
     else:
@@ -111,7 +119,7 @@ def make_player_rankings(season: str, position: str) -> None:
                 all_row['Faceoffs Lost'] = 0
 
             # Calculate the skater's scores
-            scores = calculate_scores(pos, all_row, evs_row, pkl_row, ppl_row)
+            scores = calculate_player_scores(pos, all_row, evs_row, pkl_row, ppl_row)
             scores_list.append(scores)
 
         # Rank the skater's scores
@@ -147,7 +155,7 @@ def make_player_rankings(season: str, position: str) -> None:
             pk_row = pk_data.loc[pk_data['Player'] == name].iloc[0]
 
             # Calculate the goalies's scores
-            scores = calculate_scores('G', row, ev_row, pk_row, season)
+            scores = calculate_player_scores('G', row, ev_row, pk_row, season)
             scores_list.append(scores)
 
         # Rank the goalies's scores
