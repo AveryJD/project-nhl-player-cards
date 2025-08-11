@@ -50,19 +50,23 @@ def calculate_scores(position: str, season, all_row: pd.Series, evs_row: pd.Seri
 
 def make_player_rankings(season: str, position: str) -> None:
     """
-    ADD
+    Generate player rankings for a specific season.
+
+    :param season: a str representing the season ('YYYY-YYYY')
+    :param position: a str representing the player's position ('F', 'D', or 'G')
+    :return: None
     """
 
+    # For skaters
     if position != 'G':
-
         # Load all skater data
         all_data = file.load_stats_csv(season, position, 'all')
         ev_data = file.load_stats_csv(season, position, '5v5')
         pp_data = file.load_stats_csv(season, position, '5v4')
         pk_data = file.load_stats_csv(season, position, '4v5')
 
-        # Filter skaters who do not meet the minimum games played requirement
-        min_gp = constants.MIN_GP_SKATER
+        # Filter skaters who do not meet the minimum games played requirement (25% of games played over the season)
+        min_gp = constants.SEASON_GAMES[season] * 0.25
         valid_players = all_data.loc[all_data['GP'] >= min_gp, 'Player']
 
         all_data = all_data[all_data['Player'].isin(valid_players)]
@@ -74,22 +78,36 @@ def make_player_rankings(season: str, position: str) -> None:
         rankings = all_data[['Player', 'Position', 'Team']].copy()
         scores_list = []
 
-        # For each skater in the all data DataFrame
+        # For each skater
         for _, all_row in all_data.iterrows():
             name = all_row['Player']
             pos = all_row['Position']
 
-            # Get the skater's data rows
+            # Get the skater's 5v5 data
             evs_row = evs_data.loc[evs_data['Player'] == name].iloc[0]
+
+            # Get the skater's 5v4 data and filter based on TOI (30 seconds per game in the season requirement)
             if name in ppl_data['Player'].values:
                 ppl_row = ppl_data.loc[ppl_data['Player'] == name].iloc[0]
+                if ppl_row.get('TOI', 0) < constants.SEASON_GAMES[season] * 0.5:
+                    ppl_row = pd.Series()
             else:
                 ppl_row = pd.Series()
 
+            # Get the skater's 4v5 data and filter based on TOI (30 seconds per game in the season requirement)
             if name in pkl_data['Player'].values:
                 pkl_row = pkl_data.loc[pkl_data['Player'] == name].iloc[0]
+                if pkl_row.get('TOI', 0) < constants.SEASON_GAMES[season] * 0.5:
+                    pkl_row = pd.Series()
             else:
                 pkl_row = pd.Series()
+
+            # Faceoff threshold enforcement (3 faceoffs per game in the season requirement)
+            total_fo = all_row.get('Faceoffs Won', 0) + all_row.get('Faceoffs Lost', 0)
+            if total_fo < constants.SEASON_GAMES[season] * 3:
+                all_row = all_row.copy()
+                all_row['Faceoffs Won'] = 0
+                all_row['Faceoffs Lost'] = 0
 
             # Calculate the skater's scores
             scores = calculate_scores(pos, all_row, evs_row, pkl_row, ppl_row)
@@ -99,28 +117,15 @@ def make_player_rankings(season: str, position: str) -> None:
         scores_df = pd.DataFrame(scores_list)
         rankings = pd.concat([pd.DataFrame({'Season': [season] * len(all_data)}), rankings.reset_index(drop=True), scores_df], axis=1)
 
-        # Correct column names
-        score_columns = [col for col in scores_df.columns if col.endswith('_score')]
-        for col in score_columns:
-            attr = col.split('_')[0]
-            rankings[f'{attr}_rank'] = rankings[col].rank(ascending=False, method='min')
-
-        # Save rankings CSV file
-        if position == 'F':
-            pos_folder = 'forwards' 
-        else:
-            pos_folder = 'defensemen'
-        filename = f'{season}_{position}_rankings.csv'
-        file.save_csv(rankings, 'rankings', pos_folder, filename)
-
+    # For goalies
     else:
         # Load all goalie data
         all_data = file.load_stats_csv(season, 'G', 'all')
         ev_data = file.load_stats_csv(season, 'G', '5v5')
         pk_data = file.load_stats_csv(season, 'G', '4v5')
 
-        # Filter goalies who do not meet the minimum games played requirement
-        min_gp = constants.MIN_GP_GOALIE
+        # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
+        min_gp = constants.SEASON_GAMES[season] * 0.15
         valid_players = all_data.loc[all_data['GP'] >= min_gp, 'Player']
 
         all_data = all_data[all_data['Player'].isin(valid_players)]
@@ -132,29 +137,38 @@ def make_player_rankings(season: str, position: str) -> None:
         rankings.insert(1, 'Position', 'G')
         scores_list = []
 
-        # For each goalie in the all data DataFrame
+        # For each goalie
         for _, row in all_data.iterrows():
             name = row['Player']
 
-            # Get the goalie's data rows
+            # Get the goalie's's 5v5 and 4v5 data
             ev_row = ev_data.loc[ev_data['Player'] == name].iloc[0]
             pk_row = pk_data.loc[pk_data['Player'] == name].iloc[0]
 
-            # Calculate the skater's scores
-            scores = calculate_scores('G', row, ev_row, pk_row)
+            # Calculate the goalies's scores
+            scores = calculate_scores('G', row, ev_row, pk_row, season)
             scores_list.append(scores)
 
-        # Rank the skater's scores
+        # Rank the goalies's scores
         scores_df = pd.DataFrame(scores_list)
         rankings = pd.concat([pd.DataFrame({'Season': [season] * len(all_data)}), rankings.reset_index(drop=True), scores_df], axis=1)
 
-        # Correct column names
-        score_columns = [col for col in scores_df.columns if col.endswith('_score')]
-        for col in score_columns:
-            attr = col.split('_')[0]
-            rankings[f'{attr}_rank'] = rankings[col].rank(ascending=False, method='min')
 
-        # Save rankings CSV file
-        filename = f'{season}_G_rankings.csv'
-        file.save_csv(rankings, 'rankings', 'goalies', filename)
+    # Correct column names
+    score_columns = [col for col in scores_df.columns if col.endswith('_score')]
+    for col in score_columns:
+        attr = col.split('_')[0]
+        rankings[f'{attr}_rank'] = rankings[col].rank(ascending=False, method='min')
+
+    # Save rankings CSV file
+    if position == 'F':
+        pos_folder = 'forwards' 
+    elif position == 'D':
+        pos_folder = 'defensemen'
+    elif position == 'G':
+        pos_folder = 'goalies'
+
+    filename = f'{season}_{position}_yearly_rankings.csv'
+    file.save_csv(rankings, 'rankings', f'yearly_{pos_folder}', filename)
+
 
