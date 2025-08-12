@@ -67,8 +67,8 @@ def make_header_section(player_row: pd.Series) -> Image:
         gsax = format(xgoals_against - goals_against, '.2f')
 
     # Get contract variables
-    cap_hit = '-.---'                   # TEMPORARY
-    contract_years_left = '-'           # TEMPORARY
+    cap_hit = 'COMING SOON'                   # TEMPORARY ($##.### M)
+    contract_years_left = 'COMING SOON'       # TEMPORARY (##)
 
     # Create header section card
     header_section_width = 2000
@@ -150,7 +150,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw.text(xy=(1400, 510), text='CAP HIT:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(1400, 550), text='YEARS REMAINING:', font=basic_font, fill=(0,0,0))
 
-    ch.draw_righted_text(draw, text=f'${cap_hit} M', font=basic_font, y_position=510, x_right=1900)
+    ch.draw_righted_text(draw, text=cap_hit, font=basic_font, y_position=510, x_right=1900)
     ch.draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=550, x_right=1900)
 
 
@@ -429,6 +429,9 @@ def make_branding_section(team: str) -> Image:
     # Create draw image
     draw = ImageDraw.Draw(branding_section)
 
+    # Get the card creation date
+    creation_date = cd.get_current_date()
+
     # Get the font
     basic_font_path = f'{DATA_DIR}/assets/fonts/basic.ttf'
     basic_font = ImageFont.truetype(basic_font_path, 55)
@@ -442,10 +445,12 @@ def make_branding_section(team: str) -> Image:
 
     # Resources text
     draw.text(xy=(1060, 73), text='Player Data From:', font=basic_font, fill=(0,0,0))
-    draw.text(xy=(1060, 156), text='Cap Data From:', font=basic_font, fill=(0,0,0))
+    draw.text(xy=(1060, 156), text='Card Creation Date:', font=basic_font, fill=(0,0,0))
+    #draw.text(xy=(1060, 156), text='Cap Data From:', font=basic_font, fill=(0,0,0)) Will be added later
 
     ch.draw_righted_text(draw, 'NaturalStatTrick.com', basic_font, 73, 1900)
-    ch.draw_righted_text(draw, 'Coming Soon', basic_font, 156, 1900)
+    ch.draw_righted_text(draw, creation_date, basic_font, 156, 1900)
+    #ch.draw_righted_text(draw, 'Coming Soon', basic_font, 156, 1900) Will be added later
     
     # Get colors and fonts
     primary_team_color = constants.PRIMARY_COLORS.get(team)
