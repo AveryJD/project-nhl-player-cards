@@ -4,7 +4,6 @@
 
 # Imports
 import pandas as pd
-from datetime import datetime
 from utils import constants
 from utils import load_save as file
 
@@ -286,12 +285,3 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
 
     return player_seasons
 
-
-def get_current_date() -> str:
-    """
-    Returns the current date as a string in DD/MM/YYYY format.
-
-    :return: a str of the current date (DD/MM/YYYY)
-    """
-    date = datetime.now().strftime("%m/%d/%Y")
-    return date
