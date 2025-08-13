@@ -67,8 +67,8 @@ def make_header_section(player_row: pd.Series) -> Image:
         gsax = format(xgoals_against - goals_against, '.2f')
 
     # Get contract variables
-    cap_hit = '-.---'                   # TEMPORARY
-    contract_years_left = '-'           # TEMPORARY
+    cap_hit = player_row['Cap Hit']
+    contract_years_left = player_row['Contract Years']
 
     # Create header section card
     header_section_width = 2000
@@ -445,7 +445,7 @@ def make_branding_section(team: str) -> Image:
     draw.text(xy=(1060, 156), text='Cap Data From:', font=basic_font, fill=(0,0,0))
 
     ch.draw_righted_text(draw, 'NaturalStatTrick.com', basic_font, 73, 1900)
-    ch.draw_righted_text(draw, 'Coming Soon', basic_font, 156, 1900)
+    ch.draw_righted_text(draw, 'PuckPedia.com', basic_font, 156, 1900)
     
     # Get colors and fonts
     primary_team_color = constants.PRIMARY_COLORS.get(team)
