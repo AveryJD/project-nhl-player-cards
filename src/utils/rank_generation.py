@@ -48,7 +48,7 @@ def calculate_player_scores(position: str, all_row: pd.Series, evs_row: pd.Serie
         scores = {
             'all_score': goalie_scorer.total_score(all_row, season),
             'evs_score': goalie_scorer.total_score(evs_row, season),
-            'pkl_score': goalie_scorer.total_score(pkl_row, season),
+            'gpk_score': goalie_scorer.total_score(pkl_row, season),
             'ldg_score': goalie_scorer.zone_score(all_row, season, 'LD'),
             'mdg_score': goalie_scorer.zone_score(all_row, season, 'MD'),
             'hdg_score': goalie_scorer.zone_score(all_row, season, 'HD'),

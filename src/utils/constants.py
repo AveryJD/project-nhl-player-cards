@@ -161,7 +161,7 @@ TEAM_NAMES = {
     'VGK': 'Vegas Golden Knights',  'WSH': 'Washington Capitals',   'WPG': 'Winnipeg Jets'
 }
 
-# Country abreviations with full names
+# Country abreviations with nationality names
 NATIONALITIES = {
     'AUS': 'Australia',     'AUT': 'Austria',       'BLR': 'Belarus',       'CAN': 'Canada',
     'CZE': 'Czechia',       'DNK': 'Denmark',       'FIN': 'Finland',       'FRA': 'France',
@@ -189,7 +189,8 @@ ATRIBUTE_NAMES = {
     'fof_rank' : 'Faceoffs',
     'spd_rank' : 'Speed',                      # Might be used in the future
     'all_rank' : 'Overall',
-    'evs_rank' : 'Ev. Strength',
+    'evs_rank' : 'Even Strength',
+    'gpk_rank' : 'Penalty Kill',
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
     'hdg_rank' : 'High Danger',
@@ -237,9 +238,9 @@ ATTRIBUTE_COLORS = {
     '5v5 Defense':      (70, 70, 255),
     '5v4 Offense':      (255, 150, 130),
     '4v5 Defense':      (130, 150, 255),
-    'On Ice Offense':       (0, 0, 0),
-    'On Ice Defense':       (0, 0, 0),
-    'Scoring':        (0, 0, 0),
+    'On Ice Offense':   (0, 0, 0),
+    'On Ice Defense':   (0, 0, 0),
+    'Scoring':          (0, 0, 0),
     'Shooting':         (0, 0, 0),
     'Playmaking':       (0, 0, 0),
     'Physicality':      (0, 0, 0),
@@ -247,7 +248,8 @@ ATTRIBUTE_COLORS = {
     'Faceoffs':         (0, 0, 0),
     'Speed':            (0, 0, 0),                 # Might be used in the future
     'Overall':          (255, 70, 70),
-    'Ev. Strength':     (255, 150, 150),
+    'Even Strength':    (255, 150, 150),
+    'Penalty Kill':     (130, 150, 255),
     'Low Danger':       (0, 0, 0),
     'Med. Danger':      (0, 0, 0),
     'High Danger':      (0, 0, 0),
@@ -270,6 +272,7 @@ PLOT_ATTRIBUTE_COLORS = {
     'spd_plot': (0/255, 0/255, 0/255),         # Might be used in the future
     'all_plot': (255/255, 70/255, 70/255),
     'evs_plot': (255/255, 150/255, 150/255),
+    'gpk_plot': (150/255, 150/255, 255/255),
     'ldg_plot': (0/255, 0/255, 0/255),
     'mdg_plot': (0/255, 0/255, 0/255),
     'hdg_plot': (0/255, 0/255, 0/255)
