@@ -148,6 +148,16 @@ class SkaterScorer:
         )
     
         return self.adjust_score(score, row)
+    
+
+    def ozonestarts_score(self, row: pd.Series,) -> float:
+        score = (
+            self.weights['off_zone_starts'] * row['Off. Zone Starts'] +
+            self.weights['neu_zone_starts'] * row['Neu. Zone Starts'] +
+            self.weights['def_zone_starts'] * row['Def. Zone Starts']
+        )
+    
+        return self.adjust_score(score, row)
 
 
     def faceoff_score(self, row: pd.Series) -> float:

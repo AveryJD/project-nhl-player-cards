@@ -561,6 +561,9 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         tra_rank_section = make_rank_component(player_cur_season, 'tra_rank')
         player_card.paste(tra_rank_section, (850, 1715))
 
+        zon_rank_section = make_rank_component(player_cur_season, 'zon_rank')
+        player_card.paste(zon_rank_section, (1245, 1715))
+
         fof_rank_section = make_rank_component(player_cur_season, 'fof_rank')
         player_card.paste(fof_rank_section, (1640, 1715))
 

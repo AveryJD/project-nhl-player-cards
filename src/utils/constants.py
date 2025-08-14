@@ -115,15 +115,20 @@ S_WEIGHTS = {
     'oi_hdsa': -0.190,
     'oi_xga': -1.000,
 
+    # Penalty Differential Weights
+    'penalty_min_drawn': 1.000,
+    'penalty_min_taken': -1.000,
+
     # Physicality Weights
     'hits': 1.000,
     'minors': 0.500,
     'majors': 1.000,
     'misconducts': 2.000,
 
-    # Penalty Differential Weights
-    'penalty_min_drawn': 1.000,
-    'penalty_min_taken': -1.000,
+    # Zone Start Weights
+    'off_zone_starts': 1.000,
+    'neu_zone_starts': 0.000,
+    'def_zone_starts': -1.000,
 
     # Faceoff Weights
     'faceoff_wins': 1.000,
