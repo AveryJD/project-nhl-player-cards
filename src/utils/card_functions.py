@@ -519,11 +519,11 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         evo_rank_section = make_rank_component(player_cur_season, 'evo_rank')
         player_card.paste(evo_rank_section, (50, 750))
 
-        evd_rank_section = make_rank_component(player_cur_season, 'evd_rank')
-        player_card.paste(evd_rank_section, (455, 750))
-
         ppl_rank_section = make_rank_component(player_cur_season, 'ppl_rank')
-        player_card.paste(ppl_rank_section, (50, 1050))
+        player_card.paste(ppl_rank_section, (455, 750))
+
+        evd_rank_section = make_rank_component(player_cur_season, 'evd_rank')
+        player_card.paste(evd_rank_section, (50, 1050))
 
         pkl_rank_section = make_rank_component(player_cur_season, 'pkl_rank')
         player_card.paste(pkl_rank_section, (455, 1050))
@@ -540,26 +540,26 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         oio_rank_section = make_rank_component(player_cur_season, 'oio_rank')
         player_card.paste(oio_rank_section, (50, 1425))
 
-        oid_rank_section = make_rank_component(player_cur_season, 'oid_rank')
-        player_card.paste(oid_rank_section, (455, 1425))
-
         sht_rank_section = make_rank_component(player_cur_season, 'sht_rank')
-        player_card.paste(sht_rank_section, (850, 1425))
+        player_card.paste(sht_rank_section, (455, 1425))
 
         scr_rank_section = make_rank_component(player_cur_season, 'scr_rank')
-        player_card.paste(scr_rank_section, (1245, 1425))
+        player_card.paste(scr_rank_section, (850, 1425))
 
         plm_rank_section = make_rank_component(player_cur_season, 'plm_rank')
-        player_card.paste(plm_rank_section, (1640, 1425))
-
-        pen_rank_section = make_rank_component(player_cur_season, 'pen_rank')
-        player_card.paste(pen_rank_section, (50, 1715))
-
-        phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
-        player_card.paste(phy_rank_section, (455, 1715))
+        player_card.paste(plm_rank_section, (1245, 1425))
 
         tra_rank_section = make_rank_component(player_cur_season, 'tra_rank')
-        player_card.paste(tra_rank_section, (850, 1715))
+        player_card.paste(tra_rank_section, (1640, 1425))
+
+        oid_rank_section = make_rank_component(player_cur_season, 'oid_rank')
+        player_card.paste(oid_rank_section, (50, 1715))
+
+        pen_rank_section = make_rank_component(player_cur_season, 'pen_rank')
+        player_card.paste(pen_rank_section, (455, 1715))
+
+        phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
+        player_card.paste(phy_rank_section, (850, 1715))
 
         zon_rank_section = make_rank_component(player_cur_season, 'zon_rank')
         player_card.paste(zon_rank_section, (1245, 1715))
