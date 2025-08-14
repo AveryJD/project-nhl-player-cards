@@ -39,6 +39,21 @@ def load_bios_csv(season: str, position: str) -> pd.DataFrame:
     return bios_df
 
 
+def load_salaries_csv(season: str, position: str) -> pd.DataFrame:
+    """
+    Load the player salaries CSV for a given season and position.
+
+    :param season: a str representing the season ('YYYY-YYYY')
+    :param position: a str representing the position ('F', 'D', or 'G')
+    :return: DataFrame containing the player salaries
+    """
+    salaries_filename = f'{season}_{position}_salaries.csv'
+    salaries_file_path = os.path.join(DATA_DIR, 'data', 'salaries', salaries_filename)
+
+    bios_df = pd.read_csv(salaries_file_path)
+    return bios_df
+
+
 def load_stats_csv(season: str, position: str, situation: str) -> pd.DataFrame:
     """
     Load the player stats CSV for a given season, position, and situation.

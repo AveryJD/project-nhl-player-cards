@@ -139,13 +139,17 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     # Header row for skaters
     if pos != 'G':
         all_player_profiles = file.load_bios_csv(season, pos)
+        all_player_salaries = file.load_salaries_csv(season, pos)
         all_player_stats = file.load_stats_csv(season, pos, 'all')
 
         player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
+        player_salaries_row = all_player_salaries[all_player_salaries['Player'] == player_name].copy()
+        player_salaries_row = player_salaries_row[['Player', 'Cap Hit', 'Contract Years']]
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
         player_stats_row = player_stats_row[['Player', 'GP', 'TOI', 'Goals', 'First Assists']]
 
-        player_header_row = pd.merge(player_profile_row, player_stats_row, on=['Player'])
+        merged_df = pd.merge(player_profile_row, player_salaries_row, on='Player')
+        merged_df = pd.merge(merged_df, player_stats_row, on='Player')
 
     # Header row for goalies
     else:
