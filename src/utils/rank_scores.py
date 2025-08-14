@@ -13,46 +13,34 @@ class SkaterScorer:
         self.weights = constants.S_WEIGHTS
 
 
-    def adjust_score(self, score: float, row: pd.Series, season: str) -> float:
+    def adjust_score(self, score: float, row: pd.Series) -> float:
         if score == -999999:
             adjusted_score = -999999
 
         else:
-            gp = row['GP']
             toi = row['TOI']
-
-            rate_score = score / toi * 60
-            
-            total_games = constants.SEASON_GAMES.get(season, 82)
-            effective_gp = total_games * 0.75
-
-            # Sigmoid weighting based on normalized GP
-            if score >= 0:
-                gp_sigmoid = 0.6 + (1 / (2.5 + np.exp(-0.2 * (gp - effective_gp))))
-            else:
-                gp_sigmoid = 0.6 + (1 / (2.5 + np.exp(0.2 * (gp - effective_gp))))
-
-            adjusted_score = (rate_score * gp_sigmoid)
+            adjusted_score = score / toi * 60
 
         return adjusted_score
 
 
 
-    def shooting_score(self, row: pd.Series, season: str) -> float:
-        shots_on_net = row['Shots']
+    def shooting_score(self, row: pd.Series) -> float:
+        shots_on_net = row['Shots'] - row['iHDCF']
         shots_missed = row['iFF'] - row['Shots']
         shots_blocked = row['iCF'] - row['iFF']
 
         score = (
             self.weights['shots_on_net'] * shots_on_net +
             self.weights['shots_missed'] * shots_missed +
-            self.weights['shots_were_blocked'] * shots_blocked
+            self.weights['shots_were_blocked'] * shots_blocked +
+            self.weights['hd_scoring_chances'] * row['iHDCF']
         )
 
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row)
     
 
-    def scoring_score(self, row: pd.Series, season: str) -> float:
+    def scoring_score(self, row: pd.Series) -> float:
         goals = row['Goals']
         xgoals = row['ixG']
 
@@ -63,10 +51,10 @@ class SkaterScorer:
             self.weights['goals_above_expected'] * goals_above_expected
         )
 
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row,)
 
 
-    def playmaking_score(self, row: pd.Series, season: str) -> float:
+    def playmaking_score(self, row: pd.Series) -> float:
         score = (
             self.weights['p_assists'] * row['First Assists'] +
             self.weights['s_assists'] * row['Second Assists'] +
@@ -74,10 +62,10 @@ class SkaterScorer:
             self.weights['rush_attempts'] * row['Rush Attempts']
         )
 
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row)
     
 
-    def oniceoffense_score(self, row: pd.Series, season: str) -> float:
+    def oniceoffense_score(self, row: pd.Series) -> float:
         oi_cf = (row['LDCF'] + row['MDCF']) - (row['iSCF'] - row['iHDCF'])
         oi_hdcf = row['HDCF'] - row['iHDCF']
         oi_xgoals = row['xGF'] - row['ixG']
@@ -88,24 +76,25 @@ class SkaterScorer:
             self.weights['oi_xgf'] * oi_xgoals
         )
 
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row,)
 
 
-    def offensive_score(self, row: pd.Series, season: str) -> float:
+    def offensive_score(self, row: pd.Series) -> float:
         if row.empty:
             return -999999
         else:
             score = (
-                self.scoring_score(row, season) +
-                self.shooting_score(row, season) * 0.5 +
-                self.playmaking_score(row, season) +
-                self.oniceoffense_score(row, season) * 0.15
+                self.scoring_score(row) * 0.5 +
+                self.shooting_score(row) * 0.5 +
+                self.playmaking_score(row) +
+                self.transition_score(row) +
+                self.oniceoffense_score(row) * 0.15
             )
 
             return score
 
 
-    def onicedefense_score(self, row: pd.Series, season: str) -> float:
+    def onicedefense_score(self, row: pd.Series) -> float:
         if row.empty:
             return -999999
         else:
@@ -116,25 +105,24 @@ class SkaterScorer:
                 self.weights['oi_xga'] * row['xGA']
             )
 
-            return self.adjust_score(score, row, season)
+            return self.adjust_score(score, row)
 
 
-    def defensive_score(self, row: pd.Series, season: str) -> float:
+    def defensive_score(self, row: pd.Series) -> float:
         if row.empty:
             return -999999
         else:
             score = (
                 self.weights['blocks'] * row['Shots Blocked'] +
-                self.weights['takeaways'] * row['Takeaways'] +
                 self.weights['giveaways'] * row['Giveaways']
             )
 
-            score = self.adjust_score(score, row, season) + self.onicedefense_score(row, season) * 0.50
+            score = self.adjust_score(score, row) + self.onicedefense_score(row) * 0.50
 
             return score
         
 
-    def physicality_score(self, row: pd.Series, season: str) -> float:
+    def physicality_score(self, row: pd.Series) -> float:
         score = (
             self.weights['hits'] * row['Hits'] +
             self.weights['minors'] * row['Minor'] +
@@ -142,19 +130,19 @@ class SkaterScorer:
             self.weights['misconducts'] * row['Misconduct']
         )
 
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row)
 
 
-    def penalties_score(self, row: pd.Series, season: str) -> float:
+    def penalties_score(self, row: pd.Series,) -> float:
         score = (
             self.weights['penalty_min_taken'] * row['Total Penalties'] +
             self.weights['penalty_min_drawn'] * row['Penalties Drawn']
         )
     
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row)
 
 
-    def faceoff_score(self, row: pd.Series, season: str) -> float:
+    def faceoff_score(self, row: pd.Series) -> float:
         total_fo = row['Faceoffs Won'] + row['Faceoffs Lost']
         if total_fo < row['GP'] * 3:
             return -999999
@@ -163,7 +151,7 @@ class SkaterScorer:
             self.weights['faceoff_losses'] * row['Faceoffs Lost']
         )
 
-        return self.adjust_score(score, row, season)
+        return self.adjust_score(score, row)
 
 
 
@@ -173,31 +161,23 @@ class GoalieScorer:
 
 
     def adjust_score(self, score: float, row: pd.Series, season:str=None) -> float:
-        gp = row['GP']
+        toi = row['TOI']
+        adjusted_score = score / toi * 60 
 
-        # Adjust based on number of games in the season (default is 82)
-        total_games = constants.SEASON_GAMES.get(season, 82)
-        gp_factor = gp / total_games
-
-        # Sigmoid weighting based on normalized GP
-        if score >= 0:
-            sigmoid = 1 / (1 + np.exp(-0.2 * (gp_factor * 82 - 30)))
-        else:
-            sigmoid = 1 / (1 + np.exp(0.2 * (gp_factor * 82 - 30)))
-
-        adjusted_score = score * sigmoid
-
-        return adjusted_score / gp if gp > 0 else 0
+        return adjusted_score
 
 
     def total_score(self, row: pd.Series, season: str) -> float:
+        gsax = row['xG Against'] - row['Goals Against']
         score = (
             self.weights['hds'] * row['HD Saves'] +
             self.weights['hdga'] * row['HD Goals Against'] +
             self.weights['mds'] * row['MD Saves'] +
             self.weights['mdga'] * row['MD Goals Against'] +
             self.weights['lds'] * row['LD Saves'] +
-            self.weights['ldga'] * row['LD Goals Against']
+            self.weights['ldga'] * row['LD Goals Against'] +
+            self.weights['gsax'] * gsax
+
         )
 
         return self.adjust_score(score, row, season)
