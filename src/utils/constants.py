@@ -89,7 +89,10 @@ S_WEIGHTS = {
     'p_assists': 0.780,
     's_assists': 0.000,
     'rebounds_created': 0.052,
-    'rush_attempts': 0.078,
+
+    # Transition Weights
+    'rush_attempts': 0.100,
+    'takeaways': 0.052,
 
     # On Ice Offensive Weights
     'oi_sf': 0.104,

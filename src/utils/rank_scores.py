@@ -58,7 +58,15 @@ class SkaterScorer:
         score = (
             self.weights['p_assists'] * row['First Assists'] +
             self.weights['s_assists'] * row['Second Assists'] +
-            self.weights['rebounds_created'] * row['Rebounds Created'] +
+            self.weights['rebounds_created'] * row['Rebounds Created']
+        )
+
+        return self.adjust_score(score, row)
+    
+
+    def transition_score(self, row: pd.Series) -> float:
+        score = (
+            self.weights['takeaways'] * row['Takeaways'] +
             self.weights['rush_attempts'] * row['Rush Attempts']
         )
 

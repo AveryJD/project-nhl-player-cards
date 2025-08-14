@@ -39,8 +39,9 @@ def calculate_player_scores(position: str, all_row: pd.Series, evs_row: pd.Serie
             'sht_score': skater_scorer.shooting_score(evs_row),
             'scr_score': skater_scorer.scoring_score(evs_row),
             'plm_score': skater_scorer.playmaking_score(evs_row),
-            'phy_score': skater_scorer.physicality_score(evs_row),
             'pen_score': skater_scorer.penalties_score(evs_row),
+            'phy_score': skater_scorer.physicality_score(evs_row),
+            'tra_score': skater_scorer.transition_score(evs_row),
             'fof_score': skater_scorer.faceoff_score(all_row),
             'spd_score': 0,          # Might be used in the future
         }

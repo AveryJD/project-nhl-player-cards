@@ -386,7 +386,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     # X-axis settings
     ax.set_xticks(x_vals)
     ax.set_xticklabels(seasons, fontsize=15, fontweight='bold')
-    ax.tick_params(axis='x', labelsize=9, length=9, direction='inout')
+    ax.tick_params(axis='x', labelsize=10, length=9, direction='inout')
     ax.set_xlim(min(x_vals) - 1, max(x_vals) + 1)
 
     # Y-axis settings
@@ -557,6 +557,9 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
         phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
         player_card.paste(phy_rank_section, (455, 1715))
+
+        tra_rank_section = make_rank_component(player_cur_season, 'tra_rank')
+        player_card.paste(tra_rank_section, (850, 1715))
 
         fof_rank_section = make_rank_component(player_cur_season, 'fof_rank')
         player_card.paste(fof_rank_section, (1640, 1715))
