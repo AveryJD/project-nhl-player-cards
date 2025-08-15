@@ -19,7 +19,7 @@ class SkaterScorer:
 
         else:
             toi = row['TOI']
-            adjusted_score = score / toi * 60
+            adjusted_score = score / toi * 60  + 1e-10
 
         return adjusted_score
 
@@ -51,7 +51,7 @@ class SkaterScorer:
             self.weights['goals_above_expected'] * goals_above_expected
         )
 
-        return self.adjust_score(score, row,)
+        return self.adjust_score(score, row)
 
 
     def playmaking_score(self, row: pd.Series) -> float:
@@ -84,7 +84,7 @@ class SkaterScorer:
             self.weights['oi_xgf'] * oi_xgoals
         )
 
-        return self.adjust_score(score, row,)
+        return self.adjust_score(score, row)
 
 
     def offensive_score(self, row: pd.Series) -> float:
@@ -94,8 +94,8 @@ class SkaterScorer:
             score = (
                 self.scoring_score(row) * 0.5 +
                 self.shooting_score(row) * 0.5 +
-                self.playmaking_score(row) +
-                self.transition_score(row) +
+                self.playmaking_score(row) * 1.0 +
+                self.transition_score(row) * 1.0 +
                 self.oniceoffense_score(row) * 0.15
             )
 
@@ -125,7 +125,7 @@ class SkaterScorer:
                 self.weights['giveaways'] * row['Giveaways']
             )
 
-            score = self.adjust_score(score, row) + self.onicedefense_score(row) * 0.50
+            score = self.adjust_score(score, row) + self.onicedefense_score(row) * 0.3
 
             return score
         
