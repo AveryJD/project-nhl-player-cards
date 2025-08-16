@@ -136,31 +136,32 @@ def get_player_header_row(player_name: str, season: str, pos: str) -> pd.Series:
     :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
     :return: a Series containing all the header information
     """
-    # Header row for skaters
-    if pos != 'G':
-        all_player_profiles = file.load_bios_csv(season, pos)
-        all_player_salaries = file.load_salaries_csv(season, pos)
-        all_player_stats = file.load_stats_csv(season, pos, 'all')
 
-        player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
-        player_salaries_row = all_player_salaries[all_player_salaries['Player'] == player_name].copy()
-        player_salaries_row = player_salaries_row[['Player', 'Cap Hit', 'Contract Years']]
+    # Get all the player data
+    all_player_profiles = file.load_bios_csv(season, pos)
+    all_player_salaries = file.load_salaries_csv(season, pos)
+    all_player_stats = file.load_stats_csv(season, pos, 'all')
+
+    # Get the player profile and salary data
+    player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
+    player_salaries_row = all_player_salaries[all_player_salaries['Player'] == player_name].copy()
+    player_salaries_row = player_salaries_row[['Player', 'Contract Years', 'Cap Hit']]
+
+    # Get the player stats data (depending on the position)
+    if pos != 'G':
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
         player_stats_row = player_stats_row[['Player', 'GP', 'TOI', 'Goals', 'First Assists']]
-
-        merged_df = pd.merge(player_profile_row, player_salaries_row, on='Player')
-        merged_df = pd.merge(merged_df, player_stats_row, on='Player')
-
-    # Header row for goalies
     else:
-        all_player_profiles = file.load_bios_csv(season, pos)
-        all_player_stats = file.load_stats_csv(season, pos, 'all')
-
-        player_profile_row = all_player_profiles[all_player_profiles['Player'] == player_name].copy()
         player_stats_row = all_player_stats[all_player_stats['Player'] == player_name].copy()
         player_stats_row = player_stats_row[['Player', 'GP', 'SV%', 'GAA', 'Goals Against', 'xG Against']]
 
-        player_header_row = pd.merge(player_profile_row, player_stats_row, on=['Player'])
+    print(player_profile_row)
+    print(player_salaries_row)
+    print(player_stats_row)
+    
+    # Merge the player data to one dataframe
+    player_header_row = pd.merge(player_profile_row, player_salaries_row, on='Player')
+    player_header_row = pd.merge(player_header_row, player_stats_row, on='Player')
 
     # Add Season column
     player_header_row['Season'] = season
