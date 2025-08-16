@@ -96,18 +96,18 @@ def make_player_rankings(season: str, position: str) -> None:
             # Get the skater's 5v5 data
             evs_row = evs_data.loc[evs_data['Player'] == name].iloc[0]
 
-            # Get the skater's 5v4 data and filter based on TOI (30 seconds per game in the season requirement)
+            # Get the skater's 5v4 data and filter based on TOI (45 seconds per game in the season requirement)
             if name in ppl_data['Player'].values:
                 ppl_row = ppl_data.loc[ppl_data['Player'] == name].iloc[0]
-                if ppl_row.get('TOI', 0) < constants.SEASON_GAMES[season] * 0.5:
+                if ppl_row.get('TOI', 0) < constants.SEASON_GAMES[season] * 0.75:
                     ppl_row = pd.Series()
             else:
                 ppl_row = pd.Series()
 
-            # Get the skater's 4v5 data and filter based on TOI (30 seconds per game in the season requirement)
+            # Get the skater's 4v5 data and filter based on TOI (45 seconds per game in the season requirement)
             if name in pkl_data['Player'].values:
                 pkl_row = pkl_data.loc[pkl_data['Player'] == name].iloc[0]
-                if pkl_row.get('TOI', 0) < constants.SEASON_GAMES[season] * 0.5:
+                if pkl_row.get('TOI', 0) < constants.SEASON_GAMES[season] * 0.75:
                     pkl_row = pd.Series()
             else:
                 pkl_row = pd.Series()
