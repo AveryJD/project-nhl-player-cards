@@ -36,23 +36,23 @@ def calculate_player_scores(position: str, all_row: pd.Series, evs_row: pd.Serie
             'pkl_score': skater_scorer.defensive_score(pkl_row),
             'oio_score': skater_scorer.oniceoffense_score(evs_row),
             'oid_score': skater_scorer.onicedefense_score(evs_row),
-            'sht_score': skater_scorer.shooting_score(evs_row),
-            'scr_score': skater_scorer.scoring_score(evs_row),
-            'plm_score': skater_scorer.playmaking_score(evs_row),
+            'sht_score': skater_scorer.shooting_score(all_row),
+            'scr_score': skater_scorer.scoring_score(all_row),
+            'plm_score': skater_scorer.playmaking_score(all_row),
             'tra_score': skater_scorer.transition_score(evs_row),
-            'pen_score': skater_scorer.penalties_score(evs_row),
-            'phy_score': skater_scorer.physicality_score(evs_row),
+            'pen_score': skater_scorer.penalties_score(all_row),
+            'phy_score': skater_scorer.physicality_score(all_row),
             'zon_score': skater_scorer.ozonestarts_score(evs_row),
             'fof_score': skater_scorer.faceoff_score(all_row),
         }
     else:
         scores = {
-            'all_score': goalie_scorer.total_score(all_row, season),
-            'evs_score': goalie_scorer.total_score(evs_row, season),
-            'gpk_score': goalie_scorer.total_score(pkl_row, season),
-            'ldg_score': goalie_scorer.zone_score(all_row, season, 'LD'),
-            'mdg_score': goalie_scorer.zone_score(all_row, season, 'MD'),
-            'hdg_score': goalie_scorer.zone_score(all_row, season, 'HD'),
+            'all_score': goalie_scorer.total_score(all_row),
+            'evs_score': goalie_scorer.total_score(evs_row),
+            'gpk_score': goalie_scorer.total_score(pkl_row),
+            'ldg_score': goalie_scorer.zone_score(all_row, 'LD'),
+            'mdg_score': goalie_scorer.zone_score(all_row, 'MD'),
+            'hdg_score': goalie_scorer.zone_score(all_row, 'HD'),
         }    
 
     return scores

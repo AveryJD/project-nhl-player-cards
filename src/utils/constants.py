@@ -6,8 +6,7 @@
 DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
 
 # Seasons to scrape stats and bio data for
-DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014']
+DATA_SEASONS = ['2024-2025']
 
 # Positions to scrape stats and bio data for
 POSITIONS = ['F', 'D', 'G']
@@ -75,24 +74,22 @@ SEASON_GAMES = {
 # RANKING SCORE WEIGHT CONSTANTS
 # ====================================================================================================
 
-# All weight values                 BIG ADJUSTMENTS COMING
+# All weight values
 S_WEIGHTS = {
-    # Shooting Weights
+    # Shooting and Scoring Weights
     'goals': 1.000,
-    'goals_above_expected': 0.100,
-    'shots_on_net' : 0.104,
-    'shots_missed': 0.026,
-    'shots_were_blocked': 0.026,
-    'hd_scoring_chances': 0.190,
+    'goals_above_expected': 0.050,
+    'shots_on_net' : 0.100,
+    'shots_missed': 0.020,
+    'shots_were_blocked': 0.020,
 
     # Playmaking Weights
     'p_assists': 0.780,
-    's_assists': 0.000,
-    'rebounds_created': 0.052,
+    's_assists': 0.100,
+    'rebounds_created': 0.050,
 
     # Transition Weights
     'rush_attempts': 0.100,
-    'takeaways': 0.052,
 
     # On Ice Offensive Weights
     'oi_sf': 0.104,
@@ -105,9 +102,9 @@ S_WEIGHTS = {
     'oi_xgf': 1.000,
 
     # Defensive Weights
-    'blocks': 0.078,
-    'takeaways': 0.052,
-    'giveaways': -0.052,
+    'blocks': 0.080,
+    'takeaways': 0.050,
+    'giveaways': -0.050,
 
     # On Ice Defensive Weights
     'oi_ldsa': -0.043,
@@ -133,9 +130,6 @@ S_WEIGHTS = {
     # Faceoff Weights
     'faceoff_wins': 1.000,
     'faceoff_losses': -1.000,
-
-    # Speed Weights                 Might be used in the future
-    'spd_speed': 0.000,
 }
 
 G_WEIGHTS = {
@@ -143,9 +137,10 @@ G_WEIGHTS = {
     'hds': 0.190,
     'mds': 0.119,
     'lds': 0.043,
-    'hdga': -1.00,
-    'mdga': -1.00,
-    'ldga': -1.00,
+    'hdga': -1.000,
+    'mdga': -1.000,
+    'ldga': -1.000,
+    'gsax': 1.000
 }
 
 
