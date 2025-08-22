@@ -13,22 +13,16 @@ class SkaterScorer:
         self.weights = constants.S_WEIGHTS
 
 
-    def adjust_score(self, score: float, row: pd.Series) -> float:
-        if score == -999999:
-            adjusted_score = -999999
-
-        else:
-            toi = row['TOI']
-            adjusted_score = score / toi * 60  + 1e-10
-
-        return adjusted_score
+    def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
+        adjusted = np.full_like(score, -999999, dtype=float)
+        np.divide(score * 60 + 1e-10, toi, out=adjusted, where=toi > 0)
+        return adjusted
 
 
-
-    def shooting_score(self, row: pd.Series) -> float:
-        shots_on_net = row['Shots']
-        shots_missed = row['iFF'] - row['Shots']
-        shots_blocked = row['iCF'] - row['iFF']
+    def shooting_score(self, df: pd.DataFrame) -> np.ndarray:
+        shots_on_net = df['Shots'].to_numpy()
+        shots_missed = (df['iFF'] - df['Shots']).to_numpy()
+        shots_blocked = (df['iCF'] - df['iFF']).to_numpy()
 
         score = (
             self.weights['shots_on_net'] * shots_on_net +
@@ -36,139 +30,134 @@ class SkaterScorer:
             self.weights['shots_were_blocked'] * shots_blocked
         )
 
-        return self.adjust_score(score, row)
-    
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
 
-    def scoring_score(self, row: pd.Series) -> float:
-        goals = row['Goals']
-        xgoals = row['ixG']
 
-        goals_above_expected = goals - xgoals
+    def scoring_score(self, df: pd.DataFrame) -> np.ndarray:
+        goals = df['Goals'].to_numpy()
+        goals_above_expected = goals - df['ixG'].to_numpy()
 
         score = (
             self.weights['goals'] * goals +
             self.weights['goals_above_expected'] * goals_above_expected
         )
 
-        return self.adjust_score(score, row)
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
 
 
-    def playmaking_score(self, row: pd.Series) -> float:
+    def playmaking_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
-            self.weights['p_assists'] * row['First Assists'] +
-            self.weights['s_assists'] * row['Second Assists'] +
-            self.weights['rebounds_created'] * row['Rebounds Created']
+            self.weights['p_assists'] * df['First Assists'].to_numpy() +
+            self.weights['s_assists'] * df['Second Assists'].to_numpy() +
+            self.weights['rebounds_created'] * df['Rebounds Created'].to_numpy()
         )
 
-        return self.adjust_score(score, row)
-    
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
 
-    def transition_score(self, row: pd.Series) -> float:
+
+    def transition_score(self, df: pd.DataFrame) -> np.ndarray:
+        score = self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy()
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+
+
+    def oniceoffense_score(self, df: pd.DataFrame) -> np.ndarray:
+        oi_cf = (df['LDCF'] + df['MDCF']) - (df['iSCF'] - df['iHDCF'])
+        oi_hdcf = df['HDCF'] - df['iHDCF']
+        oi_xgoals = df['xGF'] - df['ixG']
+
         score = (
-            self.weights['rush_attempts'] * row['Rush Attempts']
+            self.weights['oi_sf'] * oi_cf.to_numpy() +
+            self.weights['oi_hdsf'] * oi_hdcf.to_numpy() +
+            self.weights['oi_xgf'] * oi_xgoals.to_numpy()
         )
 
-        return self.adjust_score(score, row)
-    
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
 
-    def oniceoffense_score(self, row: pd.Series) -> float:
-        oi_cf = (row['LDCF'] + row['MDCF']) - (row['iSCF'] - row['iHDCF'])
-        oi_hdcf = row['HDCF'] - row['iHDCF']
-        oi_xgoals = row['xGF'] - row['ixG']
 
+    def offensive_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
-            self.weights['oi_sf'] * oi_cf +
-            self.weights['oi_hdsf'] * oi_hdcf +
-            self.weights['oi_xgf'] * oi_xgoals
+            self.scoring_score(df) +
+            self.shooting_score(df) +
+            self.playmaking_score(df) +
+            self.transition_score(df) +
+            self.oniceoffense_score(df) * 0.2
         )
 
-        return self.adjust_score(score, row)
+        return score
 
 
-    def offensive_score(self, row: pd.Series) -> float:
-        if row.empty:
-            return -999999
-        else:
-            score = (
-                self.scoring_score(row) * 0.20 +
-                self.shooting_score(row) * 0.10 +
-                self.playmaking_score(row) * 0.30 +
-                self.transition_score(row) * 0.30 +
-                self.oniceoffense_score(row) * 0.1
-            )
-
-            return score
-
-
-    def onicedefense_score(self, row: pd.Series) -> float:
-        if row.empty:
-            return -999999
-        else:
-            score = (
-                self.weights['oi_ldsa'] * row['LDCA'] +
-                self.weights['oi_mdsa'] * row['MDCA'] +
-                self.weights['oi_hdsa'] * row['HDCA'] +
-                self.weights['oi_xga'] * row['xGA']
-            )
-
-            return self.adjust_score(score, row)
-
-
-    def defensive_score(self, row: pd.Series) -> float:
-        if row.empty:
-            return -999999
-        else:
-            score = (
-                self.weights['blocks'] * row['Shots Blocked'] +
-                self.weights['takeaways'] * row['Takeaways'] +
-                self.weights['giveaways'] * row['Giveaways']
-            )
-
-            score = self.adjust_score(score, row) + self.onicedefense_score(row) * 0.3
-
-            return score
-        
-
-    def physicality_score(self, row: pd.Series) -> float:
+    def onicedefense_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
-            self.weights['hits'] * row['Hits'] +
-            self.weights['minors'] * row['Minor'] +
-            self.weights['majors'] * row['Major'] +
-            self.weights['misconducts'] * row['Misconduct']
+            self.weights['oi_ldsa'] * df['LDCA'].to_numpy() +
+            self.weights['oi_mdsa'] * df['MDCA'].to_numpy() +
+            self.weights['oi_hdsa'] * df['HDCA'].to_numpy() +
+            self.weights['oi_xga'] * df['xGA'].to_numpy()
         )
 
-        return self.adjust_score(score, row)
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
 
 
-    def penalties_score(self, row: pd.Series,) -> float:
+    def defensive_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
-            self.weights['penalty_min_taken'] * row['Total Penalties'] +
-            self.weights['penalty_min_drawn'] * row['Penalties Drawn']
-        )
-    
-        return self.adjust_score(score, row)
-    
-
-    def ozonestarts_score(self, row: pd.Series,) -> float:
-        score = (
-            self.weights['off_zone_starts'] * row['Off. Zone Starts'] +
-            self.weights['neu_zone_starts'] * row['Neu. Zone Starts'] +
-            self.weights['def_zone_starts'] * row['Def. Zone Starts']
-        )
-    
-        return self.adjust_score(score, row)
-
-
-    def faceoff_score(self, row: pd.Series) -> float:
-        total_fo = row['Faceoffs Won'] + row['Faceoffs Lost']
-        if total_fo < row['GP'] * 3:
-            return -999999
-        score = (
-            self.weights['faceoff_wins'] * row['Faceoffs Won'] +
-            self.weights['faceoff_losses'] * row['Faceoffs Lost']
+            self.weights['blocks'] * df['Shots Blocked'].to_numpy() +
+            self.weights['takeaways'] * df['Takeaways'].to_numpy() +
+            self.weights['giveaways'] * df['Giveaways'].to_numpy()
         )
 
-        return self.adjust_score(score, row)
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy()) + self.onicedefense_score(df) * 0.2
+        return adjusted_score
+
+
+    def physicality_score(self, df: pd.DataFrame) -> np.ndarray:
+        score = (
+            self.weights['hits'] * df['Hits'].to_numpy() +
+            self.weights['minors'] * df['Minor'].to_numpy() +
+            self.weights['majors'] * df['Major'].to_numpy() +
+            self.weights['misconducts'] * df['Misconduct'].to_numpy()
+        )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+
+
+    def penalties_score(self, df: pd.DataFrame) -> np.ndarray:
+        score = (
+            self.weights['penalty_min_taken'] * df['Total Penalties'].to_numpy() +
+            self.weights['penalty_min_drawn'] * df['Penalties Drawn'].to_numpy()
+        )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+
+
+    def ozonestarts_score(self, df: pd.DataFrame) -> np.ndarray:
+        score = (
+            self.weights['off_zone_starts'] * df['Off. Zone Starts'].to_numpy() +
+            self.weights['neu_zone_starts'] * df['Neu. Zone Starts'].to_numpy() +
+            self.weights['def_zone_starts'] * df['Def. Zone Starts'].to_numpy()
+        )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+
+
+    def faceoff_score(self, df: pd.DataFrame) -> np.ndarray:
+        total_fo = df['Faceoffs Won'] + df['Faceoffs Lost']
+        valid = total_fo >= df['GP'] * 3
+
+        score = (
+            self.weights['faceoff_wins'] * df['Faceoffs Won'].to_numpy() +
+            self.weights['faceoff_losses'] * df['Faceoffs Lost'].to_numpy()
+        )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return np.where(valid, adjusted_score, -999999)
 
 
 
@@ -177,45 +166,43 @@ class GoalieScorer:
         self.weights = constants.G_WEIGHTS
 
 
-    def adjust_score(self, score: float, row: pd.Series) -> float:
-        toi = row['TOI']
-        adjusted_score = score / toi * 60 
+    def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
+        adjusted = np.full_like(score, -999999, dtype=float)
+        np.divide(score * 60 + 1e-10, toi, out=adjusted, where=toi > 0)
+        return adjusted
 
+
+    def total_score(self, df: pd.DataFrame) -> np.ndarray:
+        gsax = df['xG Against'] - df['Goals Against']
+        score = (
+            self.weights['hds'] * df['HD Saves'].to_numpy() +
+            self.weights['hdga'] * df['HD Goals Against'].to_numpy() +
+            self.weights['mds'] * df['MD Saves'].to_numpy() +
+            self.weights['mdga'] * df['MD Goals Against'].to_numpy() +
+            self.weights['lds'] * df['LD Saves'].to_numpy() +
+            self.weights['ldga'] * df['LD Goals Against'].to_numpy() +
+            self.weights['gsax'] * gsax.to_numpy()
+        )
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return adjusted_score
 
 
-    def total_score(self, row: pd.Series) -> float:
-        gsax = row['xG Against'] - row['Goals Against']
-        score = (
-            self.weights['hds'] * row['HD Saves'] +
-            self.weights['hdga'] * row['HD Goals Against'] +
-            self.weights['mds'] * row['MD Saves'] +
-            self.weights['mdga'] * row['MD Goals Against'] +
-            self.weights['lds'] * row['LD Saves'] +
-            self.weights['ldga'] * row['LD Goals Against'] +
-            self.weights['gsax'] * gsax
-
-        )
-
-        return self.adjust_score(score, row)
-
-
-    def zone_score(self, row: pd.Series, zone: str) -> float:
+    def zone_score(self, df: pd.DataFrame, zone: str) -> np.ndarray:
         if zone == 'LD':
             score = (
-                self.weights['lds'] * row['LD Saves'] +
-                self.weights['ldga'] * row['LD Goals Against']
+                self.weights['lds'] * df['LD Saves'].to_numpy() +
+                self.weights['ldga'] * df['LD Goals Against'].to_numpy()
             )
         elif zone == 'MD':
             score = (
-                self.weights['mds'] * row['MD Saves'] +
-                self.weights['mdga'] * row['MD Goals Against']
+                self.weights['mds'] * df['MD Saves'].to_numpy() +
+                self.weights['mdga'] * df['MD Goals Against'].to_numpy()
             )
         elif zone == 'HD':
             score = (
-                self.weights['hds'] * row['HD Saves'] +
-                self.weights['hdga'] * row['HD Goals Against']
+                self.weights['hds'] * df['HD Saves'].to_numpy() +
+                self.weights['hdga'] * df['HD Goals Against'].to_numpy()
             )
 
-        return self.adjust_score(score, row)
-
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
