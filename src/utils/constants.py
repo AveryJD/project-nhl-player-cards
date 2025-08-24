@@ -88,8 +88,10 @@ S_WEIGHTS = {
     's_assists': 0.100,
     'rebounds_created': 0.050,
 
-    # Transition Weights
-    'rush_attempts': 0.100,
+    # Zone Start Weights
+    'off_zone_starts': 1.000,
+    'neu_zone_starts': 0.000,
+    'def_zone_starts': -1.000,
 
     # On Ice Offensive Weights
     'oi_sf': 0.104,
@@ -100,6 +102,9 @@ S_WEIGHTS = {
     'oi_mdgf': 0.000,
     'oi_hdgf': 0.000,
     'oi_xgf': 1.000,
+
+    # Transition Weights
+    'rush_attempts': 0.100,
 
     # Defensive Weights
     'blocks': 0.080,
@@ -122,14 +127,17 @@ S_WEIGHTS = {
     'majors': 1.000,
     'misconducts': 2.000,
 
-    # Zone Start Weights
-    'off_zone_starts': 1.000,
-    'neu_zone_starts': 0.000,
-    'def_zone_starts': -1.000,
-
     # Faceoff Weights
     'faceoff_wins': 1.000,
     'faceoff_losses': -1.000,
+
+    # Fantasy Weights
+    'fan_goals': 3.0000,
+    'fan_assists': 2.000,
+    'fan_shots': 0.500,
+    'fan_blocks': 0.500,
+    'fan_pp_points': 0.500,
+    'fan_pk_points': 0.500
 }
 
 G_WEIGHTS = {
@@ -187,11 +195,11 @@ ATRIBUTE_NAMES = {
     'scr_rank' : 'Scoring',
     'sht_rank' : 'Shooting',
     'plm_rank' : 'Playmaking',
+    'zon_rank' : 'O. Zone Starts',
     'pen_rank' : 'Penalties',
     'phy_rank' : 'Physicality',
-    'tra_rank' : 'Transition',
-    'zon_rank' : 'O. Zone Starts',
     'fof_rank' : 'Faceoffs',
+    'fan_rank' : 'Fantasy',
     'all_rank' : 'Overall',
     'evs_rank' : 'Even Strength',
     'gpk_rank' : 'Penalty Kill',
@@ -247,11 +255,11 @@ ATTRIBUTE_COLORS = {
     'Scoring':          (0, 0, 0),
     'Shooting':         (0, 0, 0),
     'Playmaking':       (0, 0, 0),
+    'O. Zone Starts':   (0, 0, 0),
     'Penalties':        (0, 0, 0),
     'Physicality':      (0, 0, 0),
-    'Transition':       (0, 0, 0),
-    'O. Zone Starts':   (0, 0, 0),
     'Faceoffs':         (0, 0, 0),
+    'Fantasy':          (0, 0, 0),
     'Overall':          (255, 70, 70),
     'Even Strength':    (255, 150, 150),
     'Penalty Kill':     (130, 150, 255),
@@ -271,11 +279,11 @@ PLOT_ATTRIBUTE_COLORS = {
     'scr_plot': (0/255, 0/255, 0/255),
     'sht_plot': (0/255, 0/255, 0/255),
     'plm_plot': (0/255, 0/255, 0/255),
+    'zon_plot': (0/255, 0/255, 0/255),
     'pen_plot': (0/255, 0/255, 0/255),
     'phy_plot': (0/255, 0/255, 0/255),
-    'tra_plot': (0/255, 0/255, 0/255),
-    'zon_plot': (0/255, 0/255, 0/255),
     'fof_plot': (0/255, 0/255, 0/255),
+    'fan_plot': (0/255, 0/255, 0/255),
     'all_plot': (255/255, 70/255, 70/255),
     'evs_plot': (255/255, 150/255, 150/255),
     'gpk_plot': (150/255, 150/255, 255/255),

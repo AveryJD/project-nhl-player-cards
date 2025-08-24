@@ -10,10 +10,6 @@ from utils import load_save as file
 from utils import constants
 
 
-skater_scorer = rs.SkaterScorer()
-goalie_scorer = rs.GoalieScorer()
-
-
 def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None) -> pd.DataFrame:
     """
     Calculate player scores for all attributes.
@@ -26,6 +22,9 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
     :return: None
     """
 
+    skater_scorer = rs.SkaterScorer()
+    goalie_scorer = rs.GoalieScorer()
+
     # Calculate skater scores
     if position != 'G':
         scores = pd.DataFrame({
@@ -37,12 +36,12 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
             'oid_score': skater_scorer.onicedefense_score(evs_df),
             'sht_score': skater_scorer.shooting_score(all_df),
             'scr_score': skater_scorer.scoring_score(all_df),
+            'zon_score': skater_scorer.ozonestarts_score(evs_df),
             'plm_score': skater_scorer.playmaking_score(all_df),
-            'tra_score': skater_scorer.transition_score(evs_df),
             'pen_score': skater_scorer.penalties_score(all_df),
             'phy_score': skater_scorer.physicality_score(all_df),
-            'zon_score': skater_scorer.ozonestarts_score(evs_df),
             'fof_score': skater_scorer.faceoff_score(all_df),
+            'fan_score': skater_scorer.fantasy_score(all_df, ppl_df, pkl_df),
         }, index=all_df.index)
 
     # Calculate goalie scores

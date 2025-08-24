@@ -58,12 +58,6 @@ class SkaterScorer:
         return adjusted_score
 
 
-    def transition_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy()
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-
-
     def oniceoffense_score(self, df: pd.DataFrame) -> np.ndarray:
         oi_cf = (df['LDCF'] + df['MDCF']) - (df['iSCF'] - df['iHDCF'])
         oi_hdcf = df['HDCF'] - df['iHDCF']
@@ -77,6 +71,17 @@ class SkaterScorer:
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return adjusted_score
+    
+
+    def ozonestarts_score(self, df: pd.DataFrame) -> np.ndarray:
+        score = (
+            self.weights['off_zone_starts'] * df['Off. Zone Starts'].to_numpy() +
+            self.weights['neu_zone_starts'] * df['Neu. Zone Starts'].to_numpy() +
+            self.weights['def_zone_starts'] * df['Def. Zone Starts'].to_numpy()
+        )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
 
 
     def offensive_score(self, df: pd.DataFrame) -> np.ndarray:
@@ -84,7 +89,7 @@ class SkaterScorer:
             self.scoring_score(df) +
             self.shooting_score(df) +
             self.playmaking_score(df) +
-            self.transition_score(df) +
+            self.adjust_score(self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy(), df['TOI'].to_numpy()) +
             self.oniceoffense_score(df) * 0.2
         )
 
@@ -136,17 +141,6 @@ class SkaterScorer:
         return adjusted_score
 
 
-    def ozonestarts_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['off_zone_starts'] * df['Off. Zone Starts'].to_numpy() +
-            self.weights['neu_zone_starts'] * df['Neu. Zone Starts'].to_numpy() +
-            self.weights['def_zone_starts'] * df['Def. Zone Starts'].to_numpy()
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-
-
     def faceoff_score(self, df: pd.DataFrame) -> np.ndarray:
         total_fo = df['Faceoffs Won'] + df['Faceoffs Lost']
         valid = total_fo >= df['GP'] * 3
@@ -158,6 +152,21 @@ class SkaterScorer:
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return np.where(valid, adjusted_score, -999999)
+    
+
+    def fantasy_score(self, all_df: pd.DataFrame, ppl_df: pd.DataFrame, pkl_df: pd.DataFrame) -> np.ndarray:
+        score = (
+            self.weights['fan_goals'] * all_df['Goals'].to_numpy() +
+            self.weights['fan_assists'] * all_df['Total Assists'].to_numpy() +
+            self.weights['fan_shots'] * all_df['Shots'].to_numpy() +
+            self.weights['fan_blocks'] * all_df['Shots Blocked'].to_numpy() +
+            self.weights['fan_pp_points'] * ppl_df['Total Points'].to_numpy() +
+            self.weights['fan_pk_points'] * pkl_df['Total Points'].to_numpy() 
+        )
+
+        adjusted_score = score / all_df['GP'].to_numpy()
+
+        return adjusted_score
 
 
 

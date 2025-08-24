@@ -150,7 +150,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw.text(xy=(1400, 510), text='CAP HIT:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(1400, 550), text='YEARS REMAINING:', font=basic_font, fill=(0,0,0))
 
-    ch.draw_righted_text(draw, text=f'${cap_hit} M', font=basic_font, y_position=510, x_right=1900)
+    ch.draw_righted_text(draw, text=f'${cap_hit:.3f} M', font=basic_font, y_position=510, x_right=1900)
     ch.draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=550, x_right=1900)
 
 
@@ -549,8 +549,8 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         plm_rank_section = make_rank_component(player_cur_season, 'plm_rank')
         player_card.paste(plm_rank_section, (1245, 1425))
 
-        tra_rank_section = make_rank_component(player_cur_season, 'tra_rank')
-        player_card.paste(tra_rank_section, (1640, 1425))
+        zon_rank_section = make_rank_component(player_cur_season, 'zon_rank')
+        player_card.paste(zon_rank_section, (1640, 1425))
 
         oid_rank_section = make_rank_component(player_cur_season, 'oid_rank')
         player_card.paste(oid_rank_section, (50, 1715))
@@ -561,11 +561,11 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         phy_rank_section = make_rank_component(player_cur_season, 'phy_rank')
         player_card.paste(phy_rank_section, (850, 1715))
 
-        zon_rank_section = make_rank_component(player_cur_season, 'zon_rank')
-        player_card.paste(zon_rank_section, (1245, 1715))
-
         fof_rank_section = make_rank_component(player_cur_season, 'fof_rank')
-        player_card.paste(fof_rank_section, (1640, 1715))
+        player_card.paste(fof_rank_section, (1245, 1715))
+
+        fan_rank_section = make_rank_component(player_cur_season, 'fan_rank')
+        player_card.paste(fan_rank_section, (1640, 1715))
 
     # For goalie cards
     else:
