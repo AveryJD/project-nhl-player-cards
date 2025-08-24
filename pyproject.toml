@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nhl-player-stat-cards"
+version = "0.1.0"
+description = "NHL Player Stat Card generation project"
+authors = [
+  { name = "Avery Doiron" }
+]
+dependencies = []

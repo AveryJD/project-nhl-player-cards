@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+setup.cfg
+src/nhl_player_stat_cards.egg-info/PKG-INFO
+src/nhl_player_stat_cards.egg-info/SOURCES.txt
+src/nhl_player_stat_cards.egg-info/dependency_links.txt
+src/nhl_player_stat_cards.egg-info/top_level.txt
