@@ -8,5 +8,5 @@ from utils import constants
 
 
 for season in constants.CARD_INFO_SEASONS:
-    for pos in ['F', 'D']:
+    for pos in constants.POSITIONS:
         info.make_card_data(season, pos)

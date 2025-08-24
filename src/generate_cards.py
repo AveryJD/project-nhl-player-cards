@@ -9,7 +9,7 @@ from utils import card_generation as card
 card.make_player_card('Sidney Crosby', '2024-2025', 'F')
 card.make_player_card('Leon Draisaitl', '2024-2025', 'F')
 card.make_player_card('Cale Makar', '2024-2025', 'D')
-card.make_rank_player_cards('all', '2024-2025', 'G')
+card.make_player_card('Connor Hellebuyck', '2024-2025', 'G')
 
 
 """
