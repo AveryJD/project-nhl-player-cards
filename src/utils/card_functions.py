@@ -53,7 +53,7 @@ def make_header_section(player_row: pd.Series) -> Image:
         nationality = constants.NATIONALITIES.get(player_row['Nationality'])
 
     # Get stats variables
-    role = cd.get_player_role(player_row)
+    role = player_row['Role']
     games_played = player_row['GP']
     if position != 'G':
         goals = player_row['Goals']
@@ -215,13 +215,13 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     total_players = int(player_row[f'{attribute_abrev}_players'])
 
     # Get rank and percentile
-    rank, percentile = cd.get_rank_and_percentile(player_row, attribute_rank_name, total_players)
+    rank, percentile = ch.get_rank_and_percentile(player_row, attribute_rank_name, total_players)
         
     # Get percentile color
     if rank == 'N/A':
         percentile_color = (150 / 255, 150 / 255, 150 / 255)
     else:
-        percentile_color = cd.get_percentile_color(percentile)
+        percentile_color = ch.get_percentile_color(percentile)
     
     # Create the percentile bar
     fig, ax = plt.subplots(figsize=(5, 10))
@@ -357,7 +357,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
                     else:
                         total_players = cur_player_row.get(f'{attribute_name}_players')
                     if pd.notna(total_players) and total_players > 0:
-                        rank, percentile = cd.get_rank_and_percentile(cur_player_row, attr_rank_col, total_players)
+                        rank, percentile = ch.get_rank_and_percentile(cur_player_row, attr_rank_col, total_players)
                         if rank == 'N/A':
                             percentiles.append(None)
                         else:
@@ -485,13 +485,10 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     """
 
     # Get the data for a player's five seasons
-    player_five_seasons = cd.get_player_multiple_seasons(player_name, season, pos)
+    player_five_seasons = ch.get_player_multiple_seasons(player_name, season, pos)
 
     # Get the player's current season data
     player_cur_season = player_five_seasons.iloc[0]
-
-    # Get the player's header information
-    player_header_row = cd.get_player_header_row(player_name, season, pos)
 
     # Get correct team
     team = player_cur_season['Team']
@@ -499,7 +496,6 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
         print(f'{player_name}\'s teams are {team}. Choose active team (abreviation):')
         team = input()
         player_cur_season['Team'] = team
-        player_header_row['Team'] = team
 
     # Get primary team color
     primary_team_color = constants.PRIMARY_COLORS.get(team)
@@ -510,7 +506,7 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
     player_card = Image.new('RGB', (card_width, card_height), color=(255, 255, 255))
 
     # Add header section
-    header_section = make_header_section(player_header_row)
+    header_section = make_header_section(player_cur_season)
     player_card.paste(header_section, (0, 0))
 
     # For skater cards
