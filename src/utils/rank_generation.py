@@ -237,9 +237,9 @@ def make_player_weighted_rankings(season: str, position: str):
         if num_seasons == 3:
             weights = [0.50, 0.35, 0.15]
         elif num_seasons == 2:
-            weights = [0.60, 0.30]
+            weights = [0.50, 0.45]
         elif num_seasons == 1:
-            weights = [0.80]
+            weights = [0.90]
 
         # Weight each different score attribute
         for col in score_cols:

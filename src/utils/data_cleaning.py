@@ -33,7 +33,8 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     # Replace names with most commonly used names for consistency
     name_replacements = {
         'Christopher Tanev': 'Chris Tanev',
-        'Mitchell Marner': 'Mitch Marner'
+        'Mitchell Marner': 'Mitch Marner',
+        'Alex Wennberg' : 'Alexander Wennberg'
         # FIND MORE
     }
     df['Player'] = df['Player'].replace(name_replacements)
@@ -61,7 +62,6 @@ def clean_team_names(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-
 def clean_positions(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize positions in the DataFrame.
@@ -70,10 +70,9 @@ def clean_positions(df: pd.DataFrame) -> pd.DataFrame:
     :return: the cleaned DataFrame
     """
 
-    # Replace player positions with most commonly used position abbreviations for consistency
-    if 'Position' in df.columns:
-        df['Position'] = df['Position'].apply(lambda x: x.replace('L', 'LW').replace('R', 'RW'))
-
+    # Make all forward positions (C, LW, RW) into 'F'
+    if "Position" in df.columns:
+        df.loc[~df['Position'].isin(['D', 'G']), 'Position'] = 'F'
     return df
 
 

@@ -35,10 +35,10 @@ def make_header_section(player_row: pd.Series) -> Image:
 
     # Get profile variables
     position = player_row['Position']
-    age = player_row['Age']
+    age = int(player_row['Age'])
     birth_date = ch.get_word_date(player_row['Date of Birth'])
     height = f"{int(player_row['Height (in)']) // 12}\'{int(player_row['Height (in)']) % 12}\""
-    weight = f"{player_row['Weight (lbs)']} lbs"
+    weight = f"{int(player_row['Weight (lbs)'])} lbs"
     draft_year = player_row['Draft Year']
     if draft_year == '-':
         draft_year = 'N/A'
