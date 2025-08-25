@@ -3,7 +3,6 @@
 # ====================================================================================================
 
 # Imports
-import pandas as pd
 from utils import card_functions as cf
 from utils import constants
 from utils import load_save as file
@@ -45,7 +44,7 @@ def make_team_player_cards(team: str, season: str) -> None:
     :return: None
     """
     for pos in ['F', 'D', 'G']:
-        cur_season_data = file.load_rankings_csv(season, pos)
+        cur_season_data = file.load_card_data_csv(season, pos)
         for _, player_row in cur_season_data.iterrows():
             if player_row['Team'] == team:
                 player_name = player_row['Player']
@@ -60,7 +59,7 @@ def make_position_player_cards(season: str, pos: str) -> None:
     :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None
     """
-    cur_season_data = file.load_rankings_csv(season, pos)
+    cur_season_data = file.load_card_data_csv(season, pos)
     for _, player_row in cur_season_data.iterrows():
         player_name = player_row['Player']
         cf.make_player_card(player_name, season, pos)
@@ -74,7 +73,7 @@ def make_all_player_cards(season: str) -> None:
     :return: None
     """
     for pos in ['F', 'D', 'G']:
-        cur_season_data = file.load_rankings_csv(season, pos)
+        cur_season_data = file.load_card_data_csv(season, pos)
         for _, player_row in cur_season_data.iterrows():
             player_name = player_row['Player']
             cf.make_player_card(player_name, season, pos)
@@ -89,7 +88,7 @@ def make_rank_player_cards(rank: str, season: str, pos: str) -> None:
     :param pos: a str representing the position ('F', 'D', or 'G')
     :return: None
     """
-    cur_season_data = file.load_rankings_csv(season, pos)
+    cur_season_data = file.load_card_data_csv(season, pos)
     cur_season_data = cur_season_data.sort_values(by=f'{rank}_rank', ascending=True)
 
     for _, player_row in cur_season_data.iterrows():

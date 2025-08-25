@@ -108,12 +108,13 @@ def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
     :return: DataFrame of the loaded card data
     """
 
-    if position == 'F':
-        pos_folder = 'forwards'
-    elif position == 'D':
+    if position == 'D':
         pos_folder = 'defensemen'
     elif position == 'G':
         pos_folder = 'goalies'
+    else:
+        position = 'F'
+        pos_folder = 'forwards'
 
     filename = f'{season}_{position}_card_data.csv'
     file_path = os.path.join(DATA_DIR, 'card_data', pos_folder, filename)

@@ -4,9 +4,10 @@
 
 # Imports
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
-from utils import card_data as cd
 from utils import card_helpers as ch
 from utils import card_images as ci
 from utils import constants
@@ -465,12 +466,7 @@ def make_branding_section(team: str) -> Image:
     return branding_section
 
 
-
-# ====================================================================================================
-# WHOLE CARD CREATION FUNCTIONS
-# ====================================================================================================
-
-def make_player_card(player_name: str, season: str, pos: str) -> None:
+def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -> None:
     """
     Generate and save a full player card image for a given player and season.
 
@@ -608,5 +604,8 @@ def make_player_card(player_name: str, season: str, pos: str) -> None:
 
     file_name = f'{season}_{team}_{pos}_{player_name.replace(' ', '_')}.png'
 
-    file.save_card(player_card, season, team, pos_file, file_name)
+    if save:
+        file.save_card(player_card, season, team, pos_file, file_name)
+
+    return player_card
 

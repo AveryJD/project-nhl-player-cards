@@ -181,7 +181,7 @@ def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str,) -> i
     return total_players
 
 
-def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: str, seasons_num) -> dict[str, int]:
+def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: str, seasons_num: int=5) -> dict[str, int]:
     """
     Return the total number of players for multiple past seasons based on different attributes.
 
@@ -214,7 +214,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
         
         # Load data from previous season, but break if the file is not found
         try:
-            tot_players_season_data = file.load_rankings_csv(tot_players_season, pos)
+            tot_players_season_data = file.load_card_data_csv(tot_players_season, pos)
         except FileNotFoundError:
             print(f'Warning: Data for {tot_players_season} total players not found. Stopping iteration.')
             break
