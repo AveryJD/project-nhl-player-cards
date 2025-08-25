@@ -80,9 +80,15 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw = ImageDraw.Draw(header_section)
     
     # Get player team logo
-    team_img = ci.get_team_image(team)
-    team_img = team_img.resize((560, 560))
-    header_section.paste(team_img, (70, 140), team_img)
+    team_logo = ci.get_team_image(team)
+
+    # Calculate proportional height, resize and paste
+    logo_width = 580
+    w_percent = logo_width / team_logo.width
+    logo_height = int(team_logo.height * w_percent)
+    team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+    header_section.paste(team_logo, (60, 200), team_logo)
+
 
     # Get player image
     if position == 'G':

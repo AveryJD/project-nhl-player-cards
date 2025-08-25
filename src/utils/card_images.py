@@ -6,45 +6,27 @@
 import requests
 from PIL import Image
 from io import BytesIO
+import cairosvg
 
-
-def get_team_image(team: str) -> Image:
+def get_team_image(team: str) -> Image.Image:
     """
-    Fetches and returns a team's logo image using the ESPN.com.
+    Fetches and returns a team's logo image as a PNG (converted from SVG).
 
     :param team: str of the team abbreviation (ex., "TOR")
     :return: A PIL Image object of the team's logo
     """
 
-    # Get URL for team logo
-    # Special case where a player has played for multiple teams and their team str in the DataFrame has multiple teams (e.g. 'EDM,LAK')
-    if ',' in team:
-        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/nhl.png&w=500&h=500&transparent=true'
-    
-    # Cases where team abreviations are different in the ESPN url
-    elif team == 'LAK':
-        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/LA.png'
-    elif team == "NJD":
-        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/NJ.png'
-    elif team == "SJS":
-        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/SJ.png'
-    elif team == "TBL":
-        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/TB.png'
-    elif team == "UTA":
-        team_url = 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/utah.png'
-    
-    else:
-        team_url = f'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nhl/500/{team}.png'
-    
-    # Get Image of the team logo
-    response_team = requests.get(team_url, stream=True)
+    # Get team logo url
+    team_url = f'https://assets.nhle.com/logos/nhl/svg/{team}_light.svg'
+    response_team = requests.get(team_url)
+
+    # Convert SVG to PNG
     if response_team.status_code == 200:
-        team_img = Image.open(response_team.raw).convert("RGBA")
-        team_img = Image.alpha_composite(
-            Image.new("RGBA", team_img.size, (255, 255, 255, 255)), team_img
-        )
+        png_bytes = cairosvg.svg2png(bytestring=response_team.content)
+        team_logo = Image.open(BytesIO(png_bytes)).convert("RGBA")
     
-    return team_img
+    return team_logo
+
 
 
 def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
