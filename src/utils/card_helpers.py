@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import io
 from datetime import datetime
-import constants
-import load_save as file
+from utils import constants
+from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 

@@ -6,7 +6,7 @@
 import pandas as pd
 from PIL import Image
 import os
-import constants
+import utils.constants as constants
 
 DATA_DIR = constants.DATA_DIR
 

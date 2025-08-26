@@ -4,7 +4,7 @@
 
 # Imports
 import pandas as pd
-import load_save as file
+from utils import load_save as file
 
 
 def get_player_role(player_row: pd.Series) -> str:

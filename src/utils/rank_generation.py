@@ -6,8 +6,8 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from utils import rank_scores as rs
-import load_save as file
-import constants
+from utils import constants
+from utils import load_save as file
 
 
 def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None) -> pd.DataFrame:

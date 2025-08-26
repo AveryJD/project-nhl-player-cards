@@ -4,7 +4,7 @@
 
 # Imports
 from utils import rank_generation as rank
-import constants
+import utils.constants as constants
 
 
 for season in constants.YEARLY_RANK_SEASONS:
