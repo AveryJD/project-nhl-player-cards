@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 from utils import card_helpers as ch
 from utils import card_images as ci
-from utils import constants
-from utils import load_save as file
+import constants
+import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 

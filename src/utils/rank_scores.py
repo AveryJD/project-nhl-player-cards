@@ -5,7 +5,7 @@
 # Imports
 import numpy as np
 import pandas as pd
-from utils import constants
+import constants
 
 
 class SkaterScorer:

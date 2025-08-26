@@ -4,7 +4,7 @@
 
 # Imports
 from utils import card_data as cd
-from utils import constants
+import constants
 
 
 for season in constants.CARD_INFO_SEASONS:

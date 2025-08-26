@@ -4,7 +4,7 @@
 
 # Imports
 import pandas as pd
-from utils import constants
+from . import constants
 
 
 def clean_symbols(df: pd.DataFrame) -> pd.DataFrame:
