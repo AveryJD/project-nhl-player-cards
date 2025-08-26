@@ -32,9 +32,10 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
 
     # Replace names with most commonly used names for consistency
     name_replacements = {
+        'Alex Wennberg' : 'Alexander Wennberg',
+        'Alexei Toropchenko' : 'Alexey Toropchenko',
         'Christopher Tanev': 'Chris Tanev',
         'Mitchell Marner': 'Mitch Marner',
-        'Alex Wennberg' : 'Alexander Wennberg'
         # FIND MORE
     }
     df['Player'] = df['Player'].replace(name_replacements)

@@ -83,11 +83,11 @@ def make_header_section(player_row: pd.Series) -> Image:
     team_logo = ci.get_team_image(team)
 
     # Calculate proportional height, resize and paste
-    logo_width = 580
+    logo_width = 560
     w_percent = logo_width / team_logo.width
     logo_height = int(team_logo.height * w_percent)
     team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
-    header_section.paste(team_logo, (60, 200), team_logo)
+    header_section.paste(team_logo, (50, 200), team_logo)
 
 
     # Get player image
@@ -157,8 +157,8 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw.text(xy=(1400, 510), text='CAP HIT:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(1400, 550), text='YEARS REMAINING:', font=basic_font, fill=(0,0,0))
 
-    ch.draw_righted_text(draw, text=f'${cap_hit:.3f} M', font=basic_font, y_position=510, x_right=1900)
-    ch.draw_righted_text(draw, text=contract_years_left, font=basic_font, y_position=550, x_right=1900)
+    ch.draw_righted_text(draw, text='Coming Soon', font=basic_font, y_position=510, x_right=1900)   #f'${cap_hit:.3f} M'
+    ch.draw_righted_text(draw, text='Coming Soon', font=basic_font, y_position=550, x_right=1900)   #contract_years_left
 
 
     # Draw banner
@@ -452,7 +452,7 @@ def make_branding_section(team: str) -> Image:
     draw.text(xy=(1060, 156), text='Cap Data From:', font=basic_font, fill=(0,0,0))
 
     ch.draw_righted_text(draw, 'NaturalStatTrick.com', basic_font, 73, 1900)
-    ch.draw_righted_text(draw, 'PuckPedia.com', basic_font, 156, 1900)
+    ch.draw_righted_text(draw, 'Coming Soon', basic_font, 156, 1900)  #'PuckPedia.com'
     
     # Get colors and fonts
     primary_team_color = constants.PRIMARY_COLORS.get(team)
