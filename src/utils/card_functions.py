@@ -608,7 +608,7 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
 
     player_card = player_card.convert('RGB')
 
-    file_name = f'{season}_{team}_{pos}_{player_name.replace(' ', '_')}.png'
+    file_name = f"{season}_{team}_{pos}_{player_name.replace(' ', '_')}.png"
 
     if save:
         file.save_card(player_card, season, team, pos_file, file_name)

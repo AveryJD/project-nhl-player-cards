@@ -9,5 +9,5 @@ description = "NHL Player Stat Card generation project"
 authors = [{ name = "Avery Doiron" }]
 dependencies = []
 
-[tool.setuptools]
-packages = ["utils"]
+[tool.setuptools.packages.find]
+where = ["src"]  # <-- this tells setuptools to look inside src/ for packages
