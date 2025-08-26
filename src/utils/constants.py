@@ -3,7 +3,8 @@
 # ====================================================================================================
 
 # Project file location
-DATA_DIR = '/Users/averyjdoiron/GitHub/NHL-Player-Stat-Cards'
+import os
+DATA_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Seasons to scrape stats and bio data for
 DATA_SEASONS = ['2024-2025']

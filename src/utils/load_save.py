@@ -10,6 +10,9 @@ from utils import constants
 
 DATA_DIR = constants.DATA_DIR
 
+# BASE_DIR points to your project root
+DATA_DIR = constants.DATA_DIR
+
 
 def get_prev_season(cur_season: str) -> str:
     """
@@ -103,8 +106,7 @@ def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
     Load the player card data CSV for a given season and position.
 
     :param season: a str representing the season ('YYYY-YYYY')
-    :param pos: a str representing the player's position ('F', 'D', or 'G')
-    :param weighted: a bool to check if the weightings to load are yearly or weighted
+    :param position: a str representing the player's position ('F', 'D', or 'G')
     :return: DataFrame of the loaded card data
     """
 
