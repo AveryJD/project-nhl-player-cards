@@ -1,15 +1,13 @@
 [build-system]
-requires = ["setuptools>=65.0"]
+requires = ["setuptools>=65.5.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "nhl-player-stat-cards"
 version = "0.1.0"
 description = "NHL Player Stat Card generation project"
-authors = [
-  { name = "Avery Doiron" }
-]
+authors = [{ name = "Avery Doiron" }]
 dependencies = []
-packages = [
-    { include = "utils" }
-]
+
+[tool.setuptools]
+packages = ["utils"]
