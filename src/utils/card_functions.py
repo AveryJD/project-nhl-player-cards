@@ -87,7 +87,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     w_percent = logo_width / team_logo.width
     logo_height = int(team_logo.height * w_percent)
     team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
-    header_section.paste(team_logo, (50, 200), team_logo)
+    header_section.paste(team_logo, (69, 200), team_logo)
 
 
     # Get player image
