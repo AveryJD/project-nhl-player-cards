@@ -26,6 +26,8 @@ FONT_CACHE = {
     'basic_58': ImageFont.truetype(BASIC_FONT_PATH, 58),
     'basic_70': ImageFont.truetype(BASIC_FONT_PATH, 70),
     'basic_160': ImageFont.truetype(BASIC_FONT_PATH, 160),
+    'heading_55': ImageFont.truetype(HEADING_FONT_PATH, 55),
+    'heading_65': ImageFont.truetype(HEADING_FONT_PATH, 65),
     'heading_116': ImageFont.truetype(HEADING_FONT_PATH, 116),
 }
 
@@ -118,14 +120,14 @@ def make_header_section(player_row: pd.Series) -> Image:
 
     # Load fonts
     basic_font = FONT_CACHE['basic_40']
-    basic_subheading_font = FONT_CACHE['basic_70']
+    banner_font = FONT_CACHE['heading_55']
+    subheading_font = FONT_CACHE['heading_65']
     heading_font = FONT_CACHE['heading_116']
-    subheading_font = FONT_CACHE['basic_58']
     
     # Draw subheaders text
-    ch.draw_centered_text(draw, 'PROFILE', font=basic_subheading_font, y_position=180, x_center=1000)
-    ch.draw_centered_text(draw, 'STATS', font=basic_subheading_font, y_position=180, x_center=1650)
-    ch.draw_centered_text(draw, 'CONTRACT', font=basic_subheading_font, y_position=420, x_center=1650)
+    ch.draw_centered_text(draw, 'PROFILE', font=subheading_font, y_position=180, x_center=1000)
+    ch.draw_centered_text(draw, 'STATS', font=subheading_font, y_position=180, x_center=1650)
+    ch.draw_centered_text(draw, 'CONTRACT', font=subheading_font, y_position=420, x_center=1650)
 
 
     # Draw profile segment text
@@ -177,12 +179,12 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
     # Draw name, team, and season drop shadow
     draw.text(xy=(76, 28), text=name, font=heading_font, fill=secondary_team_color)
-    ch.draw_righted_text(draw, season, subheading_font, 28, 1916, fill=secondary_team_color)
-    ch.draw_righted_text(draw, team_full_name, subheading_font, 78, 1916, fill=secondary_team_color)
+    ch.draw_righted_text(draw, season, banner_font, 35, 1916, fill=secondary_team_color)
+    ch.draw_righted_text(draw, team_full_name, banner_font, 80, 1916, fill=secondary_team_color)
     # Draw name and season text
-    draw.text(xy=(80, 22), text=name, font=heading_font, fill=(255,255,255))
-    ch.draw_righted_text(draw, season, subheading_font, 24, 1920, fill=(255, 255, 255))
-    ch.draw_righted_text(draw, team_full_name, subheading_font, 74, 1920, fill=(255, 255, 255))
+    draw.text(xy=(80, 24), text=name, font=heading_font, fill=(255,255,255))
+    ch.draw_righted_text(draw, season, banner_font, 33, 1918, fill=(255, 255, 255))
+    ch.draw_righted_text(draw, team_full_name, banner_font, 78, 1918, fill=(255, 255, 255))
 
     # Draw bottom rectangle
     draw.rectangle([(60, 660), (1940, 700)], fill=primary_team_color)
@@ -242,25 +244,31 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     else:
         percentile_color = ch.get_percentile_color(percentile)
     
-
-    # Make percentile bar
+    # Get percentile bar variables
     bar_x, bar_y = 210, 80
     bar_width, bar_height = 80, 160
     border = 5
 
+    max_height = bar_height - 2 * border
+    height = min(max(int(percentile * 1.5), 2), max_height)
+
+    percent_left = bar_x + border
+    percent_right = bar_x + bar_width - border
+    percent_bottom = bar_y + bar_height - border
+    percent_top = percent_bottom - height
+
+    # Draw the percentile bar
     draw.rectangle(
         [bar_x, bar_y, bar_x + bar_width, bar_y + bar_height],
-        fill=(230, 230, 230), outline=(200, 200, 200), width=border
+        fill=(230, 230, 230),
+        outline=(200, 200, 200),
+        width=border
     )
 
-    height = min(max(int(percentile * 1.6), 10.001), 96.5 * 1.6)
     draw.rectangle(
-        [bar_x + border, bar_y + bar_height - height,
-        bar_x + bar_width - border, bar_y + bar_height - border],
+        [percent_left, percent_top, percent_right, percent_bottom],
         fill=percentile_color
     )
-
-
 
     # Load fonts
     attribute_name_font = FONT_CACHE['basic_55']

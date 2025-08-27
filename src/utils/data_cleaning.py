@@ -35,6 +35,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Alex Wennberg' : 'Alexander Wennberg',
         'Alexei Toropchenko' : 'Alexey Toropchenko',
         'Christopher Tanev': 'Chris Tanev',
+        'Matt Dumba': 'Mathew Dumba',
         'Mitchell Marner': 'Mitch Marner',
         # FIND MORE
     }
