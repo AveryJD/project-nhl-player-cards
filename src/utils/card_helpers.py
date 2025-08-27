@@ -120,7 +120,7 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
 
 def get_percentile_color(percentile: int) -> tuple[float, float, float]:
     """
-    Return a normalized RGB color based on the percentile rank.
+    Return an RGB color based on the percentile rank.
     0%   -> Red (255, 0, 0)
     25%  -> Orange (255, 165, 0)
     50%  -> Yellow (255, 255, 0)
@@ -155,7 +155,7 @@ def get_percentile_color(percentile: int) -> tuple[float, float, float]:
         g = 238 - int((238 - 128) * ratio)
         b = 144 - int(144 * ratio)
 
-    return (r / 255, g / 255, b / 255)
+    return (r, g, b)
 
 
 def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str,) -> int:

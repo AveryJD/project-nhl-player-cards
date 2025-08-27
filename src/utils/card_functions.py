@@ -15,6 +15,20 @@ from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
+# Load and cache fonts
+BASIC_FONT_PATH = f'{DATA_DIR}/card_data/fonts/basic.ttf'
+HEADING_FONT_PATH = f'{DATA_DIR}/card_data/fonts/header.ttf'
+
+FONT_CACHE = {
+    'basic_40': ImageFont.truetype(BASIC_FONT_PATH, 40),
+    'basic_50': ImageFont.truetype(BASIC_FONT_PATH, 50),
+    'basic_55': ImageFont.truetype(BASIC_FONT_PATH, 55),
+    'basic_58': ImageFont.truetype(BASIC_FONT_PATH, 58),
+    'basic_70': ImageFont.truetype(BASIC_FONT_PATH, 70),
+    'basic_160': ImageFont.truetype(BASIC_FONT_PATH, 160),
+    'heading_116': ImageFont.truetype(HEADING_FONT_PATH, 116),
+}
+
 
 def make_header_section(player_row: pd.Series) -> Image:
     """
@@ -103,12 +117,10 @@ def make_header_section(player_row: pd.Series) -> Image:
     header_section.paste(player_img, (100, 160), player_img)
 
     # Load fonts
-    basic_font_path = f'{DATA_DIR}/card_data/fonts/basic.ttf'
-    heading_font_path = f'{DATA_DIR}/card_data/fonts/header.ttf'
-    basic_font = ImageFont.truetype(basic_font_path, 40)
-    basic_subheading_font = ImageFont.truetype(basic_font_path, 70)
-    heading_font = ImageFont.truetype(heading_font_path, 116)
-    subheading_font = ImageFont.truetype(heading_font_path, 58)
+    basic_font = FONT_CACHE['basic_40']
+    basic_subheading_font = FONT_CACHE['basic_70']
+    heading_font = FONT_CACHE['heading_116']
+    subheading_font = FONT_CACHE['basic_58']
     
     # Draw subheaders text
     ch.draw_centered_text(draw, 'PROFILE', font=basic_subheading_font, y_position=180, x_center=1000)
@@ -226,48 +238,35 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
         
     # Get percentile color
     if rank == 'N/A':
-        percentile_color = (150 / 255, 150 / 255, 150 / 255)
+        percentile_color = (100, 100, 100)
     else:
         percentile_color = ch.get_percentile_color(percentile)
     
-    # Create the percentile bar
-    fig, ax = plt.subplots(figsize=(5, 10))
-    ax.bar(x=[0], height=percentile, width=50, color=percentile_color)
-    
-    # Remove ticks
-    ax.set_yticks([])
-    ax.set_xticks([1])
-    ax.tick_params(bottom=False)
 
-    ax.set_xticklabels([percentile])
-    
-    # Make border around percentile bar
-    ax.set_xlim(0, 25)  
-    ax.set_ylim(0, 100)
-    ax.spines['left'].set_position(('data', 0))
-    ax.spines['right'].set_position(('data', 25))
-    ax.spines['top'].set_position(('data', 100))
-    ax.spines['bottom'].set_position(('data', 0))
-    ax.spines['left'].set_color('lightgrey')
-    ax.spines['right'].set_color('lightgrey')
-    ax.spines['top'].set_color('lightgrey')
-    ax.spines['bottom'].set_color('lightgrey')
-    ax.spines['left'].set_linewidth(15)
-    ax.spines['right'].set_linewidth(15)
-    ax.spines['top'].set_linewidth(15)
-    ax.spines['bottom'].set_linewidth(15)
+    # Make percentile bar
+    bar_x, bar_y = 210, 80
+    bar_width, bar_height = 80, 160
+    border = 5
 
-    # Add percentile bar to ranking section card
-    percentile_bar = ch.plot_to_image(fig)
-    percentile_bar = percentile_bar.resize((100, 200))
-    ranking_section.paste(percentile_bar, (200, 60))
+    draw.rectangle(
+        [bar_x, bar_y, bar_x + bar_width, bar_y + bar_height],
+        fill=(230, 230, 230), outline=(200, 200, 200), width=border
+    )
+
+    height = min(max(int(percentile * 1.6), 10.001), 96.5 * 1.6)
+    draw.rectangle(
+        [bar_x + border, bar_y + bar_height - height,
+        bar_x + bar_width - border, bar_y + bar_height - border],
+        fill=percentile_color
+    )
+
+
 
     # Load fonts
-    basic_font_path = f'{DATA_DIR}/card_data/fonts/basic.ttf'
-    attribute_name_font = ImageFont.truetype(basic_font_path, 55)
-    rank_font = ImageFont.truetype(basic_font_path, 160)
-    total_players_font = ImageFont.truetype(basic_font_path, 40)
-    percentile_font = ImageFont.truetype(basic_font_path, 50)
+    attribute_name_font = FONT_CACHE['basic_55']
+    rank_font = FONT_CACHE['basic_160']
+    total_players_font = FONT_CACHE['basic_40']
+    percentile_font = FONT_CACHE['basic_50']
 
     # Draw attribute name, rank, total players, and percentile texts
     ch.draw_centered_text(draw, attribute_name, attribute_name_font, fill=attribute_color, y_position=0, x_center=150)
