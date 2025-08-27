@@ -21,6 +21,7 @@ def find_data_dir(start_dir):
 # This is the folder directly above 'card_data' (for standalone card project and website purposes)
 DATA_DIR = find_data_dir(CURRENT_DIR)
 
+print(DATA_DIR)
 
 
 # ====================================================================================================

@@ -103,8 +103,8 @@ def make_header_section(player_row: pd.Series) -> Image:
     header_section.paste(player_img, (100, 160), player_img)
 
     # Load fonts
-    basic_font_path = f'{DATA_DIR}/assets/fonts/basic.ttf'
-    heading_font_path = f'{DATA_DIR}/assets/fonts/header.ttf'
+    basic_font_path = f'{DATA_DIR}/card_data/fonts/basic.ttf'
+    heading_font_path = f'{DATA_DIR}/card_data/fonts/header.ttf'
     basic_font = ImageFont.truetype(basic_font_path, 40)
     basic_subheading_font = ImageFont.truetype(basic_font_path, 70)
     heading_font = ImageFont.truetype(heading_font_path, 116)
@@ -263,7 +263,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     ranking_section.paste(percentile_bar, (200, 60))
 
     # Load fonts
-    basic_font_path = f'{DATA_DIR}/assets/fonts/basic.ttf'
+    basic_font_path = f'{DATA_DIR}/card_data/fonts/basic.ttf'
     attribute_name_font = ImageFont.truetype(basic_font_path, 55)
     rank_font = ImageFont.truetype(basic_font_path, 160)
     total_players_font = ImageFont.truetype(basic_font_path, 40)
@@ -437,7 +437,7 @@ def make_branding_section(team: str) -> Image:
     draw = ImageDraw.Draw(branding_section)
 
     # Get the font
-    basic_font_path = f'{DATA_DIR}/assets/fonts/basic.ttf'
+    basic_font_path = f'{DATA_DIR}/card_data/fonts/basic.ttf'
     basic_font = ImageFont.truetype(basic_font_path, 55)
     
     # Branding text
@@ -457,7 +457,7 @@ def make_branding_section(team: str) -> Image:
     # Get colors and fonts
     primary_team_color = constants.PRIMARY_COLORS.get(team)
     secondary_team_color = constants.SECONDARY_COLORS.get(team)
-    heading_font_path = f'{DATA_DIR}/assets/fonts/header.ttf'
+    heading_font_path = f'{DATA_DIR}/card_data/fonts/header.ttf'
     heading_font = ImageFont.truetype(heading_font_path, 116)
 
     # Draw rectangles
