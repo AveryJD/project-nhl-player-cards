@@ -1,12 +1,31 @@
 # ====================================================================================================
+# GET PROJECT FILE LOCATION
+# ====================================================================================================
+import os
+
+# Start from the current file
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Traverse up until we find a folder containing 'card_data'
+def find_data_dir(start_dir):
+    dir_to_check = start_dir
+    while True:
+        potential_data_dir = os.path.join(dir_to_check, 'card_data')
+        if os.path.exists(potential_data_dir):
+            return dir_to_check
+        parent = os.path.dirname(dir_to_check)
+        if parent == dir_to_check:  # reached root
+            raise FileNotFoundError("Could not find 'card_data' folder")
+        dir_to_check = parent
+
+# This is the folder directly above 'card_data' (for standalone card project and website purposes)
+DATA_DIR = find_data_dir(CURRENT_DIR)
+
+
+
+# ====================================================================================================
 # DATA CONSTANTS
 # ====================================================================================================
-
-# Project file location
-import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-
 
 # Seasons to scrape stats and bio data for
 DATA_SEASONS = ['2024-2025']
