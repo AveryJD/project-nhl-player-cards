@@ -6,7 +6,7 @@ import os
 # Start from the current file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Traverse up until we find a folder containing 'card_data'
+# Traverse up until a folder containing 'card_data' is found
 def find_data_dir(start_dir):
     dir_to_check = start_dir
     while True:
@@ -182,6 +182,10 @@ G_WEIGHTS = {
 # ====================================================================================================
 # NAMING CONSTANTS
 # ====================================================================================================
+
+POSITION_NAMES = {
+    'F': 'Forward', 'D': 'Defense', 'G': 'Goalie'
+}
 
 # Team abreviations with full names
 TEAM_NAMES = {

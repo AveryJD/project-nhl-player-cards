@@ -51,6 +51,7 @@ def make_header_section(player_row: pd.Series) -> Image:
 
     # Get profile variables
     position = player_row['Position']
+    position_name = constants.POSITION_NAMES.get(position)
     age = int(player_row['Age'])
     birth_date = ch.get_word_date(player_row['Date of Birth'])
     height = f"{int(player_row['Height (in)']) // 12}\'{int(player_row['Height (in)']) % 12}\""
@@ -105,16 +106,8 @@ def make_header_section(player_row: pd.Series) -> Image:
     team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
     header_section.paste(team_logo, (69, 200), team_logo)
 
-
     # Get player image
-    if position == 'G':
-        pos = 'G'
-    elif position == 'D':
-        pos = 'D'
-    else:
-        pos = 'F'
-
-    player_img = ci.get_player_image(name, team, season, pos)
+    player_img = ci.get_player_image(name, team, season, position)
     player_img = player_img.resize((500, 500))
     header_section.paste(player_img, (100, 160), player_img)
 
@@ -140,7 +133,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw.text(xy=(680, 510), text='DRAFT POSITION:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(680, 550), text='NATIONALITY:', font=basic_font, fill=(0,0,0))
 
-    ch.draw_righted_text(draw, text=position, font=basic_font, y_position=270, x_right=1320)
+    ch.draw_righted_text(draw, text=position_name, font=basic_font, y_position=270, x_right=1320)
     ch.draw_righted_text(draw, text=age, font=basic_font, y_position=310, x_right=1320)
     ch.draw_righted_text(draw, text=birth_date, font=basic_font, y_position=350, x_right=1320)
     ch.draw_righted_text(draw, text=height, font=basic_font, y_position=390, x_right=1320)
