@@ -65,7 +65,7 @@ def make_card_data(season, position) -> None:
     """
     # Load data
     bios_df = file.load_bios_csv(season, position)
-    salaries_df = file.load_salaries_csv(season, position)
+    #salaries_df = file.load_salaries_csv(season, position)
     stats_df = file.load_stats_csv(season, position, 'all')
     rankings_df = file.load_rankings_csv(season, position)
 
@@ -74,7 +74,7 @@ def make_card_data(season, position) -> None:
                          'Nationality', 'Height (in)', 'Weight (lbs)', 
                          'Draft Year', 'Draft Round', 'Round Pick', 'Overall Draft Position']]  
 
-    salaries_cols = salaries_df[['Player', 'Team', 'Position', 'Contract Years', 'Cap Hit']]
+    #salaries_cols = salaries_df[['Player', 'Team', 'Position', 'Contract Years', 'Cap Hit']]
 
     if position != 'G':
         stats_cols = stats_df[['Player', 'Team', 'Position', 'GP', 'TOI', 'Goals', 'First Assists']]
@@ -96,7 +96,7 @@ def make_card_data(season, position) -> None:
         rankings_cols
         .merge(stats_cols, on=['Player', 'Team', 'Position'], how='left')
         .merge(bios_cols, on=['Player', 'Team', 'Position'], how='left')
-        .merge(salaries_cols, on=['Player', 'Team', 'Position'], how='left')
+        #.merge(salaries_cols, on=['Player', 'Team', 'Position'], how='left')
     )
 
     # Add player role column

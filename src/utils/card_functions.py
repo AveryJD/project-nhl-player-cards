@@ -85,8 +85,8 @@ def make_header_section(player_row: pd.Series) -> Image:
         gsax = format(xgoals_against - goals_against, '.2f')
 
     # Get contract variables
-    cap_hit = player_row['Cap Hit']
-    contract_years_left = player_row['Contract Years']
+    # cap_hit = player_row['Cap Hit']
+    # contract_years_left = player_row['Contract Years']
 
     # Create header section card
     header_section_width = 2000

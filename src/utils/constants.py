@@ -64,7 +64,8 @@ SYMBOLS_TO_REPLACE = {
 
 # Seasons to get card info for
 CARD_INFO_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                     '2018-2019', '2017-2018', '2016-2017', '2015-2016']
+                     '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
+                     '2012-2013', '2011-2012', '2010-2011', '2009-2010']
 
 
 
@@ -73,10 +74,12 @@ CARD_INFO_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2
 # ====================================================================================================
 
 YEARLY_RANK_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                       '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014']
+                       '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
+                       '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 
 WEIGHTED_RANK_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                         '2018-2019', '2017-2018', '2016-2017', '2015-2016']
+                         '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
+                         '2012-2013', '2011-2012', '2010-2011', '2009-2010']
 
 # Total games played by season
 SEASON_GAMES = {
@@ -91,7 +94,15 @@ SEASON_GAMES = {
     '2016-2017': 82,
     '2015-2016': 82,
     '2014-2015': 82,
-    '2013-2014': 82
+    '2013-2014': 82,
+    '2013-2014': 82,
+    '2013-2014': 82,
+    '2012-2013': 48,  # Shortened due to lockout
+    '2011-2012': 82,
+    '2010-2011': 82,
+    '2009-2010': 82,
+    '2008-2009': 82,
+    '2007-2008': 82,
 }
 
 
@@ -198,8 +209,9 @@ TEAM_NAMES = {
     'NYI': 'New York Islanders',    'NYR': 'New York Rangers',      'OTT': 'Ottawa Senators',
     'PHI': 'Philadelphia Flyers',   'PIT': 'Pittsburgh Penguins',   'SJS': 'San Jose Sharks',
     'SEA': 'Seattle Kraken',        'STL': 'St. Louis Blues',       'TBL': 'Tampa Bay Lightning',
-    'TOR': 'Toronto Maple Leafs',   'VAN': 'Vancouver Canucks',     'UTA': 'Utah Hockey Club',
-    'VGK': 'Vegas Golden Knights',  'WSH': 'Washington Capitals',   'WPG': 'Winnipeg Jets'
+    'TOR': 'Toronto Maple Leafs',   'VAN': 'Vancouver Canucks',     'UTA': 'Utah Mammoth',
+    'VGK': 'Vegas Golden Knights',  'WSH': 'Washington Capitals',   'WPG': 'Winnipeg Jets',
+    'ATL': 'Atlanta Thrashers'
 }
 
 # Country abreviations with nationality names
