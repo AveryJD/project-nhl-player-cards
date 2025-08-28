@@ -211,7 +211,7 @@ TEAM_NAMES = {
     'SEA': 'Seattle Kraken',        'STL': 'St. Louis Blues',       'TBL': 'Tampa Bay Lightning',
     'TOR': 'Toronto Maple Leafs',   'VAN': 'Vancouver Canucks',     'UTA': 'Utah Mammoth',
     'VGK': 'Vegas Golden Knights',  'WSH': 'Washington Capitals',   'WPG': 'Winnipeg Jets',
-    'ATL': 'Atlanta Thrashers'
+    'ATL': 'Atlanta Thrashers',     'PHX': 'Phoenix Coyotes'
 }
 
 # Country abreviations with nationality names
@@ -268,7 +268,8 @@ PRIMARY_COLORS = {
     'PHI': (247, 73, 2),    'PIT': (252, 181, 20),  'SJS': (0, 109, 117),
     'SEA': (153, 217, 217), 'STL': (0, 47, 135),    'TBL': (0, 40, 104),
     'TOR': (0, 32, 91),     'VAN': (0, 32, 91),     'UTA': (105, 179, 231),
-    'VGK': (185, 151, 91),  'WSH': (4, 30, 66),     'WPG': (4, 30, 66)
+    'VGK': (185, 151, 91),  'WSH': (4, 30, 66),     'WPG': (4, 30, 66),
+    'ATL': (4, 30, 66),     'PHX': (140, 38, 51)
 }
 
 # Team secondary colors
@@ -283,7 +284,8 @@ SECONDARY_COLORS = {
     'PHI': (0, 0, 0),       'PIT': (0, 0, 0),       'SJS': (0, 0, 0),
     'SEA': (0, 22, 40),     'STL': (252, 181, 20),  'TBL': (0, 0, 0),
     'TOR': (0, 0, 0),       'VAN': (0, 132, 61),    'UTA': (0, 0, 0),
-    'VGK': (51,63,72),      'WSH': (200, 16, 46),   'WPG': (172,22,44)
+    'VGK': (51,63,72),      'WSH': (200, 16, 46),   'WPG': (172,22,44),
+    'ATL': (184, 97, 37),   'PHX': (21,71,52)
 }
 
 # Attribute colors for rank components
@@ -307,7 +309,7 @@ ATTRIBUTE_COLORS = {
     'Penalty Kill':     (130, 150, 255),
     'Low Danger':       (0, 0, 0),
     'Med. Danger':      (0, 0, 0),
-    'High Danger':      (0, 0, 0),
+    'High Danger':      (0, 0, 0)
 }
 
 # Atribute colors for graph components

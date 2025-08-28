@@ -5,8 +5,12 @@
 # Imports
 import requests
 from PIL import Image
-from io import BytesIO
 import cairosvg
+from io import BytesIO
+import os
+from utils import constants
+
+DATA_DIR = constants.DATA_DIR
 
 def get_team_image(team: str) -> Image.Image:
     """
@@ -16,14 +20,26 @@ def get_team_image(team: str) -> Image.Image:
     :return: A PIL Image object of the team's logo
     """
 
-    # Get team logo url
-    team_url = f'https://assets.nhle.com/logos/nhl/svg/{team}_light.svg'
-    response_team = requests.get(team_url)
+    if team != 'ATL':
 
-    # Convert SVG to PNG
-    if response_team.status_code == 200:
-        png_bytes = cairosvg.svg2png(bytestring=response_team.content)
-        team_logo = Image.open(BytesIO(png_bytes)).convert("RGBA")
+        if team == 'PHX':
+            team = 'ARI'
+
+        # Get team logo url
+        team_url = f'https://assets.nhle.com/logos/nhl/svg/{team}_light.svg'
+        response_team = requests.get(team_url)
+
+        # Convert SVG to PNG
+        if response_team.status_code == 200:
+            png_bytes = cairosvg.svg2png(bytestring=response_team.content)
+            team_logo = Image.open(BytesIO(png_bytes)).convert("RGBA")
+
+    else:
+        team_logo_path = os.path.join(DATA_DIR, f"card_data/assets/{team}.svg")
+        with open(team_logo_path, "rb") as svg_file:
+            svg_data = svg_file.read()
+            png_bytes = cairosvg.svg2png(bytestring=svg_data)
+            team_logo = Image.open(BytesIO(png_bytes)).convert("RGBA")
     
     return team_logo
 

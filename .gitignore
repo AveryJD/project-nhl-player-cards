@@ -1,12 +1,9 @@
 *.pyc
 .DS_Store
 
-/data
-/rankings
-/cards
-/card_data
-src/card_data/defensemen/2018-2019_D_card_data.csv
-/src/card_data
-/src/cards
 /src/data
 /src/rankings
+/src/cards
+/src/card_data/defensemen
+/src/card_data/forwards
+/src/card_data/goalies

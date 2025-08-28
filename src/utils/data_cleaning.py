@@ -57,8 +57,7 @@ def clean_team_names(df: pd.DataFrame) -> pd.DataFrame:
         'L.A': 'LAK', 
         'S.J': 'SJS', 
         'N.J': 'NJD', 
-        'T.B': 'TBL',
-        'PHX': 'ARI',
+        'T.B': 'TBL'
     }
     # Only replace specific abbreviations without breaking multi-team entries
     df['Team'] = df['Team'].apply(lambda x: ", ".join([team_replacements.get(team, team) for team in x.split(', ')]) if isinstance(x, str) else x)
