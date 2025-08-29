@@ -14,7 +14,7 @@ def find_data_dir(start_dir):
         if os.path.exists(potential_data_dir):
             return dir_to_check
         parent = os.path.dirname(dir_to_check)
-        if parent == dir_to_check:  # reached root
+        if parent == dir_to_check:
             raise FileNotFoundError("Could not find 'card_data' folder")
         dir_to_check = parent
 
@@ -36,31 +36,6 @@ POSITIONS = ['F', 'D', 'G']
 # Situations to scrape stats for
 SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
-
-# Symbols to be replaced in player names
-SYMBOLS_TO_REPLACE = {
-    'ä': 'a',
-    'á': 'a',
-    'à': 'a',
-    'â': 'a',
-    'é': 'e',
-    'è': 'e',
-    'ê': 'e',
-    'ë': 'e',
-    'ï': 'i',
-    'í': 'i',
-    'ì': 'i',
-    'î': 'i',
-    'ö': 'o',
-    'ó': 'o',
-    'ò': 'o',
-    'ô': 'o',
-    'ø': 'o',
-    'ü': 'u',
-    'ñ': 'n',
-    'ç': 'c',
-    'ý': 'y',
-}
 
 # Seasons to get card info for
 CARD_INFO_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
@@ -115,15 +90,15 @@ SEASON_GAMES = {
 S_WEIGHTS = {
     # Shooting and Scoring Weights
     'goals': 1.000,
-    'goals_above_expected': 0.050,
-    'shots_on_net' : 0.100,
+    'goals_above_expected': 0.100,
+    'shots_on_net' : 0.104,
     'shots_missed': 0.020,
-    'shots_were_blocked': 0.020,
+    'shots_were_blocked': 0.010,
 
     # Playmaking Weights
     'p_assists': 0.780,
     's_assists': 0.100,
-    'rebounds_created': 0.050,
+    'rebounds_created': 0.100,
 
     # Zone Start Weights
     'off_zone_starts': 1.000,
@@ -160,9 +135,9 @@ S_WEIGHTS = {
 
     # Physicality Weights
     'hits': 1.000,
-    'minors': 0.500,
-    'majors': 1.000,
-    'misconducts': 2.000,
+    'minors': 0.250,
+    'majors': 0.500,
+    'misconducts': 1.000,
 
     # Faceoff Weights
     'faceoff_wins': 1.000,
@@ -248,6 +223,31 @@ ATRIBUTE_NAMES = {
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
     'hdg_rank' : 'High Danger',
+}
+
+# Symbols to be replaced in player names for the header
+SYMBOLS_TO_REPLACE = {
+    'ä': 'a',
+    'á': 'a',
+    'à': 'a',
+    'â': 'a',
+    'é': 'e',
+    'è': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'ï': 'i',
+    'í': 'i',
+    'ì': 'i',
+    'î': 'i',
+    'ö': 'o',
+    'ó': 'o',
+    'ò': 'o',
+    'ô': 'o',
+    'ø': 'o',
+    'ü': 'u',
+    'ñ': 'n',
+    'ç': 'c',
+    'ý': 'y',
 }
 
 

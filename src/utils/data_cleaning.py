@@ -4,22 +4,6 @@
 
 # Imports
 import pandas as pd
-from . import constants
-
-
-def clean_symbols(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Replace any unusual symbols in the DataFrame with typical characters.
-
-    :param df: the DataFrame to be cleaned
-    :return: the cleaned DataFrame
-    """
-
-    # Replace symbols in the DataFrame
-    for original, replacement in constants.SYMBOLS_TO_REPLACE.items():
-        df = df.map(lambda x: x.replace(original, replacement) if isinstance(x, str) else x)
-
-    return df
 
 
 def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -96,7 +80,6 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = [col.strip().replace(" ", " ") for col in df.columns]
     
     # Use helper cleaning functions
-    df = clean_symbols(df)
     df = clean_player_names(df)
     df = clean_team_names(df)
     df = clean_positions(df)

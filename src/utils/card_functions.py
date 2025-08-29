@@ -43,6 +43,9 @@ def make_header_section(player_row: pd.Series) -> Image:
 
     # Get banner variables
     name = player_row['Player']
+    header_name = name
+    for symbol, replacement in constants.SYMBOLS_TO_REPLACE.items():
+        header_name = header_name.replace(symbol, replacement)
     season = player_row['Season']
     team = player_row['Team']
     team_full_name = constants.TEAM_NAMES.get(team)
@@ -122,7 +125,6 @@ def make_header_section(player_row: pd.Series) -> Image:
     ch.draw_centered_text(draw, 'STATS', font=subheading_font, y_position=180, x_center=1650)
     ch.draw_centered_text(draw, 'CONTRACT', font=subheading_font, y_position=420, x_center=1650)
 
-
     # Draw profile segment text
     draw.text(xy=(680, 270), text='POSITION:', font=basic_font, fill=(0,0,0))
     draw.text(xy=(680, 310), text='AGE:', font=basic_font, fill=(0,0,0))
@@ -142,6 +144,16 @@ def make_header_section(player_row: pd.Series) -> Image:
     ch.draw_righted_text(draw, text=draft_position, font=basic_font, y_position=510, x_right=1320)
     ch.draw_righted_text(draw, text=nationality, font=basic_font, y_position=550, x_right=1320)
 
+    # Draw banner
+    draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
+    # Draw name, team, and season drop shadow
+    draw.text(xy=(76, 28), text=header_name, font=heading_font, fill=secondary_team_color)
+    ch.draw_righted_text(draw, season, banner_font, 35, 1916, fill=secondary_team_color)
+    ch.draw_righted_text(draw, team_full_name, banner_font, 80, 1916, fill=secondary_team_color)
+    # Draw name and season text
+    draw.text(xy=(80, 24), text=name, font=heading_font, fill=(255,255,255))
+    ch.draw_righted_text(draw, season, banner_font, 33, 1918, fill=(255, 255, 255))
+    ch.draw_righted_text(draw, team_full_name, banner_font, 78, 1918, fill=(255, 255, 255))
 
     # Draw stats segment text
     if position != 'G':
@@ -151,14 +163,12 @@ def make_header_section(player_row: pd.Series) -> Image:
         ch.draw_righted_text(draw, text=role, font=basic_font, y_position=270, x_right=1900)
         ch.draw_righted_text(draw, text=f'{games_played}-{goals}-{primary_assists}-{primary_points}', font=basic_font, y_position=310, x_right=1900)
 
-
     else:
         draw.text(xy=(1400, 270), text='ROLE:', font=basic_font, fill=(0,0,0))
         draw.text(xy=(1400, 310), text='SV%-GAA-GSAx:', font=basic_font, fill=(0,0,0))
 
         ch.draw_righted_text(draw, text=f'{role} ({games_played} GP)', font=basic_font, y_position=270, x_right=1900)
         ch.draw_righted_text(draw, text=f'{save_percentage}-{goals_against_avg}-{gsax}', font=basic_font, y_position=310, x_right=1900)
-
 
     # Draw salary segment text
     draw.text(xy=(1400, 510), text='CAP HIT:', font=basic_font, fill=(0,0,0))
@@ -167,25 +177,13 @@ def make_header_section(player_row: pd.Series) -> Image:
     ch.draw_righted_text(draw, text='Coming Soon', font=basic_font, y_position=510, x_right=1900)   #f'${cap_hit:.3f} M'
     ch.draw_righted_text(draw, text='Coming Soon', font=basic_font, y_position=550, x_right=1900)   #contract_years_left
 
-
-    # Draw banner
-    draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
-    # Draw name, team, and season drop shadow
-    draw.text(xy=(76, 28), text=name, font=heading_font, fill=secondary_team_color)
-    ch.draw_righted_text(draw, season, banner_font, 35, 1916, fill=secondary_team_color)
-    ch.draw_righted_text(draw, team_full_name, banner_font, 80, 1916, fill=secondary_team_color)
-    # Draw name and season text
-    draw.text(xy=(80, 24), text=name, font=heading_font, fill=(255,255,255))
-    ch.draw_righted_text(draw, season, banner_font, 33, 1918, fill=(255, 255, 255))
-    ch.draw_righted_text(draw, team_full_name, banner_font, 78, 1918, fill=(255, 255, 255))
-
-    # Draw bottom rectangle
-    draw.rectangle([(60, 660), (1940, 700)], fill=primary_team_color)
-
     # Draw divider rectangles
     draw.rectangle([(638, 200), (644, 600)], fill=secondary_team_color)
     draw.rectangle([(1356, 200), (1362, 600)], fill=secondary_team_color)
     draw.rectangle([(1400, 402), (1900, 408)], fill=secondary_team_color)
+
+     # Draw bottom rectangle
+    draw.rectangle([(60, 660), (1940, 700)], fill=primary_team_color)
 
     return header_section
 
