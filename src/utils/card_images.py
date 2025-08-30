@@ -35,7 +35,7 @@ def get_team_image(team: str) -> Image.Image:
             team_logo = Image.open(BytesIO(png_bytes)).convert("RGBA")
 
     else:
-        team_logo_path = os.path.join(DATA_DIR, f"card_data/assets/{team}.svg")
+        team_logo_path = os.path.join(DATA_DIR, f"data_card/assets/{team}.svg")
         with open(team_logo_path, "rb") as svg_file:
             svg_data = svg_file.read()
             png_bytes = cairosvg.svg2png(bytestring=svg_data)

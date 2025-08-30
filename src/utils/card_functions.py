@@ -16,8 +16,8 @@ from utils import load_save as file
 DATA_DIR = constants.DATA_DIR
 
 # Load and cache fonts
-BASIC_FONT_PATH = f'{DATA_DIR}/card_data/fonts/basic.ttf'
-HEADING_FONT_PATH = f'{DATA_DIR}/card_data/fonts/header.ttf'
+BASIC_FONT_PATH = f'{DATA_DIR}/data_card/fonts/basic.ttf'
+HEADING_FONT_PATH = f'{DATA_DIR}/data_card/fonts/header.ttf'
 
 FONT_CACHE = {
     'basic_40': ImageFont.truetype(BASIC_FONT_PATH, 40),
@@ -151,7 +151,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     ch.draw_righted_text(draw, season, banner_font, 35, 1916, fill=secondary_team_color)
     ch.draw_righted_text(draw, team_full_name, banner_font, 80, 1916, fill=secondary_team_color)
     # Draw name and season text
-    draw.text(xy=(80, 24), text=name, font=heading_font, fill=(255,255,255))
+    draw.text(xy=(80, 24), text=header_name, font=heading_font, fill=(255,255,255))
     ch.draw_righted_text(draw, season, banner_font, 33, 1918, fill=(255, 255, 255))
     ch.draw_righted_text(draw, team_full_name, banner_font, 78, 1918, fill=(255, 255, 255))
 
@@ -435,8 +435,7 @@ def make_branding_section(team: str) -> Image:
     draw = ImageDraw.Draw(branding_section)
 
     # Get the font
-    basic_font_path = f'{DATA_DIR}/card_data/fonts/basic.ttf'
-    basic_font = ImageFont.truetype(basic_font_path, 55)
+    basic_font = FONT_CACHE['basic_55']
     
     # Branding text
     draw.text(xy=(100, 73), text='Website:', font=basic_font, fill=(0,0,0))
@@ -455,8 +454,7 @@ def make_branding_section(team: str) -> Image:
     # Get colors and fonts
     primary_team_color = constants.PRIMARY_COLORS.get(team)
     secondary_team_color = constants.SECONDARY_COLORS.get(team)
-    heading_font_path = f'{DATA_DIR}/card_data/fonts/header.ttf'
-    heading_font = ImageFont.truetype(heading_font_path, 116)
+    heading_font = basic_font = FONT_CACHE['heading_116']
 
     # Draw rectangles
     draw.rectangle([(60, 0), (1940, 40)], fill=primary_team_color)

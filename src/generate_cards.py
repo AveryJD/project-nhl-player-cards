@@ -6,7 +6,7 @@
 from utils import card_generation as card
 
 
-card.make_player_card('Sidney Crosby', '2024-2025', 'F')
+card.make_player_card('Evander Kane', '2009-2010', 'F')
 card.make_player_card('Matthew Tkachuk', '2024-2025', 'F')
 card.make_player_card('William Nylander', '2024-2025', 'F')
 card.make_player_card('Cale Makar', '2024-2025', 'D')

@@ -74,7 +74,7 @@ def random_delay() -> None:
     :return: None
     """
     # Make delay by a random time of 10-20 seconds
-    delay = random.uniform(10, 20)
+    delay = random.uniform(20, 30)
     print(f"Waiting {delay:.2f} seconds before next request")
     time.sleep(delay)
 
@@ -93,6 +93,20 @@ def get_page(url: str) -> str:
     response = requests.get(url)
     response.raise_for_status()
     return response.content
+
+
+def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> pd.DataFrame:
+    """
+    Merge two DataFrames on specified keys using an inner join.
+
+    :param df_one: the first DataFrame
+    :param df_two: the second DataFrame
+    :param merge_keys: List of column names to merge on
+    :return: Merged DataFrame
+    """
+    merged_df = pd.merge(df_one, df_two, on=merge_keys, how='inner')
+
+    return merged_df
 
 
 def scrape_data(url: str) -> pd.DataFrame:
@@ -126,7 +140,7 @@ def scrape_and_save_bios(season: str, position: str) -> None:
     bios_df = dc.clean_dataframe(bios_df)
 
     filename = f'{season}_{position}_bios.csv'
-    file.save_csv(bios_df, main_folder='data', sub_folder='bios', filename=filename)
+    file.save_csv(bios_df, main_folder='data_scraped', sub_folder='bios', filename=filename)
 
 
 def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
@@ -150,18 +164,5 @@ def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
         stats_df = dc.clean_dataframe(g_stats_df)
 
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
-    file.save_csv(stats_df, 'data', 'stats', stats_filename)
+    file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
 
-
-def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> pd.DataFrame:
-    """
-    Merge two DataFrames on specified keys using an inner join.
-
-    :param df_one: the first DataFrame
-    :param df_two: the second DataFrame
-    :param merge_keys: List of column names to merge on
-    :return: Merged DataFrame
-    """
-    merged_df = pd.merge(df_one, df_two, on=merge_keys, how='inner')
-
-    return merged_df

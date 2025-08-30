@@ -36,7 +36,7 @@ def load_bios_csv(season: str, position: str) -> pd.DataFrame:
     :return: DataFrame containing the player bios
     """
     bio_filename = f'{season}_{position}_bios.csv'
-    bio_file_path = os.path.join(DATA_DIR, 'data', 'bios', bio_filename)
+    bio_file_path = os.path.join(DATA_DIR, 'data_scraped', 'bios', bio_filename)
 
     bios_df = pd.read_csv(bio_file_path)
     return bios_df
@@ -51,7 +51,7 @@ def load_salaries_csv(season: str, position: str) -> pd.DataFrame:
     :return: DataFrame containing the player salaries
     """
     salaries_filename = f'{season}_{position}_salaries.csv'
-    salaries_file_path = os.path.join(DATA_DIR, 'data', 'salaries', salaries_filename)
+    salaries_file_path = os.path.join(DATA_DIR, 'data_scraped', 'salaries', salaries_filename)
 
     bios_df = pd.read_csv(salaries_file_path)
     return bios_df
@@ -67,7 +67,7 @@ def load_stats_csv(season: str, position: str, situation: str) -> pd.DataFrame:
     :return: DataFrame containing the player stats
     """
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
-    stats_file_path = os.path.join(DATA_DIR, 'data', 'stats', stats_filename)
+    stats_file_path = os.path.join(DATA_DIR, 'data_scraped', 'stats', stats_filename)
 
     stats_df = pd.read_csv(stats_file_path)
     return stats_df
@@ -94,8 +94,8 @@ def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.Dat
     elif position == 'G':
         pos_folder = 'goalies'
 
-    filename = f'{season}_{position}_{ranking_str}_rankings.csv'
-    file_path = os.path.join(DATA_DIR, 'rankings', f'{ranking_str}_{pos_folder}', filename)
+    filename = f'{season}_{position}_{ranking_str}_ranking.csv'
+    file_path = os.path.join(DATA_DIR, 'data_ranking', f'{ranking_str}_{pos_folder}', filename)
     
     ranking_df = pd.read_csv(file_path)
     return ranking_df
@@ -119,7 +119,7 @@ def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
         pos_folder = 'forwards'
 
     filename = f'{season}_{position}_card_data.csv'
-    file_path = os.path.join(DATA_DIR, 'card_data', pos_folder, filename)
+    file_path = os.path.join(DATA_DIR, 'data_card', pos_folder, filename)
     
     card_data_df = pd.read_csv(file_path)
     return card_data_df

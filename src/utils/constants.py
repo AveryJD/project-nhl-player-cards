@@ -10,7 +10,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 def find_data_dir(start_dir):
     dir_to_check = start_dir
     while True:
-        potential_data_dir = os.path.join(dir_to_check, 'card_data')
+        potential_data_dir = os.path.join(dir_to_check, 'data_card')
         if os.path.exists(potential_data_dir):
             return dir_to_check
         parent = os.path.dirname(dir_to_check)
@@ -28,7 +28,9 @@ DATA_DIR = find_data_dir(CURRENT_DIR)
 # ====================================================================================================
 
 # Seasons to scrape stats and bio data for
-DATA_SEASONS = ['2024-2025']
+DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+                '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
+                '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 
 # Positions to scrape stats and bio data for
 POSITIONS = ['F', 'D', 'G']
@@ -63,7 +65,7 @@ SEASON_GAMES = {
     '2022-2023': 82,
     '2021-2022': 82,
     '2020-2021': 56,  # Shortened due to COVID
-    '2019-2020': 70,  # Season paused due to COVID
+    '2019-2020': 70,  # Shortened due to COVID
     '2018-2019': 82,
     '2017-2018': 82,
     '2016-2017': 82,

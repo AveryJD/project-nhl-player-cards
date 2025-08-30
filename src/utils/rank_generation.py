@@ -160,8 +160,8 @@ def make_player_rankings(season: str, position: str) -> None:
     elif position == 'G':
         pos_folder = 'goalies'
 
-    filename = f'{season}_{position}_yearly_rankings.csv'
-    file.save_csv(rankings, 'rankings', f'yearly_{pos_folder}', filename)
+    filename = f'{season}_{position}_yearly_ranking.csv'
+    file.save_csv(rankings, 'data_ranking', f'yearly_{pos_folder}', filename)
 
 
 def make_player_weighted_rankings(season: str, position: str):
@@ -277,5 +277,5 @@ def make_player_weighted_rankings(season: str, position: str):
     elif position == 'G':
         pos_folder = 'goalies'
 
-    filename = f'{season}_{position}_weighted_rankings.csv'
-    file.save_csv(rankings, 'rankings', f'weighted_{pos_folder}', filename)
+    filename = f'{season}_{position}_weighted_ranking.csv'
+    file.save_csv(rankings, 'data_ranking', f'weighted_{pos_folder}', filename)

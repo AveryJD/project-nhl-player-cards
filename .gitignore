@@ -1,9 +1,9 @@
 *.pyc
 .DS_Store
 
-/src/data
-/src/rankings
+/src/data_scraped
+/src/data_ranking
+/src/data_card/defensemen
+/src/data_card/forwards
+/src/data_card/goalies
 /src/cards
-/src/card_data/defensemen
-/src/card_data/forwards
-/src/card_data/goalies
