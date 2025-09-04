@@ -63,8 +63,7 @@ def get_player_age(player_row: pd.Series) -> int:
     :param player_row: a Series containing player data
     :return: an int of the player's age at the begining of the given season
     """
-    player = player_row['Player']
-    position = player_row['Position']
+
     past_season = player_row['Season']
     date_of_birth = player_row['Date of Birth']
 

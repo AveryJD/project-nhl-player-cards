@@ -27,6 +27,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Joshua Mahura': 'Josh Mahura',
         'Matt Dumba': 'Mathew Dumba',
         'Mitchell Marner': 'Mitch Marner',
+        'Nicholas Paul': 'Nick Paul',
         'Olli Maatta': 'Olli Määttä',
         'Oskar Back': 'Oskar Bäck',
         'Patrick Maroon': 'Pat Maroon',
