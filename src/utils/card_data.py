@@ -4,12 +4,13 @@
 
 # Imports
 import pandas as pd
+from datetime import datetime, date
 from utils import load_save as file
 
 
 def get_player_role(player_row: pd.Series) -> str:
     """
-    Return a str for a player's time on ice allocation based on their time on ice and games played.
+    Determines the player's role based on a player's time on ice allocation and games played.
 
     :param player_row: a Series containing player data
     :return: a str of the toi allocation
@@ -55,6 +56,35 @@ def get_player_role(player_row: pd.Series) -> str:
     return role
 
 
+def get_player_age(player_row: pd.Series) -> int:
+    """
+    Calculates the player's age on September 1st of the first year of the given season.
+
+    :param player_row: a Series containing player data
+    :return: an int of the player's age at the begining of the given season
+    """
+    player = player_row['Player']
+    position = player_row['Position']
+    past_season = player_row['Season']
+    date_of_birth = player_row['Date of Birth']
+
+    # Get the birthday into a date object
+    birth_date = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+
+    # Get the start date of the season (Sptember 1st of the first year)
+    season_start_year = int(past_season.split("-")[0])
+    season_date = date(season_start_year, 9, 1)
+
+    # Calculate the player's age
+    age = season_date.year - birth_date.year
+    
+    # Adjust if birthday hasn’t occurred yet by Sept 1
+    if (birth_date.month, birth_date.day) > (season_date.month, season_date.day):
+        age -= 1
+
+    return age
+
+
 def make_card_data(season, position) -> None:
     """
     Generate a CSV file of all the relevent card data from other CSV files
@@ -98,6 +128,9 @@ def make_card_data(season, position) -> None:
         .merge(bios_cols, on=['Player', 'Team', 'Position'], how='left')
         #.merge(salaries_cols, on=['Player', 'Team', 'Position'], how='left')
     )
+
+    # Replace Age column with season-specific age
+    card_info_df['Age'] = card_info_df.apply(get_player_age, axis=1)
 
     # Add player role column
     card_info_df['Role'] = card_info_df.apply(get_player_role, axis=1)
