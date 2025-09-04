@@ -9,8 +9,8 @@ import requests
 import time
 import random
 from utils import data_cleaning as dc
-from . import constants
-from . import load_save as file
+from utils import constants
+from utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
