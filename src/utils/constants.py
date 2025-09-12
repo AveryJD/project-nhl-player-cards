@@ -91,78 +91,75 @@ SEASON_GAMES = {
 # All weight values
 S_WEIGHTS = {
     # Shooting and Scoring Weights
-    'goals': 1.000,
-    'goals_above_expected': 0.100,
-    'shots_on_net' : 0.104,
-    'shots_missed': 0.020,
-    'shots_were_blocked': 0.010,
+    'goals':            0.100,
+    'x_goals':          0.100,
+    'shots_on_net' :    0.104,
+    'shots_missed':     0.020,
+    'shots_blocked':    0.005,
 
     # Playmaking Weights
-    'p_assists': 0.780,
-    's_assists': 0.100,
-    'rebounds_created': 0.100,
+    'p_assists':        0.780,
+    's_assists':        0.025,
+    'rebounds_created': 0.150,
+    'rush_attempts':    0.100,
 
     # Zone Start Weights
-    'off_zone_starts': 1.000,
-    'neu_zone_starts': 0.000,
-    'def_zone_starts': -1.000,
+    'o_zone_starts':    1.000,
+    'n_zone_starts':    0.000,
+    'd_zone_starts':   -1.000,
 
     # On Ice Offensive Weights
-    'oi_sf': 0.104,
-    'oi_ldsf': 0.043,
-    'oi_mdsf': 0.119,
-    'oi_hdsf': 0.190,
-    'oi_ldgf': 0.000,
-    'oi_mdgf': 0.000,
-    'oi_hdgf': 0.000,
-    'oi_xgf': 1.000,
-
-    # Transition Weights
-    'rush_attempts': 0.100,
+    'oi_ldsf':          0.043,
+    'oi_mdsf':          0.119,
+    'oi_hdsf':          0.190,
+    'oi_ldgf':          0.000,
+    'oi_mdgf':          0.000,
+    'oi_hdgf':          0.000,
+    'oi_xgf':           1.000,
 
     # Defensive Weights
-    'blocks': 0.080,
-    'takeaways': 0.050,
-    'giveaways': -0.050,
+    'blocks':           0.080,
+    'takeaways':        0.050,
+    'giveaways':       -0.050,
 
     # On Ice Defensive Weights
-    'oi_ldsa': -0.043,
-    'oi_mdsa': -0.119,
-    'oi_hdsa': -0.190,
-    'oi_xga': -1.000,
+    'oi_ldsa':          -0.043,
+    'oi_mdsa':          -0.119,
+    'oi_hdsa':          -0.190,
+    'oi_xga':           -1.000,
 
     # Penalty Differential Weights
-    'penalty_min_drawn': 1.000,
-    'penalty_min_taken': -1.000,
+    'penalties_drawn':  1.000,
+    'penalties_taken': -1.000,
 
     # Physicality Weights
-    'hits': 1.000,
-    'minors': 0.250,
-    'majors': 0.500,
-    'misconducts': 1.000,
+    'hits':             1.000,
+    'minors':           0.250,
+    'majors':           0.500,
+    'misconducts':      1.000,
 
     # Faceoff Weights
-    'faceoff_wins': 1.000,
-    'faceoff_losses': -1.000,
+    'faceoff_wins':     1.000,
+    'faceoff_losses':  -1.000,
 
     # Fantasy Weights
-    'fan_goals': 3.0000,
-    'fan_assists': 2.000,
-    'fan_shots': 0.500,
-    'fan_blocks': 0.500,
-    'fan_pp_points': 0.500,
-    'fan_pk_points': 0.500
+    'fan_goals':        3.000,
+    'fan_assists':      2.000,
+    'fan_shots':        0.500,
+    'fan_blocks':       0.500,
+    'fan_pp_points':    0.500,
+    'fan_pk_points':    0.500
 }
 
 G_WEIGHTS = {
     # Goalie Weights
-    'hds': 0.190,
-    'mds': 0.119,
-    'lds': 0.043,
-    'hdga': -1.000,
-    'mdga': -1.000,
-    'ldga': -1.000,
-    'gsax': 1.000
+    'hds':              0.190,
+    'mds':              0.119,
+    'lds':              0.043,
+    'hdga':            -1.000,
+    'mdga':            -1.000,
+    'ldga':            -1.000,
+    'gsax':             0.250
 }
 
 

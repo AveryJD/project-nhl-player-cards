@@ -27,7 +27,7 @@ class SkaterScorer:
         score = (
             self.weights['shots_on_net'] * shots_on_net +
             self.weights['shots_missed'] * shots_missed +
-            self.weights['shots_were_blocked'] * shots_blocked
+            self.weights['shots_blocked'] * shots_blocked
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
@@ -36,11 +36,11 @@ class SkaterScorer:
 
     def scoring_score(self, df: pd.DataFrame) -> np.ndarray:
         goals = df['Goals'].to_numpy()
-        goals_above_expected = goals - df['ixG'].to_numpy()
+        x_goals = df['ixG'].to_numpy()
 
         score = (
             self.weights['goals'] * goals +
-            self.weights['goals_above_expected'] * goals_above_expected
+            self.weights['x_goals'] * x_goals
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
@@ -51,7 +51,8 @@ class SkaterScorer:
         score = (
             self.weights['p_assists'] * df['First Assists'].to_numpy() +
             self.weights['s_assists'] * df['Second Assists'].to_numpy() +
-            self.weights['rebounds_created'] * df['Rebounds Created'].to_numpy()
+            self.weights['rebounds_created'] * df['Rebounds Created'].to_numpy() +
+            self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
@@ -59,13 +60,15 @@ class SkaterScorer:
 
 
     def oniceoffense_score(self, df: pd.DataFrame) -> np.ndarray:
-        oi_cf = (df['LDCF'] + df['MDCF']) - (df['iSCF'] - df['iHDCF'])
-        oi_hdcf = df['HDCF'] - df['iHDCF']
+        oi_ldsf = df['LDCF']
+        oi_mdsf = df['MDCF']
+        oi_hdsf = df['HDCF']
         oi_xgoals = df['xGF'] - df['ixG']
 
         score = (
-            self.weights['oi_sf'] * oi_cf.to_numpy() +
-            self.weights['oi_hdsf'] * oi_hdcf.to_numpy() +
+            self.weights['oi_ldsf'] * oi_ldsf.to_numpy() +
+            self.weights['oi_mdsf'] * oi_mdsf.to_numpy() +
+            self.weights['oi_hdsf'] * oi_hdsf.to_numpy() +
             self.weights['oi_xgf'] * oi_xgoals.to_numpy()
         )
 
@@ -75,9 +78,9 @@ class SkaterScorer:
 
     def ozonestarts_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
-            self.weights['off_zone_starts'] * df['Off. Zone Starts'].to_numpy() +
-            self.weights['neu_zone_starts'] * df['Neu. Zone Starts'].to_numpy() +
-            self.weights['def_zone_starts'] * df['Def. Zone Starts'].to_numpy()
+            self.weights['o_zone_starts'] * df['Off. Zone Starts'].to_numpy() +
+            self.weights['n_zone_starts'] * df['Neu. Zone Starts'].to_numpy() +
+            self.weights['d_zone_starts'] * df['Def. Zone Starts'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
@@ -89,7 +92,6 @@ class SkaterScorer:
             self.scoring_score(df) +
             self.shooting_score(df) +
             self.playmaking_score(df) +
-            self.adjust_score(self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy(), df['TOI'].to_numpy()) +
             self.oniceoffense_score(df) * 0.2
         )
 
@@ -133,8 +135,8 @@ class SkaterScorer:
 
     def penalties_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
-            self.weights['penalty_min_taken'] * df['Total Penalties'].to_numpy() +
-            self.weights['penalty_min_drawn'] * df['Penalties Drawn'].to_numpy()
+            self.weights['penalties_taken'] * df['Total Penalties'].to_numpy() +
+            self.weights['penalties_drawn'] * df['Penalties Drawn'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
