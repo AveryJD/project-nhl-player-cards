@@ -73,7 +73,7 @@ def random_delay() -> None:
 
     :return: None
     """
-    # Make delay by a random time of 10-20 seconds
+    # Make delay by a random time of 20-30 seconds
     delay = random.uniform(20, 30)
     print(f"Waiting {delay:.2f} seconds before next request")
     time.sleep(delay)

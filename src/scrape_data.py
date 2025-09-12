@@ -28,7 +28,7 @@ for season in constants.YEARLY_RANK_SEASONS:
         bios_df = load_save.load_bios_csv(season, position)
         bios_df = dc.clean_dataframe(bios_df)
         bios_filename = f'{season}_{position}_bios.csv'
-        load_save.save_csv(bios_df, 'data_scraped', 'bios', bios_filename)
+        load_save.save_csv(bios_df, 'data', 'bios', bios_filename)
 
         if position != 'G':
             for situation in constants.SKATER_SITUATIONS:
