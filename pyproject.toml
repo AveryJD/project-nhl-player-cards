@@ -10,4 +10,4 @@ authors = [{ name = "Avery Doiron" }]
 dependencies = []
 
 [tool.setuptools.packages.find]
-where = ["src"]  # <-- this tells setuptools to look inside src/ for packages
+where = ["src"]
