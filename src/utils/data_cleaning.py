@@ -17,6 +17,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     # Replace names with most commonly used names for consistency
     name_replacements = {
         'Alex Wennberg' : 'Alexander Wennberg',
+        'Alex Kerfoot' : 'Alexander Kerfoot',
         'Alexei Toropchenko' : 'Alexey Toropchenko',
         'Cameron Atkinson': 'Cam Atkinson',
         'Casey Desmith': 'Casey DeSmith',
