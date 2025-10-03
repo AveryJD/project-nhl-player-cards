@@ -3,10 +3,10 @@
 # ====================================================================================================
 
 # Imports
-from utils import card_data as cd
+from utils import card_data as card
 import utils.constants as constants
 
 
 for season in constants.CARD_INFO_SEASONS:
     for pos in constants.POSITIONS:
-        cd.make_card_data(season, pos)
+        card.make_card_data(season, pos)

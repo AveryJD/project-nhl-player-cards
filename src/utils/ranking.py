@@ -5,7 +5,7 @@
 # Imports
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from utils import rank_scores as rs
+from utils import scoring
 from utils import constants
 from utils import load_save as file
 
@@ -22,8 +22,8 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
     :return: None
     """
 
-    skater_scorer = rs.SkaterScorer()
-    goalie_scorer = rs.GoalieScorer()
+    skater_scorer = scoring.SkaterScorer()
+    goalie_scorer = scoring.GoalieScorer()
 
     # Calculate skater scores
     if position != 'G':
@@ -214,7 +214,7 @@ def make_player_weighted_rankings(season: str, position: str):
     weighted_scores = []
 
     # For each player calculate their weighted scores
-    for _, row in rankings_players.iterrows():
+    for _, row in rankings_playescoring.iterrows():
         name = row['Player']
         scores = {}
 
@@ -259,7 +259,7 @@ def make_player_weighted_rankings(season: str, position: str):
 
     # Create the scores data frame
     scores_df = pd.DataFrame(weighted_scores)
-    rankings = pd.concat([rankings_players.reset_index(drop=True), scores_df], axis=1)
+    rankings = pd.concat([rankings_playescoring.reset_index(drop=True), scores_df], axis=1)
 
     # Make the rankings for each score
     for col in score_cols:

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import random
-from utils import data_cleaning as dc
+from utils import clean_data as clean
 from utils import constants
 from utils import load_save as file
 
@@ -142,7 +142,7 @@ def scrape_and_save_bios(season: str, position: str) -> None:
     """
     bios_url = make_nst_url(season=season, situation='all', stdoi='bio', position=position)
     bios_df = scrape_data(bios_url)
-    bios_df = dc.clean_dataframe(bios_df)
+    bios_df = clean.clean_dataframe(bios_df)
 
     filename = f'{season}_{position}_bios.csv'
     file.save_csv(bios_df, main_folder='data_scraped', sub_folder='bios', filename=filename)
@@ -166,11 +166,11 @@ def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
 
         merge_keys = ['Player', 'Team', 'Position', 'GP', 'TOI']
         stats_df = merge_data(std_stats_df, oi_stats_df, merge_keys)
-        stats_df = dc.clean_dataframe(stats_df)
+        stats_df = clean.clean_dataframe(stats_df)
     else:
         g_stats_url = make_nst_url(season=season, situation=situation, stdoi='g', position=position)
         g_stats_df = scrape_data(g_stats_url)
-        stats_df = dc.clean_dataframe(g_stats_df)
+        stats_df = clean.clean_dataframe(g_stats_df)
 
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
     file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
