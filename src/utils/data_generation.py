@@ -36,8 +36,8 @@ def make_nst_url(
     """
     Build a fully parameterized Natural Stat Trick URL for scraping.
 
-    :param season: Season in 'YYYY-YYYY' format (e.g., '2020-2021')
-    :param situation: Game situation (e.g., 'all', '5v5', 'pp', etc.)
+    :param season: Season in 'YYYY-YYYY' format (e.g. '2020-2021')
+    :param situation: Game situation (e.g. 'all', '5v5', 'pp', etc.)
     :param stdoi: Type of stats ('bio', 'std', 'oi', 'g')
     :param position: Player position ('S', 'F', 'D', 'G', etc.)
     :param stype: Season type (1 = preseason, 2 = regular, 3 = RTP, 4 = playoffs)
@@ -92,6 +92,7 @@ def get_page(url: str) -> str:
     # Fetch the page content
     response = requests.get(url)
     response.raise_for_status()
+
     return response.content
 
 
@@ -111,7 +112,7 @@ def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> 
 
 def scrape_data(url: str) -> pd.DataFrame:
     """
-    Scrape data from a page from a URL and return as a DataFrame.
+    Scrape table data from a given URL and return it as a DataFrame.
 
     :param url: The URL to scrape
     :return: DataFrame containing the scraped table data
@@ -134,6 +135,10 @@ def scrape_data(url: str) -> pd.DataFrame:
 def scrape_and_save_bios(season: str, position: str) -> None:
     """
     Scrape player bios from NST and save using the standardized save function.
+
+    :param season: Season in 'YYYY-YYYY' format (e.g. '2020-2021')
+    :param position: Capitalized first letter of the position of player bios ('F', 'D', or 'G')
+    :return: None
     """
     bios_url = make_nst_url(season=season, situation='all', stdoi='bio', position=position)
     bios_df = scrape_data(bios_url)
@@ -146,6 +151,10 @@ def scrape_and_save_bios(season: str, position: str) -> None:
 def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
     """
     Scrape player stats from NST and save using the standardized save function.
+
+    :param season: Season in 'YYYY-YYYY' format (e.g. '2020-2021')
+    :param position: Capitalized first letter of the position of player stats ('F', 'D', or 'G')
+    :return: None
     """
 
     if position != 'G':

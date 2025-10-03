@@ -70,6 +70,7 @@ def clean_positions(df: pd.DataFrame) -> pd.DataFrame:
     # Make all forward positions (C, LW, RW) into 'F'
     if "Position" in df.columns:
         df.loc[~df['Position'].isin(['D', 'G']), 'Position'] = 'F'
+
     return df
 
 
@@ -81,7 +82,7 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     :return: the cleaned DataFrame
     """
     
-    # Drop unnecessary columns
+    # Drop empty or merge-related columns if present
     if '' in df.columns:
         df = df.drop(columns=[''])
     if '_x' in df.columns:
