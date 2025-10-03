@@ -14,11 +14,11 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
     """
     Calculate player scores for all attributes.
 
-    :param position: a str representing the player's position ('F', 'D', or 'G')
-    :param all_df: a DataFrame containing the players stats from all situations
-    :param evs_df: a DataFrame containing the players 5v5 stats
-    :param pkl_df: a DataFrame containing the players 4v5 stats
-    :param ppl_df: a DataFrame containing the players 5v4 stats (default is None to account for goalies)
+    :param position: A str representing the player's position ('F', 'D', or 'G')
+    :param all_df: A DataFrame containing the players stats from all situations
+    :param evs_df: A DataFrame containing the players 5v5 stats
+    :param pkl_df: A DataFrame containing the players 4v5 stats
+    :param ppl_df: A DataFrame containing the players 5v4 stats (default is None to account for goalies)
     :return: None
     """
 
@@ -62,8 +62,8 @@ def make_player_rankings(season: str, position: str) -> None:
     """
     Generate player rankings for a specific season.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param position: a str representing the player's position ('F', 'D', or 'G')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
     :return: None
     """
 
@@ -168,8 +168,8 @@ def make_player_weighted_rankings(season: str, position: str):
     """
     Generate weighted player rankings for a specific season.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param position: a str representing the player's position ('F', 'D', or 'G')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
     :return: None
     """
 
@@ -214,7 +214,7 @@ def make_player_weighted_rankings(season: str, position: str):
     weighted_scores = []
 
     # For each player calculate their weighted scores
-    for _, row in rankings_playescoring.iterrows():
+    for _, row in rankings_players.iterrows():
         name = row['Player']
         scores = {}
 
@@ -259,7 +259,7 @@ def make_player_weighted_rankings(season: str, position: str):
 
     # Create the scores data frame
     scores_df = pd.DataFrame(weighted_scores)
-    rankings = pd.concat([rankings_playescoring.reset_index(drop=True), scores_df], axis=1)
+    rankings = pd.concat([rankings_players.reset_index(drop=True), scores_df], axis=1)
 
     # Make the rankings for each score
     for col in score_cols:

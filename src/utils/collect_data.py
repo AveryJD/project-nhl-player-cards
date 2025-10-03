@@ -100,9 +100,9 @@ def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> 
     """
     Merge two DataFrames on specified keys using an inner join.
 
-    :param df_one: the first DataFrame
-    :param df_two: the second DataFrame
-    :param merge_keys: List of column names to merge on
+    :param df_one: The DataFrame to merge on
+    :param df_two: The DataFrame to merge
+    :param merge_keys: A list of column names to merge on
     :return: Merged DataFrame
     """
     merged_df = pd.merge(df_one, df_two, on=merge_keys, how='inner')

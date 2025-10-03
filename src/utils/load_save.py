@@ -18,8 +18,8 @@ def get_prev_season(cur_season: str) -> str:
     """
     Return the str for previous season from a given season's str.
 
-    :param cur_season: a str of the current season ('YYYY-YYYY')
-    :return: a str of the season previous to the current season
+    :param cur_season: A str of the current season ('YYYY-YYYY')
+    :return: A str of the season previous to the current season
     """
     start_year, end_year = map(int, cur_season.split("-"))
     prev_season = f"{start_year - 1}-{end_year - 1}"
@@ -31,9 +31,9 @@ def load_bios_csv(season: str, position: str) -> pd.DataFrame:
     """
     Load the player bios CSV for a given season and position.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param position: a str representing the position ('F', 'D', or 'G')
-    :return: DataFrame containing the player bios
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the position ('F', 'D', or 'G')
+    :return: The DataFrame containing the player bios
     """
     bio_filename = f'{season}_{position}_bios.csv'
     bio_file_path = os.path.join(DATA_DIR, 'data_scraped', 'bios', bio_filename)
@@ -46,9 +46,9 @@ def load_salaries_csv(season: str, position: str) -> pd.DataFrame:
     """
     Load the player salaries CSV for a given season and position.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param position: a str representing the position ('F', 'D', or 'G')
-    :return: DataFrame containing the player salaries
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the position ('F', 'D', or 'G')
+    :return: The DataFrame containing the player salaries
     """
     salaries_filename = f'{season}_{position}_salaries.csv'
     salaries_file_path = os.path.join(DATA_DIR, 'data_scraped', 'salaries', salaries_filename)
@@ -61,10 +61,10 @@ def load_stats_csv(season: str, position: str, situation: str) -> pd.DataFrame:
     """
     Load the player stats CSV for a given season, position, and situation.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param position: a str representing the player's position ('F', 'D', or 'G')
-    :param situation: a str representing the game situation ('all', '5v5', '5v4', or '4v5')
-    :return: DataFrame containing the player stats
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
+    :param situation: A str representing the game situation ('all', '5v5', '5v4', or '4v5')
+    :return: The DataFrame containing the player stats
     """
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
     stats_file_path = os.path.join(DATA_DIR, 'data_scraped', 'stats', stats_filename)
@@ -77,10 +77,10 @@ def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.Dat
     """
     Load the player rankings CSV for a given season and position.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param pos: a str representing the player's position ('F', 'D', or 'G')
-    :param weighted: a bool to check if the weightings to load are yearly or weighted
-    :return: DataFrame of the loaded rankings
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param pos: A str representing the player's position ('F', 'D', or 'G')
+    :param weighted: A bool to check if the weightings to load are yearly or weighted
+    :return: The DataFrame of the loaded rankings
     """
     if weighted:
         ranking_str = 'weighted'
@@ -105,9 +105,9 @@ def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
     """
     Load the player card data CSV for a given season and position.
 
-    :param season: a str representing the season ('YYYY-YYYY')
-    :param position: a str representing the player's position ('F', 'D', or 'G')
-    :return: DataFrame of the loaded card data
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
+    :return: The DataFrame of the loaded card data
     """
 
     if position == 'D':
@@ -129,7 +129,7 @@ def save_csv(df: pd.DataFrame, main_folder: str, sub_folder: str, filename: str)
     """
     Save a DataFrame as a CSV file in a specified folder.
 
-    :param df: DataFrame to save
+    :param df: The DataFrame to save
     :param main_folder: Main folder name name inside DATA_DIR
     :param sub_folder: Subfolder name inside the main folder
     :param filename: Name of the CSV file to save

@@ -37,8 +37,8 @@ def make_header_section(player_row: pd.Series) -> Image:
     Creates the header section of a player card as a PIL Image. The header includes player profile information, team and season 
     banner, headshot, team logo, contract status (placeholder), and key stats.
 
-    :param player_row: a Series containing player data
-    :return: an Image of the header section
+    :param player_row: A Series containing player data
+    :return: An Image of the header section
     """
 
     # Get banner variables
@@ -193,9 +193,9 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     Creates a ranking component for a specific player attribute, displaying the player's rank, total players, 
     percentile, and a visual percentile bar.
 
-    :param player_row: a Series containing player data
-    :param attribute_rank_name: a str representing the name of the attribute that is being ranked (e.g. 'sht_rank')
-    :return: an Image of the rank component
+    :param player_row: A Series containing player data
+    :param attribute_rank_name: A str representing the name of the attribute that is being ranked (e.g. 'sht_rank')
+    :return: An Image of the rank component
     """
 
     # Create ranking component card
@@ -207,7 +207,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
     draw = ImageDraw.Draw(ranking_section)
 
     # Get attribute name text and color
-    attribute_name = constants.ATRIBUTE_NAMES.get(attribute_rank_name)
+    attribute_name = constants.ATTRIBUTE_NAMES.get(attribute_rank_name)
     if attribute_rank_name == 'pkl' and player_row['Position'] != 'G':
         attribute_color = (0,0,0)
     else:
@@ -314,9 +314,9 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     Creates the graph section Image for the player card. The rank section contains a graph that displays the some of player's attribute rankings 
     over multiple seasons.
 
-    :param player_multiple_seasons: a DataFrame containing player data over multiple seasons
-    :param pos: a str of the first letter of the player's position ('F', 'D', or 'G')
-    :return: an Image of the graph section
+    :param player_multiple_seasons: A DataFrame containing player data over multiple seasons
+    :param pos: A str of the first letter of the player's position ('F', 'D', or 'G')
+    :return: An Image of the graph section
     """
 
     # Create graph component card
@@ -422,8 +422,8 @@ def make_branding_section(team: str) -> Image:
     Creates the branding section Image for the player card. The branding section contains references to my website and socials, references to data sources,
     and and is stylized using the specified team's colors.
 
-    :param team: a str representing the team abbreviation for the team to base the design color (e.g. 'TOR')
-    :return: an Image of branding section
+    :param team: A str representing the team abbreviation for the team to base the design color (e.g. 'TOR')
+    :return: An Image of branding section
     """
 
     # Create branding section card
@@ -476,10 +476,10 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
     and a branding section. The card is saved as a PNG image in a directory
     specific to the season.
 
-    :param player_name: a str of the full name of the player (e.g. 'Auston Matthews')
-    :param season: a str of the season that the data for the card comes from('YYYY-YYYY')
-    :param pos: a str of the first letter of the player's position ('F', 'D', or 'G')
-    :return: none
+    :param player_name: A str of the full name of the player (e.g. 'Auston Matthews')
+    :param season: A str of the season that the data for the card comes from('YYYY-YYYY')
+    :param pos: A str of the first letter of the player's position ('F', 'D', or 'G')
+    :return: None
     """
 
     # Get the data for a player's five seasons

@@ -16,7 +16,7 @@ def get_team_image(team: str) -> Image.Image:
     """
     Fetches and returns a team's logo image as a PNG (converted from SVG).
 
-    :param team: str of the team abbreviation (ex., "TOR")
+    :param team: A str of the team abbreviation (ex., "TOR")
     :return: A PIL Image object of the team's logo
     """
 
@@ -49,10 +49,10 @@ def get_player_image(name: str, team: str, season: str, pos: str) -> Image:
     """
     Fetches and returns a player's headshot image using the NHL API.
 
-    :param name: str of the player's full name (ex., "Matty Beniers")
-    :param team: str of the team abbreviation (ex., "SEA")
-    :param season: str of the season (ex., "2024-2025")
-    :param pos: str of the first letter of the player's position (ex. 'F')
+    :param name: A str of the player's full name (ex., "Matty Beniers")
+    :param team: A str of the team abbreviation (ex., "SEA")
+    :param season: A str of the season (ex., "2024-2025")
+    :param pos:  A str of the first letter of the player's position (ex. 'F')
     :return: A PIL Image object of the player's headshot
     """
 

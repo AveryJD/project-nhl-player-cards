@@ -12,8 +12,8 @@ def get_player_role(player_row: pd.Series) -> str:
     """
     Determines the player's role based on a player's time on ice allocation and games played.
 
-    :param player_row: a Series containing player data
-    :return: a str of the toi allocation
+    :param player_row: A Series containing player data
+    :return: A str of the toi allocation
     """
     # Player roles for goalies
     if player_row['Position'] == 'G':
@@ -60,8 +60,8 @@ def get_player_age(player_row: pd.Series) -> int:
     """
     Calculates the player's age on September 1st of the first year of the given season.
 
-    :param player_row: a Series containing player data
-    :return: an int of the player's age at the begining of the given season
+    :param player_row: A Series containing player data
+    :return: An int of the player's age at the begining of the given season
     """
 
     past_season = player_row['Season']
@@ -88,8 +88,8 @@ def make_card_data(season, position) -> None:
     """
     Generate a CSV file of all the relevent card data from other CSV files
     
-    :param season: a str of the season to make the card data for (YYYY-YYYY')
-    :param position: a str of the player's position's first letter to make the card data for ('F', 'D', or 'G')
+    :param season: A str of the season to make the card data for (YYYY-YYYY')
+    :param position: A str of the player's position's first letter to make the card data for ('F', 'D', or 'G')
     :return: None
     """
     # Load data

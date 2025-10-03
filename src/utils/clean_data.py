@@ -10,8 +10,8 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize player names for consistency.
 
-    :param df: the DataFrame to be cleaned
-    :return: the cleaned DataFrame
+    :param df: The DataFrame to be cleaned
+    :return: The cleaned DataFrame
     """
 
     # Replace names with most commonly used names for consistency
@@ -43,8 +43,8 @@ def clean_team_names(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize team abbreviations in the DataFrame.
 
-    :param df: the DataFrame to be cleaned
-    :return: the cleaned DataFrame
+    :param df: The DataFrame to be cleaned
+    :return: The cleaned DataFrame
     """
 
     # Replace team abbreviations with most commonly used abbreviations for consistency
@@ -63,8 +63,8 @@ def clean_positions(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize positions in the DataFrame.
 
-    :param df: the DataFrame to be cleaned
-    :return: the cleaned DataFrame
+    :param df: The DataFrame to be cleaned
+    :return: The cleaned DataFrame
     """
 
     # Make all forward positions (C, LW, RW) into 'F'
@@ -78,8 +78,8 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean entire DataFrame with helper functions.
 
-    :param df: the DataFrame to be cleaned
-    :return: the cleaned DataFrame
+    :param df: The DataFrame to be cleaned
+    :return: The cleaned DataFrame
     """
     
     # Drop empty or merge-related columns if present

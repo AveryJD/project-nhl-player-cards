@@ -25,12 +25,12 @@ def draw_centered_text(
     """
     Draws text that is centered on a PIL drawing.
 
-    :param draw: a PIL drawing that will have the text centered on it
-    :param text: a str of the text to be centered
-    :param font: an ImageFont of the text's font
-    :param y_position: an int of where the y position will be
-    :param x_center: an int of where the center x position is (default is at 500)
-    :param fill: a tuple of rgb values for the color of the text (default is (0,0,0)/black)
+    :param draw: A PIL drawing that will have the text centered on it
+    :param text: A str of the text to be centered
+    :param font: An ImageFont of the text's font
+    :param y_position: An int of where the y position will be
+    :param x_center: An int of where the center x position is (default is at 500)
+    :param fill: A tuple of rgb values for the color of the text (default is (0,0,0)/black)
     :return: None
     """
 
@@ -51,12 +51,12 @@ def draw_righted_text(
     """
     Draws text that right-aligned on a PIL drawing.
 
-    :param draw: a PIL drawing that will have the text right-aligned on it
-    :param text: a str of the text to be right-aligned
-    :param font: an ImageFont of the text's font
-    :param y_position: an int of where the y position will be
-    :param x_center: an int of where the right most x position is
-    :param fill: a tuple of rgb values for the color of the text (default is (0,0,0)/black)
+    :param draw: A PIL drawing that will have the text right-aligned on it
+    :param text: A str of the text to be right-aligned
+    :param font: An ImageFont of the text's font
+    :param y_position: An int of where the y position will be
+    :param x_center: An int of where the right most x position is
+    :param fill: A tuple of rgb values for the color of the text (default is (0,0,0)/black)
     :return: None
     """
 
@@ -69,8 +69,8 @@ def plot_to_image(fig: plt) -> Image:
     """
     Change a matplotlib plot into a PIL image.
 
-    :param fig: a Matplotlib plot to be turned into an image
-    :return: a PIL image of the plot
+    :param fig: A Matplotlib plot to be turned into an image
+    :return: A PIL image of the plot
     """
 
     buf = io.BytesIO()
@@ -85,8 +85,8 @@ def get_word_date(number_date: str) -> str:
     """
     Converts a date from number format to word format (Ex: 2001-02-03 -> Feb 2, 2001).
 
-    :param number_date: a str of date in number format (YYYY-MM-DD)
-    :return: a str of the date in word format (Month Day, Year)
+    :param number_date: A str of date in number format (YYYY-MM-DD)
+    :return: A str of the date in word format (Month Day, Year)
     """
     date_obj = datetime.strptime(number_date, '%Y-%m-%d')
     word_date = date_obj.strftime('%b %d, %Y')
@@ -100,10 +100,10 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
     If a player does not qualify for an attribute ranking they will receive a rank of 'N/A'
     and their percentile will be 100 so that they receive a full percentile bar on their card.
 
-    :param player_row: a series from a data frame containing player ranks
-    :param attribute_rank_name: a str of the attribute name of the rank to return
-    :param total_players: an int of the total players that qualify for the attribute
-    :return: a tuple of the player's rank and percentile for the given attribute
+    :param player_row: A series from a data frame containing player ranks
+    :param attribute_rank_name: A str of the attribute name of the rank to return
+    :param total_players: An int of the total players that qualify for the attribute
+    :return: A tuple of the player's rank and percentile for the given attribute
     """
     # For player's that do not qualify for certain attributes (power play, penalty kill, and faceoffs)
     if attribute_rank_name in ["ppl_rank", "pkl_rank", "fof_rank"] and pd.isna(player_row[attribute_rank_name]):
@@ -126,8 +126,8 @@ def get_percentile_color(percentile: int) -> tuple[float, float, float]:
     75%  -> Light Green (144, 238, 144)
     100% -> Dark Green (0, 128, 0)
 
-    :param percentile: an int of the percentile to return the color for
-    :return: a tuple containing normalized RGB values that correspond to the given percentile
+    :param percentile: An int of the percentile to return the color for
+    :return: A tuple containing normalized RGB values that correspond to the given percentile
     """
     if percentile <= 25:
         # Get color between red (255,0,0) and orange (255,165,0)
@@ -162,10 +162,10 @@ def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str,) -> i
     Return the total amount of players that qualify for the given attribute rank 
     (some players are not given a rank for certain attributes).
 
-    :param season_data: a DataFrame of player stats
-    :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
-    :param attribute: a str of the attribute to return the total players for
-    :return: an int of the total players that are included in an attribute
+    :param season_data: A DataFrame of player stats
+    :param pos: A str of the player's position's first letter ('F', 'D', or 'G')
+    :param attribute: A str of the attribute to return the total players for
+    :return: An int of the total players that are included in an attribute
     """
     # Total players for when attribute is not a special case or for any goalie attriibutes is all players
     if attribute not in ['ppl', 'pkl', 'fof'] or pos == 'G':
@@ -184,11 +184,11 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
     """
     Return the total number of players for multiple past seasons based on different attributes.
 
-    :param season: a str of the most recent season ('YYYY-YYYY')
-    :param cur_season_data: a DataFrame containing player stats for the given season
-    :param pos: a str of the first letter of the player's position ('F', 'D', or 'G')
-    :param seasons_num: an int specifying the number of past seasons to retrieve player totals for (default is 5)
-    :return: a dict mapping attribute-year keys to the corresponding total number of players
+    :param season: A str of the most recent season ('YYYY-YYYY')
+    :param cur_season_data: A DataFrame containing player stats for the given season
+    :param pos: A str of the first letter of the player's position ('F', 'D', or 'G')
+    :param seasons_num: An int specifying the number of past seasons to retrieve player totals for (default is 5)
+    :return: A dict mapping attribute-year keys to the corresponding total number of players
     """
 
     # Initialize dictionary, initial season, and initial data
@@ -225,11 +225,11 @@ def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, sea
     """
     Return a DataFrame of a player's rankings for multiple consecutive seasons.
 
-    :param player_name: a str of the full name of the player to return the multiple seasons for ('First Last')
-    :param cur_season: a str of the most recent season ('YYYY-YYYY')
-    :param pos: a str of the player's position's first letter ('F', 'D', or 'G')
-    :param seasons_num: an int of the number of seasons to include (default is 5)
-    :return: a DataFrame containing player stats and total player counts over the specified seasons
+    :param player_name: A str of the full name of the player to return the multiple seasons for ('First Last')
+    :param cur_season: A str of the most recent season ('YYYY-YYYY')
+    :param pos: A str of the player's position's first letter ('F', 'D', or 'G')
+    :param seasons_num: An int of the number of seasons to include (default is 5)
+    :return: A DataFrame containing player stats and total player counts over the specified seasons
     """
 
     # Load the current season's data

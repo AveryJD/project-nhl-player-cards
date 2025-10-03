@@ -3,20 +3,26 @@
 # ====================================================================================================
 import os
 
+
+def find_data_dir(start_dir: str) -> str:
+    """
+    Get the data directory for the project (the folder that contains the data_card folder).
+
+    :param start_dir: The directory that this function is being called from
+    :return: The directory that contains the data_card folder
+    """
+    # Traverse up until a folder containing 'card_data' is found
+    while True:
+        potential_data_dir = os.path.join(start_dir, 'data_card')
+        if os.path.exists(potential_data_dir):
+            return start_dir
+        parent = os.path.dirname(start_dir)
+        if parent == start_dir:
+            raise FileNotFoundError("Could not find 'card_data' folder")
+        start_dir = parent
+
 # Start from the current file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Traverse up until a folder containing 'card_data' is found
-def find_data_dir(start_dir):
-    dir_to_check = start_dir
-    while True:
-        potential_data_dir = os.path.join(dir_to_check, 'data_card')
-        if os.path.exists(potential_data_dir):
-            return dir_to_check
-        parent = os.path.dirname(dir_to_check)
-        if parent == dir_to_check:
-            raise FileNotFoundError("Could not find 'card_data' folder")
-        dir_to_check = parent
 
 # This is the folder directly above 'card_data' (for standalone card project and website purposes)
 DATA_DIR = find_data_dir(CURRENT_DIR)
@@ -71,8 +77,6 @@ SEASON_GAMES = {
     '2016-2017': 82,
     '2015-2016': 82,
     '2014-2015': 82,
-    '2013-2014': 82,
-    '2013-2014': 82,
     '2013-2014': 82,
     '2012-2013': 48,  # Shortened due to lockout
     '2011-2012': 82,
@@ -201,7 +205,7 @@ NATIONALITIES = {
 }
 
 # Attribute csv names with full names
-ATRIBUTE_NAMES = {
+ATTRIBUTE_NAMES = {
     'evo_rank' : '5v5 Offense',
     'evd_rank' : '5v5 Defense',
     'ppl_rank' : '5v4 Offense',
@@ -311,7 +315,7 @@ ATTRIBUTE_COLORS = {
     'High Danger':      (0, 0, 0)
 }
 
-# Atribute colors for graph components
+# Attribute colors for graph components
 PLOT_ATTRIBUTE_COLORS = {
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
