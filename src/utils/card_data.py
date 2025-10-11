@@ -48,8 +48,10 @@ def get_player_role(player_row: pd.Series) -> str:
             role = 'First Line'
         elif avg_toi > 15.5:
             role = 'Second Line'
-        elif avg_toi > 8.5:
-            role = 'Bottom 6'
+        elif avg_toi > 13.5:
+            role = 'Third Line'
+        elif avg_toi > 9.0:
+            role = 'Fourth Line'
         else:
             role = 'Fringe'
 
