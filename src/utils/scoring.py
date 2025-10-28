@@ -153,7 +153,8 @@ class SkaterScorer:
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return np.where(valid, adjusted_score, -999999)
+        adjusted_score = np.where(valid, adjusted_score, -999999)
+        return adjusted_score
     
 
     def fantasy_score(self, all_df: pd.DataFrame, ppl_df: pd.DataFrame, pkl_df: pd.DataFrame) -> np.ndarray:
@@ -167,7 +168,6 @@ class SkaterScorer:
         )
 
         adjusted_score = score / all_df['GP'].to_numpy()
-
         return adjusted_score
 
 

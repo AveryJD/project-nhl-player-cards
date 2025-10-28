@@ -69,7 +69,7 @@ CARD_INFO_SEASONS = ['2025-2026',
 
 # Total games played by season
 SEASON_GAMES = {
-    '2024-2025': 10,  # Current season (not finished)
+    '2025-2026': 10,  # Current season (not finished)
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,
@@ -170,6 +170,7 @@ G_WEIGHTS = {
 # NAMING CONSTANTS
 # ====================================================================================================
 
+# Position first letters with full names
 POSITION_NAMES = {
     'F': 'Forward', 'D': 'Defense', 'G': 'Goalie'
 }
@@ -202,7 +203,7 @@ NATIONALITIES = {
     'USA': 'United States'
 }
 
-# Attribute csv names with full names
+# Attribute names with full names
 ATTRIBUTE_NAMES = {
     'evo_rank' : '5v5 Offense',
     'evd_rank' : '5v5 Defense',
