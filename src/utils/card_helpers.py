@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import io
+import requests
+import cairosvg
 from datetime import datetime
 from utils import constants
 from utils import load_save as file
@@ -65,6 +67,19 @@ def draw_righted_text(
     draw.text((x_position, y_position), str(text), font=font, fill=fill)
 
 
+def get_word_date(number_date: str) -> str:
+    """
+    Converts a date from number format to word format (Ex: 2001-02-03 -> Feb 2, 2001).
+
+    :param number_date: A str of date in number format (YYYY-MM-DD)
+    :return: A str of the date in word format (Month Day, Year)
+    """
+    date_obj = datetime.strptime(number_date, '%Y-%m-%d')
+    word_date = date_obj.strftime('%b %d, %Y')
+
+    return word_date
+
+
 def plot_to_image(fig: plt) -> Image:
     """
     Change a matplotlib plot into a PIL image.
@@ -81,17 +96,35 @@ def plot_to_image(fig: plt) -> Image:
     return img
 
 
-def get_word_date(number_date: str) -> str:
+def get_image_from_url(url: str) -> Image.Image:
     """
-    Converts a date from number format to word format (Ex: 2001-02-03 -> Feb 2, 2001).
-
-    :param number_date: A str of date in number format (YYYY-MM-DD)
-    :return: A str of the date in word format (Month Day, Year)
+    Fetch an image from a URL and return a PIL Image.
+    
+    :param url: URL of the image (player headshot or team logo)
+    :return: PIL Image object
     """
-    date_obj = datetime.strptime(number_date, '%Y-%m-%d')
-    word_date = date_obj.strftime('%b %d, %Y')
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+    except requests.RequestException:
+        url = 'https://assets.nhle.com/mugs/nhl/default-skater.png'
+        response = requests.get(url, stream=True)
+    
+    # If the image is an SVG (team logos), convert to a PNG
+    if url[-3:] == 'svg':
+        png_bytes = cairosvg.svg2png(bytestring=response.content)
+        img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+    # If the image is already a PNG (player headshots) make the background transparent
+    else:
+        img = Image.open(io.BytesIO(response.content)).convert("RGBA")
 
-    return word_date
+        img_data = img.getdata()
+        img.putdata([
+            (255, 255, 255, 0) if pixel[:3] == (255, 255, 255) else pixel
+            for pixel in img_data
+        ])
+
+    return img
 
 
 def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, total_players: int) -> tuple[int, int]:

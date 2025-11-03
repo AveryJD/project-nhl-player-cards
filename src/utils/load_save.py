@@ -100,6 +100,19 @@ def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.Dat
     ranking_df = pd.read_csv(file_path)
     return ranking_df
 
+def load_api_csv(season: str) -> pd.DataFrame:
+    """
+    Load the player API CSV for a given season.
+
+    :param season: A str representing the season ('YYYY-YYYY')
+    :return: The DataFrame containing the API information
+    """
+    api_filename = f'{season}_api.csv'
+    api_file_path = os.path.join(DATA_DIR, 'data_scraped', 'api', api_filename)
+
+    api_df = pd.read_csv(api_file_path)
+    return api_df
+
 
 def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
     """

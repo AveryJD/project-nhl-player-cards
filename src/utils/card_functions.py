@@ -9,7 +9,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 from utils import card_helpers as ch
-from utils import card_images as ci
 from utils import constants
 from utils import load_save as file
 
@@ -87,10 +86,6 @@ def make_header_section(player_row: pd.Series) -> Image:
         goals_against = player_row['Goals Against']
         gsax = format(xgoals_against - goals_against, '.2f')
 
-    # Get contract variables
-    # cap_hit = player_row['Cap Hit']
-    # contract_years_left = player_row['Contract Years']
-
     # Create header section card
     header_section_width = 2000
     header_section_height = 700
@@ -100,7 +95,8 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw = ImageDraw.Draw(header_section)
     
     # Get player team logo
-    team_logo = ci.get_team_image(team)
+    team_url = player_row['Team URL']
+    team_logo = ch.get_image_from_url(team_url)
 
     # Calculate proportional height, resize and paste
     logo_width = 560
@@ -110,7 +106,8 @@ def make_header_section(player_row: pd.Series) -> Image:
     header_section.paste(team_logo, (70, 200), team_logo)
 
     # Get player image
-    player_img = ci.get_player_image(name, team, season, position)
+    headshot_url = player_row['Headshot URL']
+    player_img = ch.get_image_from_url(headshot_url)
     player_img = player_img.resize((500, 500))
     header_section.paste(player_img, (100, 160), player_img)
 
@@ -488,12 +485,8 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
     # Get the player's current season data
     player_cur_season = player_five_seasons.iloc[0]
 
-    # Get correct team
+    # Get the player's team
     team = player_cur_season['Team']
-    if ',' in team:
-        print(f'{player_name}\'s teams are {team}. Choose active team (abreviation):')
-        team = input()
-        player_cur_season['Team'] = team
 
     # Get primary team color
     primary_team_color = constants.PRIMARY_COLORS.get(team)
