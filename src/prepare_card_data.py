@@ -4,7 +4,7 @@
 
 # Imports
 from utils import ranking
-from utils import card_data as card
+from utils import card_data
 import utils.constants as constants
 
 
@@ -21,4 +21,4 @@ for season in constants.WEIGHTED_RANK_SEASONS:
 # Assemble card data
 for season in constants.CARD_INFO_SEASONS:
     for pos in constants.POSITIONS:
-        card.make_card_data(season, pos)
+        card_data.make_card_data(season, pos)

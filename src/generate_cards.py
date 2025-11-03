@@ -16,10 +16,9 @@ card.make_all_player_cards('2024-2025')
 card.make_specific_player_cards(['Connor McDavid', 'Jack Hughes', 'Macklin Celebrini'], '2024-2025', 'F')
 """
 
-"""
+
 # Generate Preview cards for the website
 card.make_player_card('Sidney Crosby', '2024-2025', 'F')
 card.make_player_card('Filip Forsberg', '2024-2025', 'F')
 card.make_player_card('Matthew Tkachuk', '2024-2025', 'F')
 card.make_player_card('Miro Heiskanen', '2024-2025', 'D')
-"""

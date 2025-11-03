@@ -3,26 +3,30 @@
 # ====================================================================================================
 
 # Imports
-from utils import collect_data as collect
+from utils import collect_api_data as api
+from utils import collect_nst_data as nst
 from utils import clean_data as clean
 from utils import constants
 from utils import load_save as file
 
 
-# Gather player bios and stats and save as CSV files
+# Gather player information from the NHL API
+for season in constants.YEARLY_RANK_SEASONS:
+    api.build_season_player_csv(season)
+
+# Gather player bios and stats from NaturalStatTrick
 for season in constants.DATA_SEASONS:
     for position in constants.POSITIONS:
-        collect.scrape_and_save_bios(season, position)
+        nst.scrape_and_save_bios(season, position)
         if position != 'G':
             for situation in constants.SKATER_SITUATIONS:
-                collect.scrape_and_save_stats(season, position, situation)
+                nst.scrape_and_save_stats(season, position, situation)
         else:
             for situation in constants.GOALIE_SITUATIONS:
-                collect.scrape_and_save_stats(season, position, situation)
-
+                nst.scrape_and_save_stats(season, position, situation)
 
 """
-# Clean CSV files that have already been gathered
+# Clean CSV files that have already been gathered (if cleaning functionality has been updated and data does not need to be scraped again)
 for season in constants.YEARLY_RANK_SEASONS:
     for position in constants.POSITIONS:
 
