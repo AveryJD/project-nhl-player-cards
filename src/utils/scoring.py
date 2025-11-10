@@ -144,16 +144,12 @@ class SkaterScorer:
 
 
     def faceoff_score(self, df: pd.DataFrame) -> np.ndarray:
-        total_fo = df['Faceoffs Won'] + df['Faceoffs Lost']
-        valid = total_fo >= df['GP'] * 3
-
         score = (
             self.weights['faceoff_wins'] * df['Faceoffs Won'].to_numpy() +
             self.weights['faceoff_losses'] * df['Faceoffs Lost'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        adjusted_score = np.where(valid, adjusted_score, -999999)
         return adjusted_score
     
 

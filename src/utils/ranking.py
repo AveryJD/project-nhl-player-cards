@@ -81,9 +81,8 @@ def make_player_rankings(season: str, position: str) -> None:
         pkl_data = pkl_data.set_index(['Player', 'Team'])
 
         # Filter skaters who do not meet the minimum games played requirement
-        season_games = constants.SEASON_GAMES[season]
-        min_gp = season_games * 0.25
-        valid_players = all_data.loc[all_data['GP'] >= min_gp].index
+        min_games = constants.SKATER_MIN_GP
+        valid_players = all_data.loc[all_data['GP'] >= min_games].index
 
         all_data = all_data.loc[valid_players]
 
@@ -93,13 +92,20 @@ def make_player_rankings(season: str, position: str) -> None:
         ppl_data = ppl_data.reindex(common_index).fillna(0)
         pkl_data = pkl_data.reindex(common_index).fillna(0)
 
-        # Filter skaters who meet the minimum special teams TOI requirement
-        valid_ppl_players = ppl_data.loc[ppl_data['TOI'] >= season_games * 0.75].index
-        valid_pkl_players = pkl_data.loc[pkl_data['TOI'] >= season_games * 0.75].index
+        # Filter skaters who meet the minimum special teams TOI requirement and faceoffs taken requirement
+        min_power_play = constants.SKATER_MIN_PP
+        min_penalty_kill = constants.SKATER_MIN_PK
+        valid_ppl_players = ppl_data.loc[ppl_data['TOI'] >= all_data['GP'] * min_power_play].index
+        valid_pkl_players = pkl_data.loc[pkl_data['TOI'] >= all_data['GP'] * min_penalty_kill].index
 
-        # Boolean masks of invalid players (now aligned with common_index)
+        min_faceoffs = constants.SKATER_MIN_FO
+        total_fo = all_data['Faceoffs Won'] + all_data['Faceoffs Lost']
+        valid_fof_players = all_data.loc[total_fo >= all_data['GP'] * min_faceoffs].index
+
+        # Boolean masks of invalid player scores
         invalid_ppl = ~ppl_data.index.isin(valid_ppl_players)
         invalid_pkl = ~pkl_data.index.isin(valid_pkl_players)
+        invalid_fof = ~all_data.index.isin(valid_fof_players)
 
         # Calculate skater scores
         scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, ppl_data)
@@ -107,6 +113,7 @@ def make_player_rankings(season: str, position: str) -> None:
         # Mask invalid PP/PK players' scores
         scores_df.loc[invalid_ppl, 'ppl_score'] = -999999
         scores_df.loc[invalid_pkl, 'pkl_score'] = -999999
+        scores_df.loc[invalid_fof, 'fof_score'] = -999999
 
         # Put together scores DataFrame
         rankings = all_data.reset_index()[['Player', 'Team', 'Position']].copy()
@@ -127,8 +134,8 @@ def make_player_rankings(season: str, position: str) -> None:
         pkl_data = pkl_data.set_index(['Player', 'Team'])
 
         # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
-        min_gp = constants.SEASON_GAMES[season] * 0.15
-        valid_players = all_data.loc[all_data['GP'] >= min_gp].index
+        min_games = constants.GOALIE_MIN_GP
+        valid_players = all_data.loc[all_data['GP'] >= min_games].index
 
         all_data = all_data.loc[valid_players]
         evs_data = evs_data.loc[valid_players]
