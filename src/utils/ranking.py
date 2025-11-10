@@ -198,24 +198,6 @@ def make_player_weighted_rankings(season: str, position: str):
         if column.endswith('_score'):
             score_cols.append(column)
 
-    # Combine each seasons' rankings to get the min and max score per score column
-    all_rankings = pd.concat([cur_rankings, prev_rankings, prev_prev_rankings], ignore_index=True)
-
-    # Only normalize valid scores (exclude -999999)
-    valid_all_rankings = all_rankings[all_rankings[score_cols[0]] != -999999]
-
-    # Fit scaler
-    scaler = MinMaxScaler()
-    scaler.fit(valid_all_rankings[score_cols])
-
-    # Transform each season's rankings using the same scaler
-    scaled_cur_rankings = cur_rankings.copy()
-    scaled_prev_rankings = prev_rankings.copy()
-    scaled_prev_prev_rankings = prev_prev_rankings.copy()
-
-    for df in [scaled_cur_rankings, scaled_prev_rankings, scaled_prev_prev_rankings]:
-        mask_valid = df[score_cols[0]] != -999999
-        df.loc[mask_valid, score_cols] = scaler.transform(df.loc[mask_valid, score_cols])
 
     # Initialized list to store weighted scores
     weighted_scores = []
@@ -225,14 +207,14 @@ def make_player_weighted_rankings(season: str, position: str):
         name = row['Player']
         scores = {}
 
-        # Get the scores fore each season
-        row_cur = scaled_cur_rankings[scaled_cur_rankings['Player'] == name]
-        if not scaled_prev_rankings.empty:
-            row_prev = scaled_prev_rankings[scaled_prev_rankings['Player'] == name]
+        # Get the scores for each season
+        row_cur = cur_rankings[cur_rankings['Player'] == name]
+        if not prev_rankings.empty:
+            row_prev = prev_rankings[prev_rankings['Player'] == name]
         else:
             row_prev = pd.DataFrame()
-        if not scaled_prev_prev_rankings.empty:
-            row_prev_prev = scaled_prev_prev_rankings[scaled_prev_prev_rankings['Player'] == name]
+        if not prev_prev_rankings.empty:
+            row_prev_prev = prev_prev_rankings[prev_prev_rankings['Player'] == name]
         else:
             row_prev_prev = pd.DataFrame()
 
@@ -264,17 +246,28 @@ def make_player_weighted_rankings(season: str, position: str):
 
         weighted_scores.append(scores)
 
-    # Create the scores data frame
+    # Create the scores and rankings data frame
     scores_df = pd.DataFrame(weighted_scores)
-    rankings = pd.concat([rankings_players.reset_index(drop=True), scores_df], axis=1)
+    rankings_df = pd.concat([rankings_players.reset_index(drop=True), scores_df], axis=1)
 
-    # Make the rankings for each score
+    # Scale weighted scores per column
+    scaled_scores_df = scores_df.copy()
     for col in score_cols:
-        rankings[col] = rankings[col].replace(0, -999999)
+        mask_valid = scores_df[col] != -999999
+        if mask_valid.any():
+            scaler = MinMaxScaler()
+            scaled_vals = scaler.fit_transform(scores_df.loc[mask_valid, [col]])
+            scaled_scores_df.loc[mask_valid, col] = scaled_vals.flatten()
+        scaled_scores_df.loc[~mask_valid, col] = pd.NA
+
+    # Add scaled scores to rankings_df
+    for col in score_cols:
+        rankings_df[col] = scaled_scores_df[col]
+
+    # Rank player scores based on scaled values
+    for col in score_cols:
         attr = col.split('_')[0]
-        mask_exclude = (rankings[col] == -999999)
-        scores_for_rank = rankings[col].mask(mask_exclude, other=pd.NA)
-        rankings[f'{attr}_rank'] = scores_for_rank.rank(ascending=False, method='dense')
+        rankings_df[f'{attr}_rank'] = rankings_df[col].rank(ascending=False, method='dense', na_option='keep')
 
     # Save rankings CSV file
     if position == 'F':
@@ -285,4 +278,4 @@ def make_player_weighted_rankings(season: str, position: str):
         pos_folder = 'goalies'
 
     filename = f'{season}_{position}_weighted_ranking.csv'
-    file.save_csv(rankings, 'data_ranking', f'weighted_{pos_folder}', filename)
+    file.save_csv(rankings_df, 'data_ranking', f'weighted_{pos_folder}', filename)
