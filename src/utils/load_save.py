@@ -10,9 +10,6 @@ import utils.constants as constants
 
 DATA_DIR = constants.DATA_DIR
 
-# BASE_DIR points to your project root
-DATA_DIR = constants.DATA_DIR
-
 
 def get_prev_season(cur_season: str) -> str:
     """
@@ -100,18 +97,18 @@ def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.Dat
     ranking_df = pd.read_csv(file_path)
     return ranking_df
 
-def load_api_csv(season: str) -> pd.DataFrame:
+def load_ids_csv(season: str) -> pd.DataFrame:
     """
-    Load the player API CSV for a given season.
+    Load the player IDs CSV for a given season.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :return: The DataFrame containing the API information
     """
-    api_filename = f'{season}_api.csv'
-    api_file_path = os.path.join(DATA_DIR, 'data_scraped', 'api', api_filename)
+    ids_filename = f'{season}_ids.csv'
+    ids_file_path = os.path.join(DATA_DIR, 'data_scraped', 'ids', ids_filename)
 
-    api_df = pd.read_csv(api_file_path)
-    return api_df
+    ids_df = pd.read_csv(ids_file_path)
+    return ids_df
 
 
 def load_card_data_csv(season: str, position: str) -> pd.DataFrame:

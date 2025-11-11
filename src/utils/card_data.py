@@ -141,7 +141,7 @@ def make_card_data(season, position) -> None:
     bios_df = file.load_bios_csv(season, position)
     stats_df = file.load_stats_csv(season, position, 'all')
     rankings_df = file.load_rankings_csv(season, position)
-    api_df = file.load_api_csv(season)
+    ids_df = file.load_ids_csv(season)
 
     # Select important columns
     bios_cols = bios_df[['Player', 'Team', 'Position', 'Age', 'Date of Birth', 'Birth Country', 
@@ -160,15 +160,15 @@ def make_card_data(season, position) -> None:
         stats_cols.loc[:, 'Position'] = 'G'
 
         rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 'all_rank', 'evs_rank',
-                                     'gpk_rank', 'ldg_rank', 'mdg_rank', 'hdg_rank']]
+                                     'gpk_rank', 'ldg_rank', 'mdg_rank', 'hdg_rank', 'tmd_rank', 'rbd_rank']]
 
-    # Merge NST data with API data
+    # Merge all data
     card_info_df = rankings_cols.merge(
         stats_cols, on=['Player', 'Team', 'Position'], how='left'
     ).merge(
         bios_cols, on=['Player', 'Team', 'Position'], how='left'
     ).merge(
-        api_df[['Player', 'Position', 'Player ID', 'Team']],
+        ids_df[['Player', 'Position', 'Player ID', 'Team']],
         on=['Player', 'Position'],
         how='left',
         suffixes=('', '_api')

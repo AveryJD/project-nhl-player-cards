@@ -12,7 +12,7 @@ from utils import load_save as file
 
 # Gather player information from the NHL API
 for season in constants.YEARLY_RANK_SEASONS:
-    api.build_season_player_csv(season)
+    api.get_player_ids(season)
 
 # Gather player bios and stats from NaturalStatTrick
 for season in constants.DATA_SEASONS:

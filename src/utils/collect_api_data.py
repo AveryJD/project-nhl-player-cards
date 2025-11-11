@@ -5,7 +5,7 @@ import os
 from utils import constants
 
 
-def build_season_player_csv(season: str):
+def get_player_ids(season: str) -> None:
     """
     Build a CSV of players with their NHL ID, team, and position from the NHL API
 
@@ -41,12 +41,12 @@ def build_season_player_csv(season: str):
 
         time.sleep(0.10)
 
-    df_season = pd.DataFrame(all_players)
-    df_season = df_season.sort_values(['Player', 'Position']).reset_index(drop=True)
+    ids_df = pd.DataFrame(all_players)
+    ids_df = ids_df.sort_values(['Player', 'Position']).reset_index(drop=True)
 
-    # Save API CSV
-    os.makedirs('data_scraped/api', exist_ok=True)
-    filename = f'{season}_api.csv'
-    filepath = os.path.join('data_scraped/api', filename)
-    df_season.to_csv(filepath, index=False)
+    # Save IDs CSV
+    os.makedirs('data_scraped/ids', exist_ok=True)
+    filename = f'{season}_ids.csv'
+    filepath = os.path.join('data_scraped/ids', filename)
+    ids_df.to_csv(filepath, index=False)
     print(f"Saved {filename}")
