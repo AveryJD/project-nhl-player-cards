@@ -4,6 +4,7 @@
 
 # Imports
 from utils import card_generation as card
+from utils import constants
 
 """
 Different functions for generating player cards:
@@ -19,6 +20,6 @@ card.make_specific_player_cards(['Connor McDavid', 'Jack Hughes', 'Macklin Celeb
 
 # Generate Preview cards for the website
 card.make_player_card('Sidney Crosby', '2024-2025', 'F')
-card.make_player_card('Filip Forsberg', '2024-2025', 'F')
+card.make_player_card('Igor Shesterkin', '2024-2025', 'G')
 card.make_player_card('Matthew Tkachuk', '2024-2025', 'F')
 card.make_player_card('Miro Heiskanen', '2024-2025', 'D')

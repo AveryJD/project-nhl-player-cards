@@ -271,7 +271,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
         ch.draw_centered_text(draw, f'/ {total_players}', total_players_font, y_position=200, x_center=110)
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=174, x_center=250)
     
-    if attribute_name in ['5v4 Offense', '4v5 Defense']:
+    if attribute_name in ['5v4 Offense', '4v5 Defense', 'Even Strength', 'Penalty Kill']:
         # Draw dashed line
         draw.rectangle([(10, 64), (33, 70)], fill=attribute_color)
         draw.rectangle([(42, 64), (65, 70)], fill=attribute_color)
@@ -288,7 +288,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str) -> Imag
         draw.ellipse([(10 - r, 64 + 3 - r), (10 + r, 64 + 3 + r)], fill=attribute_color)
         draw.ellipse([(289 - r, 64 + 3 - r), (289 + r, 64 + 3 + r)], fill=attribute_color)
 
-    elif attribute_name in ['5v5 Offense', '5v5 Defense']:
+    elif attribute_name in ['5v5 Offense', '5v5 Defense', 'Overall', 'Even Strength']:
         # Draw rectangle
         draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
 
@@ -325,7 +325,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
     if pos != 'G':
         attributes_to_plot = ['evd', 'evo', 'pkl','ppl']
     else:
-        attributes_to_plot = ['all', 'gpk', 'evs']
+        attributes_to_plot = ['all', 'evs', 'gpk']
 
     # Make a list with the current season
     cur_season = max(player_multiple_seasons['Season'])
@@ -373,7 +373,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str) -> Image
 
 
         # Plot lines
-        dashed_line_attributes = ['evs', 'ppl', 'pkl', 'gpk']
+        dashed_line_attributes = ['ppl', 'pkl', 'evs', 'gpk']
 
         valid_data = [(x, y) for x, y in zip(x_vals, percentiles) if y is not None]
         if valid_data:
@@ -558,13 +558,13 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
     else:
         # Add overall rankings
         all_rank_section = make_rank_component(player_cur_season, 'all_rank')
-        player_card.paste(all_rank_section, (455, 720))
+        player_card.paste(all_rank_section, (253, 750))
 
         evs_rank_section = make_rank_component(player_cur_season, 'evs_rank')
-        player_card.paste(evs_rank_section, (455, 1010))
+        player_card.paste(evs_rank_section, (50, 1050))
     
         gpk_rank_section = make_rank_component(player_cur_season, 'gpk_rank')
-        player_card.paste(gpk_rank_section, (455, 1300))
+        player_card.paste(gpk_rank_section, (455, 1050))
 
         # Add graph section
         graph_section = make_graph_section(player_five_seasons, pos)
@@ -572,17 +572,39 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
 
         # Draw divider rectangle
         draw = ImageDraw.Draw(player_card)
-        draw.rectangle([(60, 1600), (1940, 1640)], fill=primary_team_color)
+        draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
         # Add skill rankings
         ldg_rank_section = make_rank_component(player_cur_season, 'ldg_rank')
-        player_card.paste(ldg_rank_section, (455, 1700))
+        player_card.paste(ldg_rank_section, (50, 1425))
 
         mdg_rank_section = make_rank_component(player_cur_season, 'mdg_rank')
-        player_card.paste(mdg_rank_section, (850, 1700))
+        player_card.paste(mdg_rank_section, (455, 1425))
 
         hdg_rank_section = make_rank_component(player_cur_season, 'hdg_rank')
-        player_card.paste(hdg_rank_section, (1245, 1700))
+        player_card.paste(hdg_rank_section, (850, 1425))
+
+        rbd_rank_section = make_rank_component(player_cur_season, 'rbd_rank')
+        player_card.paste(rbd_rank_section, (1245, 1425))
+
+        tmd_rank_section = make_rank_component(player_cur_season, 'tmd_rank')
+        player_card.paste(tmd_rank_section, (1640, 1425))
+
+        sho_rank_section = make_rank_component(player_cur_season, 'sho_rank')
+        player_card.paste(sho_rank_section, (50, 1715))
+
+        gre_rank_section = make_rank_component(player_cur_season, 'gre_rank')
+        player_card.paste(gre_rank_section, (455, 1715))
+
+        qal_rank_section = make_rank_component(player_cur_season, 'qal_rank')
+        player_card.paste(qal_rank_section, (850, 1715))
+
+        bad_rank_section = make_rank_component(player_cur_season, 'bad_rank')
+        player_card.paste(bad_rank_section, (1245, 1715))
+
+        awf_rank_section = make_rank_component(player_cur_season, 'awf_rank')
+        player_card.paste(awf_rank_section, (1640, 1715))
+
 
     # Add branding section
     branding_section = make_branding_section(team)

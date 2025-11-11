@@ -303,11 +303,18 @@ ATTRIBUTE_COLORS = {
     'Faceoffs':         (0, 0, 0),
     'Fantasy':          (0, 0, 0),
     'Overall':          (255, 70, 70),
-    'Even Strength':    (255, 150, 150),
+    'Even Strength':    (255, 150, 130),
     'Penalty Kill':     (130, 150, 255),
     'Low Danger':       (0, 0, 0),
     'Med. Danger':      (0, 0, 0),
-    'High Danger':      (0, 0, 0)
+    'High Danger':      (0, 0, 0),
+    'Rebounds':         (0, 0, 0),
+    'Team Defense':     (0, 0, 0),
+    'Shutouts':         (0, 0, 0),
+    'Great Starts':     (0, 0, 0),
+    'Quality Starts':   (0, 0, 0),
+    'Bad Starts':       (0, 0, 0),
+    'Awful Starts':     (0, 0, 0),
 }
 
 # Attribute colors for graph components
@@ -331,5 +338,12 @@ PLOT_ATTRIBUTE_COLORS = {
     'gpk_plot': (150/255, 150/255, 255/255),
     'ldg_plot': (0/255, 0/255, 0/255),
     'mdg_plot': (0/255, 0/255, 0/255),
-    'hdg_plot': (0/255, 0/255, 0/255)
+    'hdg_plot': (0/255, 0/255, 0/255),
+    'rbd_plot': (0/255, 0/255, 0/255),
+    'tmd_plot': (0/255, 0/255, 0/255),
+    'sho_plot': (0/255, 0/255, 0/255),
+    'gre_plot': (0/255, 0/255, 0/255),
+    'qal_plot': (0/255, 0/255, 0/255),
+    'bad_plot': (0/255, 0/255, 0/255),
+    'awf_plot': (0/255, 0/255, 0/255),
 }
