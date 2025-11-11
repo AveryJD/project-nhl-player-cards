@@ -139,13 +139,18 @@ S_WEIGHTS = {
 
 G_WEIGHTS = {
     # Goalie Weights
-    'hds':              0.190,
-    'mds':              0.119,
-    'lds':              0.043,
-    'hdga':            -1.000,
-    'mdga':            -1.000,
-    'ldga':            -1.000,
-    'gsax':             0.250
+    'goals_against':   -0.750,
+    'x_goals_against': -0.250,
+    'ld_shots':        -0.043,
+    'md_shots':        -0.119,
+    'hd_shots':        -0.190,
+    'ld_saves':         0.043,
+    'md_saves':         0.119,
+    'hd_saves':         0.190,
+    'ld_ga':           -1.000,
+    'md_ga':           -1.000,
+    'hd_ga':           -1.000,
+    'rebounds_given':  -0.010
 }
 
 
@@ -209,6 +214,13 @@ ATTRIBUTE_NAMES = {
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
     'hdg_rank' : 'High Danger',
+    'rbd_rank' : 'Rebounds',
+    'tmd_rank' : 'Team Defense',
+    'sho_rank' : 'Shutouts',
+    'gre_rank' : 'Great Starts',
+    'qal_rank' : 'Quality Starts',
+    'bad_rank' : 'Bad Starts',
+    'awf_rank' : 'Awful Starts',
 }
 
 # Symbols to be replaced in player names for the header

@@ -10,7 +10,7 @@ from utils import constants
 from utils import load_save as file
 
 
-def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None) -> pd.DataFrame:
+def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None, goalie_logs_df=None) -> pd.DataFrame:
     """
     Calculate player scores for all attributes.
 
@@ -19,6 +19,7 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
     :param evs_df: A DataFrame containing the players 5v5 stats
     :param pkl_df: A DataFrame containing the players 4v5 stats
     :param ppl_df: A DataFrame containing the players 5v4 stats (default is None to account for goalies)
+    :param goalie_logs_df: A DataFrame containing the goalies game logs (default is None to account for skaters)
     :return: None
     """
 
@@ -53,6 +54,13 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
             'ldg_score': goalie_scorer.zone_score(all_df, 'LD'),
             'mdg_score': goalie_scorer.zone_score(all_df, 'MD'),
             'hdg_score': goalie_scorer.zone_score(all_df, 'HD'),
+            'rbd_score': goalie_scorer.rebound_score(all_df),
+            'tmd_score': goalie_scorer.team_d_score(all_df),
+            'sho_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Shutouts'),
+            'gre_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Great'),
+            'qal_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Quality'),
+            'bad_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Bad'),
+            'awf_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Awful'),
         }, index=all_df.index)
 
     return scores
@@ -108,7 +116,7 @@ def make_player_rankings(season: str, position: str) -> None:
         invalid_fof = ~all_data.index.isin(valid_fof_players)
 
         # Calculate skater scores
-        scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, ppl_data)
+        scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, ppl_df=ppl_data)
 
         # Mask invalid PP/PK players' scores
         scores_df.loc[invalid_ppl, 'ppl_score'] = -999999
@@ -128,10 +136,12 @@ def make_player_rankings(season: str, position: str) -> None:
         all_data = file.load_stats_csv(season, 'G', 'all')
         evs_data = file.load_stats_csv(season, 'G', '5v5')
         pkl_data = file.load_stats_csv(season, 'G', '4v5')
+        logs_data = file.load_goalie_logs_csv(season)
 
-        all_data = all_data.set_index(['Player', 'Team'])
-        evs_data = evs_data.set_index(['Player', 'Team'])
-        pkl_data = pkl_data.set_index(['Player', 'Team'])
+        all_data = all_data.set_index(['Player'])
+        evs_data = evs_data.set_index(['Player'])
+        pkl_data = pkl_data.set_index(['Player'])
+        logs_data = logs_data.set_index(['Player'])
 
         # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
         min_games = constants.GOALIE_MIN_GP
@@ -141,17 +151,17 @@ def make_player_rankings(season: str, position: str) -> None:
         evs_data = evs_data.loc[valid_players]
         pkl_data = pkl_data.loc[valid_players]
 
+        valid_log_players = all_data.index.get_level_values('Player')
+        logs_data = logs_data.loc[valid_log_players]
+
         # Calculate goalie scores
-        scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data)
+        scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, goalie_logs_df=logs_data)
 
         # Put together scores DataFrame
         rankings = all_data.reset_index()[['Player', 'Team']].copy()
-        rankings.insert(2, 'Position', 'G')
-        rankings = rankings.set_index(['Player', 'Team'])
-        rankings = pd.concat([rankings, scores_df], axis=1)
-        rankings = rankings.reset_index()
+        rankings['Position'] = 'G'
+        rankings = pd.concat([rankings, scores_df.reset_index(drop=True)], axis=1)
         rankings.insert(0, 'Season', season)
-
 
     # Rank player scores
     score_columns = [col for col in scores_df.columns if col.endswith('_score')]

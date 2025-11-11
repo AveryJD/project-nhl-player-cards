@@ -110,6 +110,19 @@ def load_ids_csv(season: str) -> pd.DataFrame:
     ids_df = pd.read_csv(ids_file_path)
     return ids_df
 
+def load_goalie_logs_csv(season: str) -> pd.DataFrame:
+    """
+    Load the goalie game logs CSV for a given season.
+
+    :param season: A str representing the season ('YYYY-YYYY')
+    :return: The DataFrame containing the goalie game logs data
+    """
+    logs_filename = f'{season}_goalie_logs.csv'
+    logs_file_path = os.path.join(DATA_DIR, 'data_scraped', 'goalie_logs', logs_filename)
+
+    logs_df = pd.read_csv(logs_file_path)
+    return logs_df
+
 
 def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
     """

@@ -3,6 +3,7 @@ import pandas as pd
 import time
 import os
 from utils import constants
+from utils import load_save as file
 
 
 def get_player_ids(season: str) -> None:
@@ -49,4 +50,86 @@ def get_player_ids(season: str) -> None:
     filename = f'{season}_ids.csv'
     filepath = os.path.join('data_scraped/ids', filename)
     ids_df.to_csv(filepath, index=False)
+    print(f"Saved {filename}")
+
+
+def get_goalie_game_logs(season: str) -> None:
+    """
+    Retrieve game logs for all goalies for a given season.
+
+    :param season: A str of the season to get the data for ('YYYY-YYYY')
+    :return: None
+    """
+
+    season_clean = season.replace('-', '')
+
+    # Helper to safely load IDs CSV
+    def load_ids(s):
+        path = os.path.join('data_scraped/ids', f'{s}_ids.csv')
+        if os.path.exists(path):
+            return pd.read_csv(path)
+        return pd.DataFrame(columns=['Player', 'Player ID', 'Team', 'Position'])
+
+    # Load IDs CSV for current, previous, and next seasons
+    ids_df = load_ids(season)
+    prev_season = file.get_prev_season(season)
+    next_season = file.get_prev_season(file.get_prev_season(season))
+    ids_prev = load_ids(prev_season)
+    ids_next = load_ids(next_season)
+
+    # Filter only goalies
+    goalies_current = ids_df[ids_df['Position'] == 'G']
+    goalies_prev = ids_prev[ids_prev['Position'] == 'G']
+    goalies_next = ids_next[ids_next['Position'] == 'G']
+
+    # Combine all potential goalies
+    all_goalies = pd.concat([goalies_current, goalies_prev, goalies_next]).drop_duplicates(subset=['Player'])
+
+    all_logs = []
+
+    for _, row in all_goalies.iterrows():
+        goalie_id = row.get('Player ID')
+        player_name = row['Player']
+        team = row['Team']
+
+        # Skip if no ID (can't fetch logs)
+        if pd.isna(goalie_id):
+            continue
+
+        url = f"https://api-web.nhle.com/v1/player/{goalie_id}/game-log/{season_clean}/2"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            time.sleep(0.10)
+            continue
+
+        data = response.json()
+        game_logs = data.get("gameLog", [])
+
+        for g in game_logs:
+            all_logs.append({
+                'Player': player_name,
+                'Player ID': goalie_id,
+                'Team': team,
+                'Game ID': g.get('gameId'),
+                'Date': g.get('gameDate'),
+                'Opponent': g.get('opponentAbbrev'),
+                'Home/Road': g.get('homeRoadFlag'),
+                'Result': g.get('decision'),
+                'Shots Against': g.get('shotsAgainst'),
+                'Goals Against': g.get('goalsAgainst'),
+                'Save %': g.get('savePctg'),
+                'Shutouts': g.get('shutouts'),
+                'TOI': g.get('toi'),
+            })
+
+        time.sleep(0.10)
+
+    logs_df = pd.DataFrame(all_logs)
+
+    # Save goalie game logs CSV
+    os.makedirs('data_scraped/goalie_logs', exist_ok=True)
+    filename = f'{season}_goalie_logs.csv'
+    filepath = os.path.join('data_scraped/goalie_logs', filename)
+    logs_df.to_csv(filepath, index=False)
     print(f"Saved {filename}")

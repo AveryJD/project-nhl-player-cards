@@ -180,15 +180,12 @@ class GoalieScorer:
 
 
     def total_score(self, df: pd.DataFrame) -> np.ndarray:
-        gsax = df['xG Against'] - df['Goals Against']
         score = (
-            self.weights['hds'] * df['HD Saves'].to_numpy() +
-            self.weights['hdga'] * df['HD Goals Against'].to_numpy() +
-            self.weights['mds'] * df['MD Saves'].to_numpy() +
-            self.weights['mdga'] * df['MD Goals Against'].to_numpy() +
-            self.weights['lds'] * df['LD Saves'].to_numpy() +
-            self.weights['ldga'] * df['LD Goals Against'].to_numpy() +
-            self.weights['gsax'] * gsax.to_numpy()
+            self.weights['goals_against'] * df['Goals Against'].to_numpy() +
+            self.weights['x_goals_against'] * df['xG Against'].to_numpy() +
+            self.weights['hd_saves'] * df['HD Saves'].to_numpy() +
+            self.weights['md_saves'] * df['MD Saves'].to_numpy() +
+            self.weights['ld_saves'] * df['LD Saves'].to_numpy()
         )
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return adjusted_score
@@ -197,18 +194,65 @@ class GoalieScorer:
     def zone_score(self, df: pd.DataFrame, zone: str) -> np.ndarray:
         if zone == 'LD':
             score = (
-                self.weights['lds'] * df['LD Saves'].to_numpy() +
-                self.weights['ldga'] * df['LD Goals Against'].to_numpy()
+                self.weights['ld_saves'] * df['LD Saves'].to_numpy() +
+                self.weights['ld_ga'] * df['LD Goals Against'].to_numpy()
             )
         elif zone == 'MD':
             score = (
-                self.weights['mds'] * df['MD Saves'].to_numpy() +
-                self.weights['mdga'] * df['MD Goals Against'].to_numpy()
+                self.weights['md_saves'] * df['MD Saves'].to_numpy() +
+                self.weights['md_ga'] * df['MD Goals Against'].to_numpy()
             )
         elif zone == 'HD':
             score = (
-                self.weights['hds'] * df['HD Saves'].to_numpy() +
-                self.weights['hdga'] * df['HD Goals Against'].to_numpy()
+                self.weights['hd_saves'] * df['HD Saves'].to_numpy() +
+                self.weights['hd_ga'] * df['HD Goals Against'].to_numpy()
+            )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+
+
+    def start_score(self, all_df: pd.DataFrame, logs_df: pd.DataFrame, level: str) -> np.ndarray:
+        if level == 'Shutouts':
+            logs_df['Shutouts'] = (logs_df['Save %'] == 1.000).astype(int)
+            score = logs_df.groupby('Player')['Shutouts'].sum()
+        elif level == 'Great':
+            logs_df['Great'] = (logs_df['Save %'] >= 0.915).astype(int)
+            score = logs_df.groupby('Player')['Great'].sum()
+        elif level == 'Quality':
+            logs_df['Quality'] = (logs_df['Save %'] >= 0.900).astype(int)
+            score = logs_df.groupby('Player')['Quality'].sum()
+        elif level == 'Bad':
+            logs_df['Bad'] = (logs_df['Save %'] < 0.900).astype(int)
+            score = logs_df.groupby('Player')['Bad'].sum()
+            score = -score
+        elif level == 'Awful':
+            logs_df['Awful'] = (logs_df['Save %'] < 0.885).astype(int)
+            score = logs_df.groupby('Player')['Awful'].sum()
+            score = -score
+
+        score = score.reindex(all_df.index.get_level_values('Player'))
+        games_played = all_df['GP'].reindex(all_df.index.get_level_values('Player'))
+
+        adjusted_score = score / games_played
+        return adjusted_score.to_numpy()
+
+
+    def rebound_score(self, df: pd.DataFrame) -> np.ndarray:
+        score = (
+            self.weights['rebounds_given'] * df['Rebound Attempts Against'].to_numpy()
+        )
+
+        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+
+
+    def team_d_score(self, df: pd.DataFrame) -> np.ndarray:
+
+        score = (
+            self.weights['hd_shots'] * df['HD Shots Against'].to_numpy() +
+            self.weights['md_shots'] * df['MD Shots Against'].to_numpy() +
+            self.weights['ld_shots'] * df['LD Shots Against'].to_numpy()
             )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())

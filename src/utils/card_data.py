@@ -151,16 +151,19 @@ def make_card_data(season, position) -> None:
     if position != 'G':
         stats_cols = stats_df[['Player', 'Team', 'Position', 'GP', 'TOI', 'Goals', 'First Assists']]
 
-        rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 'evo_rank', 'evd_rank',
-                                     'ppl_rank', 'pkl_rank', 'oio_rank', 'oid_rank', 'sht_rank', 'scr_rank',
-                                     'zon_rank', 'plm_rank', 'pen_rank', 'phy_rank', 'fof_rank', 'fan_rank']]
+        rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
+                                     'evo_rank', 'evd_rank', 'ppl_rank', 'pkl_rank', 
+                                     'oio_rank', 'oid_rank', 'sht_rank', 'scr_rank', 'zon_rank', 
+                                     'plm_rank', 'pen_rank', 'phy_rank', 'fof_rank', 'fan_rank']]
         
     else:
         stats_cols = stats_df[['Player', 'Team', 'GP', 'SV%', 'GAA', 'xG Against', 'Goals Against']].copy()
         stats_cols.loc[:, 'Position'] = 'G'
 
-        rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 'all_rank', 'evs_rank',
-                                     'gpk_rank', 'ldg_rank', 'mdg_rank', 'hdg_rank', 'tmd_rank', 'rbd_rank']]
+        rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
+                                     'all_rank', 'evs_rank', 'gpk_rank', 
+                                     'ldg_rank', 'mdg_rank', 'hdg_rank', 'rbd_rank', 'tmd_rank',
+                                     'sho_rank', 'gre_rank', 'qal_rank', 'bad_rank', 'awf_rank']]
 
     # Merge all data
     card_info_df = rankings_cols.merge(
