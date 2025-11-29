@@ -142,7 +142,7 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
     if attribute_rank_name in ["ppl_rank", "pkl_rank", "fof_rank"] and pd.isna(player_row[attribute_rank_name]):
         rank = 'N/A'
         percentile = 100
-    # For attributes that all players qualify fore
+    # For attributes that all players qualify for
     else:
         rank = int(player_row[attribute_rank_name])
         percentile = int(round((total_players - rank) / total_players, 2) * 100)

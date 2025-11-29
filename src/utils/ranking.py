@@ -31,17 +31,17 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
         scores = pd.DataFrame({
             'evo_score': skater_scorer.offensive_score(evs_df),
             'evd_score': skater_scorer.defensive_score(evs_df),
-            'ppl_score': skater_scorer.offensive_score(ppl_df),
-            'pkl_score': skater_scorer.defensive_score(pkl_df),
+            'ppl_score': skater_scorer.offensive_score(ppl_df, is_ppl=True),
+            'pkl_score': skater_scorer.defensive_score(pkl_df, is_pkl=True),
             'oio_score': skater_scorer.oniceoffense_score(evs_df),
             'oid_score': skater_scorer.onicedefense_score(evs_df),
-            'sht_score': skater_scorer.shooting_score(all_df),
-            'scr_score': skater_scorer.scoring_score(all_df),
-            'plm_score': skater_scorer.playmaking_score(all_df),
+            'sht_score': skater_scorer.shooting_score(evs_df),
+            'scr_score': skater_scorer.scoring_score(evs_df),
+            'plm_score': skater_scorer.playmaking_score(evs_df),
             'zon_score': skater_scorer.ozonestarts_score(evs_df),
-            'pen_score': skater_scorer.penalties_score(all_df),
-            'phy_score': skater_scorer.physicality_score(all_df),
-            'fof_score': skater_scorer.faceoff_score(all_df),
+            'pen_score': skater_scorer.penalties_score(evs_df),
+            'phy_score': skater_scorer.physicality_score(evs_df),
+            'fof_score': skater_scorer.faceoff_score(evs_df),
             'fan_score': skater_scorer.fantasy_score(all_df, ppl_df, pkl_df),
         }, index=all_df.index)
 
@@ -208,7 +208,6 @@ def make_player_weighted_rankings(season: str, position: str):
         if column.endswith('_score'):
             score_cols.append(column)
 
-
     # Initialized list to store weighted scores
     weighted_scores = []
 
@@ -217,42 +216,88 @@ def make_player_weighted_rankings(season: str, position: str):
         name = row['Player']
         scores = {}
 
-        # Get the scores for each season
-        row_cur = cur_rankings[cur_rankings['Player'] == name]
-        if not prev_rankings.empty:
-            row_prev = prev_rankings[prev_rankings['Player'] == name]
-        else:
-            row_prev = pd.DataFrame()
+        # Extract season rows (use None if missing)
         if not prev_prev_rankings.empty:
             row_prev_prev = prev_prev_rankings[prev_prev_rankings['Player'] == name]
         else:
-            row_prev_prev = pd.DataFrame()
+            row_prev_prev = None
 
-        # Count how many seasons the player has scores for
-        available_seasons = [df for df in [row_cur, row_prev, row_prev_prev] if not df.empty]
-        num_seasons = len(available_seasons)
+        if not prev_rankings.empty:
+            row_prev = prev_rankings[prev_rankings['Player'] == name]
+        else:
+            row_prev = None
+            row_prev_prev = None
 
-        # Get the weightings of the seasons depending on how many seasons the player has scores for
-        if num_seasons == 3:
-            weights = [0.50, 0.35, 0.15]
-        elif num_seasons == 2:
-            weights = [0.50, 0.47]
-        elif num_seasons == 1:
-            weights = [0.94]
+        
+        if not cur_rankings.empty:
+            row_cur = cur_rankings[cur_rankings['Player'] == name]
+        else:
+            row_cur = None
+            row_prev = None
+            row_prev_prev = None
 
-        # Weight each different score attribute
+        # Maintain season order
+        season_rows = [row_cur, row_prev, row_prev_prev]
+
+        # Calculate weighted scores for each score column
         for col in score_cols:
-            total_score = 0
-            total_weight = 0
-            for weight, df in zip(weights, available_seasons):
-                val = df.iloc[0][col]
-                if val != -999999:
-                    total_score += val * weight
-                    total_weight += weight
-            if total_weight > 0:
-                scores[col] = total_score
-            else:
+
+            # Gather score values (keep None for missing)
+            values = []
+            for df in season_rows:
+                if not df.empty:
+                    value = df.iloc[0][col]
+                    values.append(value if value != -999999 else None)
+                else:
+                    values.append(None)
+
+            # If the player doesn't have scores for the current season, skip them
+            if values[0] is None:
                 scores[col] = -999999
+                continue
+
+            # Count valid seasons
+            num_valid = sum(value is not None for value in values)
+
+            # Select the proper weight vectors
+            # All three seasons are present
+            if num_valid == 3:
+                weight_vector_pos = constants.THREE_SEASONS_WEIGHTS_POS
+                weight_vector_neg = constants.THREE_SEASONS_WEIGHTS_NEG
+            elif num_valid == 2:
+            # The current and previous seasons are present
+                if values[1] is not None:
+                    weight_vector_pos = constants.TWO_SEASONS_WEIGHTS_POS
+                    weight_vector_neg = constants.TWO_SEASONS_WEIGHTS_NEG
+            # The current and previous-previous seasons are present
+                else:
+                    weight_vector_pos = constants.ONE_SEASON_WEIGHTS_POS
+                    weight_vector_neg = constants.ONE_SEASON_WEIGHTS_NEG
+                    values[2] = None
+            # Only the current season is present
+            elif num_valid == 1:
+                weight_vector_pos = constants.ONE_SEASON_WEIGHTS_POS
+                weight_vector_neg = constants.ONE_SEASON_WEIGHTS_NEG
+
+            # Apply weights
+            weighted_sum = 0
+
+            for season_idx, current_value in enumerate(values):
+                # If the player's current season value is None, skip them
+                if current_value is None:
+                    continue
+
+                # Determine if the value is negative
+                if current_value < 0:
+                    weight_vector = weight_vector_neg
+                else:
+                    weight_vector = weight_vector_pos
+
+                # Apply the weight
+                weight = weight_vector[season_idx]
+                weighted_sum += current_value * weight
+
+            scores[col] = weighted_sum
 
         weighted_scores.append(scores)
 

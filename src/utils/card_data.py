@@ -153,8 +153,8 @@ def make_card_data(season, position) -> None:
 
         rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
                                      'evo_rank', 'evd_rank', 'ppl_rank', 'pkl_rank', 
-                                     'oio_rank', 'oid_rank', 'sht_rank', 'scr_rank', 'zon_rank', 
-                                     'plm_rank', 'pen_rank', 'phy_rank', 'fof_rank', 'fan_rank']]
+                                     'oio_rank', 'oid_rank', 'sht_rank', 'scr_rank', 'plm_rank',
+                                     'zon_rank','pen_rank', 'phy_rank', 'fof_rank', 'fan_rank']]
         
     else:
         stats_cols = stats_df[['Player', 'Team', 'GP', 'SV%', 'GAA', 'xG Against', 'Goals Against']].copy()

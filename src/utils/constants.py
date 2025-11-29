@@ -3,7 +3,6 @@
 # ====================================================================================================
 import os
 
-
 def find_data_dir(start_dir: str) -> str:
     """
     Get the data directory for the project (the folder that contains the data_card folder).
@@ -68,35 +67,38 @@ CARD_INFO_SEASONS = ['2025-2026',
 # ====================================================================================================
 
 SKATER_MIN_GP = 25
-GOALIE_MIN_GP = 10
+GOALIE_MIN_GP = 15
 
 SKATER_MIN_PP = 0.75
 SKATER_MIN_PK = 0.75
 SKATER_MIN_FO = 3
 
+THREE_SEASONS_WEIGHTS_POS = [0.60, 0.30, 0.10]
+TWO_SEASONS_WEIGHTS_POS = [0.60, 0.37]
+ONE_SEASON_WEIGHTS_POS = [0.94]
+
+THREE_SEASONS_WEIGHTS_NEG = [0.60, 0.30, 0.10]
+TWO_SEASONS_WEIGHTS_NEG = [0.63, 0.40]
+ONE_SEASON_WEIGHTS_NEG = [1.06]
+
 # All weight values
 S_WEIGHTS = {
     # Shooting and Scoring Weights
-    'goals':            0.100,
-    'x_goals':          0.100,
-    'shots_on_net' :    0.104,
+    'goals':            0.750,
+    'x_goals':          0.250,
+    'shots_on_net' :    0.100,
     'shots_missed':     0.020,
     'shots_blocked':    0.005,
 
     # Playmaking Weights
     'p_assists':        0.780,
-    's_assists':        0.025,
-    'rebounds_created': 0.150,
-    'rush_attempts':    0.100,
-
-    # Zone Start Weights
-    'o_zone_starts':    1.000,
-    'n_zone_starts':    0.000,
-    'd_zone_starts':   -1.000,
+    's_assists':        0.050,
+    'rebounds_created': 0.190,
+    'rush_attempts':    0.050,
 
     # On Ice Offensive Weights
-    'oi_ldsf':          0.043,
-    'oi_mdsf':          0.119,
+    'oi_ldsf':          0.050,
+    'oi_mdsf':          0.120,
     'oi_hdsf':          0.190,
     'oi_ldgf':          0.000,
     'oi_mdgf':          0.000,
@@ -104,15 +106,21 @@ S_WEIGHTS = {
     'oi_xgf':           1.000,
 
     # Defensive Weights
-    'blocks':           0.080,
-    'takeaways':        0.050,
-    'giveaways':       -0.050,
+    'blocks':           0.100,
+    'takeaways':        0.100,
+    'giveaways':       -0.100,
 
     # On Ice Defensive Weights
-    'oi_ldsa':          -0.043,
-    'oi_mdsa':          -0.119,
+    'oi_ldsa':          -0.050,
+    'oi_mdsa':          -0.120,
     'oi_hdsa':          -0.190,
-    'oi_xga':           -1.000,
+    'oi_ga':            -0.250,
+    'oi_xga':           -0.750,
+
+    # Zone Start Weights
+    'o_zone_starts':    1.000,
+    'n_zone_starts':    0.000,
+    'd_zone_starts':   -1.000,
 
     # Penalty Differential Weights
     'penalties_drawn':  1.000,
@@ -141,11 +149,11 @@ G_WEIGHTS = {
     # Goalie Weights
     'goals_against':   -0.750,
     'x_goals_against': -0.250,
-    'ld_shots':        -0.043,
-    'md_shots':        -0.119,
+    'ld_shots':        -0.050,
+    'md_shots':        -0.120,
     'hd_shots':        -0.190,
-    'ld_saves':         0.043,
-    'md_saves':         0.119,
+    'ld_saves':         0.050,
+    'md_saves':         0.120,
     'hd_saves':         0.190,
     'ld_ga':           -1.000,
     'md_ga':           -1.000,
