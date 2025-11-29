@@ -70,24 +70,15 @@ def get_goalie_game_logs(season: str) -> None:
             return pd.read_csv(path)
         return pd.DataFrame(columns=['Player', 'Player ID', 'Team', 'Position'])
 
-    # Load IDs CSV for current, previous, and next seasons
+    # Load IDs CSV for current season
     ids_df = load_ids(season)
-    prev_season = file.get_prev_season(season)
-    next_season = file.get_prev_season(file.get_prev_season(season))
-    ids_prev = load_ids(prev_season)
-    ids_next = load_ids(next_season)
 
     # Filter only goalies
     goalies_current = ids_df[ids_df['Position'] == 'G']
-    goalies_prev = ids_prev[ids_prev['Position'] == 'G']
-    goalies_next = ids_next[ids_next['Position'] == 'G']
-
-    # Combine all potential goalies
-    all_goalies = pd.concat([goalies_current, goalies_prev, goalies_next]).drop_duplicates(subset=['Player'])
 
     all_logs = []
 
-    for _, row in all_goalies.iterrows():
+    for _, row in goalies_current.iterrows():
         goalie_id = row.get('Player ID')
         player_name = row['Player']
         team = row['Team']
