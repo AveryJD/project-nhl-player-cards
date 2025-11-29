@@ -66,13 +66,39 @@ CARD_INFO_SEASONS = ['2025-2026',
 # RANKING CONSTANTS
 # ====================================================================================================
 
-SKATER_MIN_GP = 25
-GOALIE_MIN_GP = 15
+SEASON_GAMES = {
+    '2025-2026': 24,  # Current season
+    '2024-2025': 82,
+    '2023-2024': 82,
+    '2022-2023': 82,
+    '2021-2022': 82,
+    '2020-2021': 56,  # Shortened due to COVID
+    '2019-2020': 70,  # Season paused due to COVID
+    '2018-2019': 82,
+    '2017-2018': 82,
+    '2016-2017': 82,
+    '2015-2016': 82,
+    '2014-2015': 82,
+    '2013-2014': 82,
+    '2012-2013': 82,
+    '2011-2012': 82,
+    '2010-2011': 82,
+    '2009-2010': 82,
+    '2008-2009': 82,
+    '2007-2008': 82
+}
 
+# The minimum percentage of total games in the season that a player has to play to qualify for rankings
+SKATER_MIN_GP = 0.3
+GOALIE_MIN_GP = 0.15
+
+# The minimum percentage of special teams time per game played that a player has to play to qualify for special teams rankings
 SKATER_MIN_PP = 0.75
 SKATER_MIN_PK = 0.75
+# The faceoffs taken per game played that a player has to play to qualify for faceoff rankings
 SKATER_MIN_FO = 3
 
+# Weighting values for per weighted season rankings
 THREE_SEASONS_WEIGHTS_POS = [0.60, 0.30, 0.10]
 TWO_SEASONS_WEIGHTS_POS = [0.60, 0.37]
 ONE_SEASON_WEIGHTS_POS = [0.94]

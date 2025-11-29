@@ -89,7 +89,7 @@ def make_player_rankings(season: str, position: str) -> None:
         pkl_data = pkl_data.set_index(['Player', 'Team'])
 
         # Filter skaters who do not meet the minimum games played requirement
-        min_games = constants.SKATER_MIN_GP
+        min_games = constants.SEASON_GAMES[season] * constants.SKATER_MIN_GP
         valid_players = all_data.loc[all_data['GP'] >= min_games].index
 
         all_data = all_data.loc[valid_players]
@@ -144,7 +144,7 @@ def make_player_rankings(season: str, position: str) -> None:
         logs_data = logs_data.set_index(['Player'])
 
         # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
-        min_games = constants.GOALIE_MIN_GP
+        min_games = constants.SEASON_GAMES[season] * constants.GOALIE_MIN_GP
         valid_players = all_data.loc[all_data['GP'] >= min_games].index
 
         all_data = all_data.loc[valid_players]
