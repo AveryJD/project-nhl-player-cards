@@ -96,11 +96,11 @@ def plot_to_image(fig: plt) -> Image:
     return img
 
 
-def get_image_from_url(url: str) -> Image.Image:
+def get_headsot_from_url(url: str) -> Image.Image:
     """
     Fetch an image from a URL and return a PIL Image.
     
-    :param url: URL of the image (player headshot or team logo)
+    :param url: URL of the image (player headshot)
     :return: PIL Image object
     """
     try:
@@ -110,19 +110,13 @@ def get_image_from_url(url: str) -> Image.Image:
         url = 'https://assets.nhle.com/mugs/nhl/default-skater.png'
         response = requests.get(url, stream=True)
     
-    # If the image is an SVG (team logos), convert to a PNG
-    if url[-3:] == 'svg':
-        png_bytes = cairosvg.svg2png(bytestring=response.content)
-        img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
-    # If the image is already a PNG (player headshots) make the background transparent
-    else:
-        img = Image.open(io.BytesIO(response.content)).convert("RGBA")
+    img = Image.open(io.BytesIO(response.content)).convert("RGBA")
 
-        img_data = img.getdata()
-        img.putdata([
-            (255, 255, 255, 0) if pixel[:3] == (255, 255, 255) else pixel
-            for pixel in img_data
-        ])
+    img_data = img.getdata()
+    img.putdata([
+        (255, 255, 255, 0) if pixel[:3] == (255, 255, 255) else pixel
+        for pixel in img_data
+    ])
 
     return img
 

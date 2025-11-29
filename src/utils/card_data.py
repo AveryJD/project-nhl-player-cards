@@ -198,7 +198,6 @@ def make_card_data(season, position) -> None:
         if not pd.isna(row['Player ID']) else None,
         axis=1
     )
-    card_info_df['Team URL'] = card_info_df['Team'].apply(make_team_logo_url)
 
     card_info_df = card_info_df.sort_values('Player').reset_index(drop=True)
 

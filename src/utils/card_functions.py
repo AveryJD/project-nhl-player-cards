@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import io
+import cairosvg
 from PIL import Image, ImageDraw, ImageFont
 from utils import card_helpers as ch
 from utils import constants
@@ -94,9 +96,10 @@ def make_header_section(player_row: pd.Series) -> Image:
     # Create draw object
     draw = ImageDraw.Draw(header_section)
     
-    # Get player team logo
-    team_url = player_row['Team URL']
-    team_logo = ch.get_image_from_url(team_url)
+    # Get team logo
+    with open(f'data_card/assets/{team}.svg', 'rb') as f:
+        svg_bytes = f.read()
+    team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
 
     # Calculate proportional height, resize and paste
     logo_width = 560
@@ -105,9 +108,9 @@ def make_header_section(player_row: pd.Series) -> Image:
     team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
     header_section.paste(team_logo, (70, 200), team_logo)
 
-    # Get player image
+    # Get player image and paste
     headshot_url = player_row['Headshot URL']
-    player_img = ch.get_image_from_url(headshot_url)
+    player_img = ch.get_headsot_from_url(headshot_url)
     player_img = player_img.resize((500, 500))
     header_section.paste(player_img, (100, 160), player_img)
 
