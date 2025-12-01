@@ -229,10 +229,7 @@ class GoalieScorer:
 
 
     def start_score(self, all_df: pd.DataFrame, logs_df: pd.DataFrame, level: str) -> np.ndarray:
-        if level == 'Shutouts':
-            logs_df['Shutouts'] = (logs_df['Save %'] == 1.000).astype(int)
-            score = logs_df.groupby('Player')['Shutouts'].sum()
-        elif level == 'Great':
+        if level == 'Great':
             logs_df['Great'] = (logs_df['Save %'] >= 0.915).astype(int)
             score = logs_df.groupby('Player')['Great'].sum()
         elif level == 'Quality':
@@ -270,6 +267,34 @@ class GoalieScorer:
             self.weights['md_shots'] * df['MD Shots Against'].to_numpy() +
             self.weights['ld_shots'] * df['LD Shots Against'].to_numpy()
             )
+        
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return adjusted_score
+    
+    def goalie_fantasy_score(self, df: pd.DataFrame, logs_df: pd.DataFrame) -> np.ndarray:
+        logs_df['Wins'] = (logs_df['Result'] == 'W').astype(int)
+        logs_df['OTL'] = (logs_df['Result'] == 'O').astype(int)
+        logs_df['Shutouts'] = (logs_df['Shutouts'] == 1).astype(int)
+
+        wins_series = logs_df.groupby('Player')['Wins'].sum()
+        ot_losses_series = logs_df.groupby('Player')['OTL'].sum()
+        shutouts_series = logs_df.groupby('Player')['Shutouts'].sum()
+        
+        player_index = df.index.get_level_values('Player')
+        
+        wins_aligned = wins_series.reindex(player_index, fill_value=0).to_numpy()
+        ot_losses_aligned = ot_losses_series.reindex(player_index, fill_value=0).to_numpy()
+        shutouts_aligned = shutouts_series.reindex(player_index, fill_value=0).to_numpy()
+
+        score = (
+            self.weights['fan_goals_against'] * df['Goals Against'].to_numpy() +
+            self.weights['fan_saves'] * df['Saves'].to_numpy() +
+            self.weights['fan_wins'] * wins_aligned +
+            self.weights['fan_otl'] * ot_losses_aligned +
+            self.weights['fan_shutouts'] * shutouts_aligned
+        )
+
+        games_played = df['GP'].to_numpy()
+        adjusted_score = score / games_played
         return adjusted_score

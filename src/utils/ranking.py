@@ -56,11 +56,11 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
             'hdg_score': goalie_scorer.zone_score(all_df, 'HD'),
             'rbd_score': goalie_scorer.rebound_score(all_df),
             'tmd_score': goalie_scorer.team_d_score(all_df),
-            'sho_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Shutouts'),
             'gre_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Great'),
             'qal_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Quality'),
             'bad_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Bad'),
             'awf_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Awful'),
+            'fan_score': goalie_scorer.goalie_fantasy_score(all_df, goalie_logs_df),
         }, index=all_df.index)
 
     return scores

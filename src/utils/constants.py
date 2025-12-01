@@ -184,7 +184,15 @@ G_WEIGHTS = {
     'ld_ga':           -1.000,
     'md_ga':           -1.000,
     'hd_ga':           -1.000,
-    'rebounds_given':  -0.010
+    'rebounds_given':  -0.010,
+
+    # Fantasy Weights
+    'fan_wins':             4.000,
+    'fan_otl':              1.000,
+    'fan_losses':           0.000,
+    'fan_shutouts':         3.000,
+    'fan_saves':            0.200,
+    'fan_goals_against':   -2.000,
 }
 
 
@@ -250,7 +258,6 @@ ATTRIBUTE_NAMES = {
     'hdg_rank' : 'High Danger',
     'rbd_rank' : 'Rebounds',
     'tmd_rank' : 'Team Defense',
-    'sho_rank' : 'Shutouts',
     'gre_rank' : 'Great Starts',
     'qal_rank' : 'Quality Starts',
     'bad_rank' : 'Bad Starts',
@@ -344,7 +351,6 @@ ATTRIBUTE_COLORS = {
     'High Danger':      (0, 0, 0),
     'Rebounds':         (0, 0, 0),
     'Team Defense':     (0, 0, 0),
-    'Shutouts':         (0, 0, 0),
     'Great Starts':     (0, 0, 0),
     'Quality Starts':   (0, 0, 0),
     'Bad Starts':       (0, 0, 0),
@@ -375,7 +381,6 @@ PLOT_ATTRIBUTE_COLORS = {
     'hdg_plot': (0/255, 0/255, 0/255),
     'rbd_plot': (0/255, 0/255, 0/255),
     'tmd_plot': (0/255, 0/255, 0/255),
-    'sho_plot': (0/255, 0/255, 0/255),
     'gre_plot': (0/255, 0/255, 0/255),
     'qal_plot': (0/255, 0/255, 0/255),
     'bad_plot': (0/255, 0/255, 0/255),

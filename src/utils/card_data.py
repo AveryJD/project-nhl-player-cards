@@ -163,7 +163,7 @@ def make_card_data(season, position) -> None:
         rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
                                      'all_rank', 'evs_rank', 'gpk_rank', 
                                      'ldg_rank', 'mdg_rank', 'hdg_rank', 'rbd_rank', 'tmd_rank',
-                                     'sho_rank', 'gre_rank', 'qal_rank', 'bad_rank', 'awf_rank']]
+                                    'gre_rank', 'qal_rank', 'bad_rank', 'awf_rank', 'fan_rank']]
 
     # Merge all data
     card_info_df = rankings_cols.merge(

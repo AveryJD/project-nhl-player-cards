@@ -593,20 +593,20 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
         tmd_rank_section = make_rank_component(player_cur_season, 'tmd_rank')
         player_card.paste(tmd_rank_section, (1640, 1425))
 
-        sho_rank_section = make_rank_component(player_cur_season, 'sho_rank')
-        player_card.paste(sho_rank_section, (50, 1715))
-
         gre_rank_section = make_rank_component(player_cur_season, 'gre_rank')
-        player_card.paste(gre_rank_section, (455, 1715))
+        player_card.paste(gre_rank_section, (50, 1715))
 
         qal_rank_section = make_rank_component(player_cur_season, 'qal_rank')
-        player_card.paste(qal_rank_section, (850, 1715))
+        player_card.paste(qal_rank_section, (455, 1715))
 
         bad_rank_section = make_rank_component(player_cur_season, 'bad_rank')
-        player_card.paste(bad_rank_section, (1245, 1715))
+        player_card.paste(bad_rank_section, (850, 1715))
 
         awf_rank_section = make_rank_component(player_cur_season, 'awf_rank')
-        player_card.paste(awf_rank_section, (1640, 1715))
+        player_card.paste(awf_rank_section, (1245, 1715))
+
+        fan_rank_section = make_rank_component(player_cur_season, 'fan_rank')
+        player_card.paste(fan_rank_section, (1640, 1715))
 
 
     # Add branding section
