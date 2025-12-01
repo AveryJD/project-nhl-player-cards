@@ -14,10 +14,6 @@ from utils import load_save as file
 for season in constants.DATA_SEASONS:
     api.get_player_ids(season)
 
-# Gather goalie game logs from the NHL API
-for season in constants.DATA_SEASONS:
-    api.get_goalie_game_logs(season)
-
 # Gather player bios and stats from NaturalStatTrick
 for season in constants.DATA_SEASONS:
     for position in constants.POSITIONS:
@@ -28,6 +24,10 @@ for season in constants.DATA_SEASONS:
         else:
             for situation in constants.GOALIE_SITUATIONS:
                 nst.scrape_and_save_stats(season, position, situation)
+
+# Gather goalie game logs from the NHL API
+for season in constants.DATA_SEASONS:
+    api.get_goalie_game_logs(season)
 
 """
 # Clean CSV files that have already been gathered (if cleaning functionality has been updated and data does not need to be scraped again)
@@ -52,4 +52,3 @@ for season in constants.YEARLY_RANK_SEASONS:
                 stats_filename = f'{season}_{position}_{situation}_stats.csv'
                 file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
 """
-
