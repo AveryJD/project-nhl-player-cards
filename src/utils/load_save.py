@@ -13,7 +13,7 @@ DATA_DIR = constants.DATA_DIR
 
 def get_prev_season(cur_season: str) -> str:
     """
-    Return the str for previous season from a given season's str.
+    Return the str for the previous season from a given season's str.
 
     :param cur_season: A str of the current season ('YYYY-YYYY')
     :return: A str of the season previous to the current season
@@ -22,6 +22,18 @@ def get_prev_season(cur_season: str) -> str:
     prev_season = f"{start_year - 1}-{end_year - 1}"
 
     return prev_season
+
+def get_next_season(cur_season: str) -> str:
+    """
+    Return the str for the next season from a given season's str.
+
+    :param cur_season: A str of the current season ('YYYY-YYYY')
+    :return: A str of the season previous to the current season
+    """
+    start_year, end_year = map(int, cur_season.split("-"))
+    next_season = f"{start_year + 1}-{end_year + 1}"
+
+    return next_season
 
 
 def load_bios_csv(season: str, position: str) -> pd.DataFrame:
