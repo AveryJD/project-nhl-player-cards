@@ -97,7 +97,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     draw = ImageDraw.Draw(header_section)
     
     # Get team logo
-    with open(f'data_card/assets/{team}.svg', 'rb') as f:
+    with open(f'data_card/team_logos/{team}.svg', 'rb') as f:
         svg_bytes = f.read()
     team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
 
