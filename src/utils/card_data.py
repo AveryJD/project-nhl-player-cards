@@ -103,20 +103,6 @@ def get_player_age(player_row: pd.Series) -> int:
     return age
 
 
-def make_player_headshot_url(season: str, team: str, player_id: int) -> str:
-    """
-    Builds the NHL player headshot URL
-    
-    :param season: A str of the season to make the card data for ('YYYY-YYYY')
-    :param team: A str of team's abreviation to get the logo URL for
-    :param player_id: The ID of the player to get the headshot for
-    :return: A str of the player headshot URL
-    """
-    season_clean = season.replace('-', '')
-    headshot_url = f"https://assets.nhle.com/mugs/nhl/{season_clean}/{team}/{player_id}.png"
-    return headshot_url
-
-
 def make_team_logo_url(team: str) -> str:
     """
     Builds the NHL team logo URL
@@ -191,13 +177,6 @@ def make_card_data(season, position) -> None:
     stats_start = cols.index("GP")
     cols = cols[:stats_start] + ["Role"] + cols[stats_start:]
     card_info_df = card_info_df[cols]
-
-    # Add image URLs
-    card_info_df['Headshot URL'] = card_info_df.apply(
-        lambda row: make_player_headshot_url(season, row['Team'], int(row['Player ID']))
-        if not pd.isna(row['Player ID']) else None,
-        axis=1
-    )
 
     card_info_df = card_info_df.sort_values('Player').reset_index(drop=True)
 

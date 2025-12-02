@@ -96,15 +96,23 @@ def plot_to_image(fig: plt) -> Image:
     return img
 
 
-def get_headsot_from_url(url: str) -> Image.Image:
+def get_player_headsot(season: str, team: str, player_id: float) -> Image.Image:
     """
-    Fetch an image from a URL and return a PIL Image.
+    Fetch a player's headshot image based on the season, team, and player ID.
     
-    :param url: URL of the image (player headshot)
+    :param season: A str of the season to get the headshot for ('YYYY-YYYY')
+    :param season: A str of the team abreviation to get the headshot for ('ABC')
+    :param season: A float of the player ID to get the headshot for ('#######')
     :return: PIL Image object
     """
+
+    season_clean = season.replace('-', '')
+    player_id_clean = str(int(player_id))
+    headshot_url = f"https://assets.nhle.com/mugs/nhl/{season_clean}/{team}/{player_id_clean}.png"
+    print(headshot_url)
+
     try:
-        response = requests.get(url, stream=True)
+        response = requests.get(headshot_url, stream=True)
         response.raise_for_status()
     except requests.RequestException:
         url = 'https://assets.nhle.com/mugs/nhl/default-skater.png'

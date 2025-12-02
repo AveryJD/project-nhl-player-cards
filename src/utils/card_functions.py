@@ -54,6 +54,7 @@ def make_header_section(player_row: pd.Series) -> Image:
     secondary_team_color = constants.SECONDARY_COLORS.get(team)
 
     # Get profile variables
+    player_id = player_row['Player ID']
     position = player_row['Position']
     position_name = constants.POSITION_NAMES.get(position)
     age = int(player_row['Age'])
@@ -109,10 +110,9 @@ def make_header_section(player_row: pd.Series) -> Image:
     header_section.paste(team_logo, (70, 200), team_logo)
 
     # Get player image and paste
-    headshot_url = player_row['Headshot URL']
-    player_img = ch.get_headsot_from_url(headshot_url)
-    player_img = player_img.resize((500, 500))
-    header_section.paste(player_img, (100, 160), player_img)
+    headshot_img = ch.get_player_headsot(season, team, player_id)
+    headshot_img = headshot_img.resize((500, 500))
+    header_section.paste(headshot_img, (100, 160), headshot_img)
 
     # Load fonts
     basic_font = FONT_CACHE['basic_40']
