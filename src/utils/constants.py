@@ -67,7 +67,7 @@ CARD_INFO_SEASONS = ['2025-2026',
 # ====================================================================================================
 
 SEASON_GAMES = {
-    '2025-2026': 24,  # Current season
+    '2025-2026': 50,  # Current season (min 15 GP for skaters, 8 GP for goalies)
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,
@@ -100,12 +100,8 @@ SKATER_MIN_FO = 3
 
 # Weighting values for per weighted season rankings
 THREE_SEASONS_WEIGHTS_POS = [0.60, 0.30, 0.10]
-TWO_SEASONS_WEIGHTS_POS = [0.60, 0.37]
-ONE_SEASON_WEIGHTS_POS = [0.94]
-
-THREE_SEASONS_WEIGHTS_NEG = [0.60, 0.30, 0.10]
-TWO_SEASONS_WEIGHTS_NEG = [0.63, 0.40]
-ONE_SEASON_WEIGHTS_NEG = [1.06]
+TWO_SEASONS_WEIGHTS_POS = [0.60, 0.40]
+ONE_SEASON_WEIGHTS_POS = [1.00]
 
 # All weight values
 S_WEIGHTS = {

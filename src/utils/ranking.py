@@ -262,22 +262,18 @@ def make_player_weighted_rankings(season: str, position: str):
             # Select the proper weight vectors
             # All three seasons are present
             if num_valid == 3:
-                weight_vector_pos = constants.THREE_SEASONS_WEIGHTS_POS
-                weight_vector_neg = constants.THREE_SEASONS_WEIGHTS_NEG
+                weight_vector = constants.THREE_SEASONS_WEIGHTS_POS
             elif num_valid == 2:
             # The current and previous seasons are present
                 if values[1] is not None:
-                    weight_vector_pos = constants.TWO_SEASONS_WEIGHTS_POS
-                    weight_vector_neg = constants.TWO_SEASONS_WEIGHTS_NEG
+                    weight_vector = constants.TWO_SEASONS_WEIGHTS_POS
             # The current and previous-previous seasons are present
                 else:
-                    weight_vector_pos = constants.ONE_SEASON_WEIGHTS_POS
-                    weight_vector_neg = constants.ONE_SEASON_WEIGHTS_NEG
+                    weight_vector = constants.ONE_SEASON_WEIGHTS_POS
                     values[2] = None
             # Only the current season is present
             elif num_valid == 1:
-                weight_vector_pos = constants.ONE_SEASON_WEIGHTS_POS
-                weight_vector_neg = constants.ONE_SEASON_WEIGHTS_NEG
+                weight_vector = constants.ONE_SEASON_WEIGHTS_POS
 
             # Apply weights
             weighted_sum = 0
@@ -286,12 +282,6 @@ def make_player_weighted_rankings(season: str, position: str):
                 # If the player's current season value is None, skip them
                 if current_value is None:
                     continue
-
-                # Determine if the value is negative
-                if current_value < 0:
-                    weight_vector = weight_vector_neg
-                else:
-                    weight_vector = weight_vector_pos
 
                 # Apply the weight
                 weight = weight_vector[season_idx]
