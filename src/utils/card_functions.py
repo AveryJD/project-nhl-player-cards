@@ -627,5 +627,7 @@ def make_player_card(player_name: str, season: str, pos: str, save: bool=True) -
     if save:
         file.save_card(player_card, season, team, pos_file, file_name)
 
+    print(f'========== {player_name} ({team} {pos}) card created for the {season} season! ==========')
+
     return player_card
 

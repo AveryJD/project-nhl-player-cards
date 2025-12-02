@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import io
 import requests
-import cairosvg
+import numpy as np
 from datetime import datetime
 from utils import constants
 from utils import load_save as file
@@ -107,9 +107,11 @@ def get_player_headsot(season: str, team: str, player_id: float) -> Image.Image:
     """
 
     season_clean = season.replace('-', '')
-    player_id_clean = str(int(player_id))
+    if player_id is not None and not np.isnan(player_id):
+        player_id_clean = str(int(player_id))
+    else:
+        player_id_clean = 000
     headshot_url = f"https://assets.nhle.com/mugs/nhl/{season_clean}/{team}/{player_id_clean}.png"
-    print(headshot_url)
 
     try:
         response = requests.get(headshot_url, stream=True)
