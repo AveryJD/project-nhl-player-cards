@@ -89,7 +89,7 @@ SEASON_GAMES = {
 }
 
 # The minimum percentage of total games in the season that a player has to play to qualify for rankings
-SKATER_MIN_GP = 0.3
+SKATER_MIN_GP = 0.30
 GOALIE_MIN_GP = 0.15
 
 # The minimum percentage of special teams time per game played that a player has to play to qualify for special teams rankings
@@ -99,9 +99,10 @@ SKATER_MIN_PK = 0.75
 SKATER_MIN_FO = 3
 
 # Weighting values for per weighted season rankings
-THREE_SEASONS_WEIGHTS_POS = [0.60, 0.30, 0.10]
-TWO_SEASONS_WEIGHTS_POS = [0.60, 0.40]
-ONE_SEASON_WEIGHTS_POS = [1.00]
+THREE_SEASONS_WEIGHTS = [0.60, 0.30, 0.10]
+TWO_SEASONS_WEIGHTS = [0.70, 0.30, 0.00]
+TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
+ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
 # All weight values
 S_WEIGHTS = {
