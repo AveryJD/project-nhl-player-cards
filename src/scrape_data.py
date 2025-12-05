@@ -5,11 +5,11 @@
 # Imports
 from utils import collect_api_data as api
 from utils import collect_nst_data as nst
-from utils import clean_data as clean
 from utils import constants
+from utils import clean_data as clean
 from utils import load_save as file
 
-"""
+
 # Gather player IDs from the NHL API
 for season in constants.DATA_SEASONS:
     api.get_player_ids(season)
@@ -24,9 +24,9 @@ for season in constants.DATA_SEASONS:
         else:
             for situation in constants.GOALIE_SITUATIONS:
                 nst.scrape_and_save_stats(season, position, situation)
-"""
+
 # Gather goalie game logs from the NHL API
-for season in ['2016-2017']:
+for season in constants.DATA_SEASONS:
     api.get_goalie_game_logs(season)
 
 """

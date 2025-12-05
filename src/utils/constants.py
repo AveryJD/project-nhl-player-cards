@@ -67,7 +67,7 @@ CARD_INFO_SEASONS = ['2025-2026',
 # ====================================================================================================
 
 SEASON_GAMES = {
-    '2025-2026': 50,  # Current season (min 15 GP for skaters, 8 GP for goalies)
+    '2025-2026': 27,  # Current season (min 9 GP for skaters, 5 GP for goalies)
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,

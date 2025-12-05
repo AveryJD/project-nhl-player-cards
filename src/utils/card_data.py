@@ -6,6 +6,7 @@
 import pandas as pd
 from datetime import datetime, date
 from utils import load_save as file
+from utils import constants
 
 
 def resolve_team(player_row: pd.Series) -> str:
@@ -35,13 +36,16 @@ def get_player_role(player_row: pd.Series) -> str:
     # Player roles for goalies
     if player_row['Position'] == 'G':
         games_played = player_row['GP']
-        if games_played >= 50:
+        total_games = constants.SEASON_GAMES[player_row['Season']]
+        games_played_percet = games_played / total_games
+
+        if games_played_percet >= 0.60:
             role = 'Starter'
-        elif games_played > 41:
+        elif games_played_percet >= 0.50:
             role = '1A'
-        elif games_played > 32:
+        elif games_played_percet >= 0.40:
             role = '1B'
-        elif games_played > 8:
+        elif games_played_percet >= 0.10:
             role = 'Backup'
         else:
             role = 'Fringe'
