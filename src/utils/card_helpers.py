@@ -124,7 +124,7 @@ def get_player_headsot(season: str, team: str, player_id: float) -> Image.Image:
 
     img_data = img.getdata()
     img.putdata([
-        (255, 255, 255, 0) if pixel[:3] == (255, 255, 255) else pixel
+        (255, 255, 255, 0) if pixel[:2] == (255, 255, 255) else pixel
         for pixel in img_data
     ])
 
