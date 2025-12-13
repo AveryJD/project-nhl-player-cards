@@ -99,7 +99,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         goals_for_percent = format((player_row['GF%']/100), '.3f')
         xgoals_for_percent = format((player_row['xGF%']/100), '.3f')
     else:
-        record = f'{player_row['W']}-{player_row['L']}-{player_row['OT/SO']}'
+        record = f"{player_row['W']}-{player_row['L']}-{player_row['OT/SO']}"
         shutouts = str(player_row['Shutouts'])
         save_percentage = format(float(player_row['SV%']), '.3f')
         goals_against_avg = format(player_row['GAA'], '.2f')
