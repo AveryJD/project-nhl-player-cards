@@ -112,12 +112,12 @@ S_WEIGHTS = {
     'shots_on_net' :    0.100,
     'shots_missed':     0.020,
     'shots_blocked':    0.005,
+    'rush_attempts':    0.050,
 
     # Playmaking Weights
     'p_assists':        0.780,
     's_assists':        0.050,
     'rebounds_created': 0.190,
-    'rush_attempts':    0.050,
 
     # On Ice Offensive Weights
     'oi_ldsf':          0.050,

@@ -455,7 +455,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
     graph_img = graph_img.resize((graph_section_width, graph_section_height - 50))
     graph_section.paste(graph_img, (0, 0))
 
-     # Add player team image per season
+    # Add player team image per season
     logo_x = 150
     for season in seasons:
         season_rows = player_multiple_seasons[player_multiple_seasons['Season'] == season]
