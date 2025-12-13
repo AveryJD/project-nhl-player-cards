@@ -387,7 +387,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
 
      # Create the figure with correct size
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(graph_section_width / 200, graph_section_height / 200), facecolor=graph_background_color, dpi=200)
+    fig, ax = plt.subplots(figsize=(graph_section_width / 200, (graph_section_height - 50) / 200), facecolor=graph_background_color, dpi=200)
 
     # Iterate over attributes
     for attribute_name in attributes_to_plot:
@@ -416,7 +416,6 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
                     percentiles.append(None)
             else:
                 percentiles.append(None)
-
 
         # Plot lines
         dashed_line_attributes = ['ppl', 'pkl', 'evs', 'gpk']
@@ -453,8 +452,26 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
 
     # Convert plot to image
     graph_img = ch.plot_to_image(fig)
-    graph_img = graph_img.resize((graph_section_width, graph_section_height))
+    graph_img = graph_img.resize((graph_section_width, graph_section_height - 50))
     graph_section.paste(graph_img, (0, 0))
+
+     # Add player team image per season
+    logo_x = 150
+    for season in seasons:
+        season_rows = player_multiple_seasons[player_multiple_seasons['Season'] == season]
+        if not season_rows.empty:
+            team = season_rows.iloc[0]['Team']
+            with open(f'data_card/team_logos/{team}_{mode}.svg', 'rb') as f:
+                svg_bytes = f.read()
+            team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
+            
+            # Calculate proportional height, resize and paste
+            logo_width = 80
+            w_percent = logo_width / team_logo.width
+            logo_height = int(team_logo.height * w_percent)
+            team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+            graph_section.paste(team_logo, (logo_x, 575), team_logo)
+        logo_x += 220
 
     plt.close(fig)
 
