@@ -42,9 +42,9 @@ def get_player_role(player_row: pd.Series) -> str:
         if games_played_percet >= 0.60:
             role = 'Starter'
         elif games_played_percet >= 0.50:
-            role = '1A'
+            role = 'Tandem (1A)'
         elif games_played_percet >= 0.40:
-            role = '1B'
+            role = 'Tandem (1B)'
         elif games_played_percet >= 0.10:
             role = 'Backup'
         else:
@@ -107,17 +107,6 @@ def get_player_age(player_row: pd.Series) -> int:
     return age
 
 
-def make_team_logo_url(team: str) -> str:
-    """
-    Builds the NHL team logo URL
-
-    :param team: A str of team's abreviation to get the logo URL for
-    :return: A str of the team logo URL
-    """
-    team_url = f"https://assets.nhle.com/logos/nhl/svg/{team}_light.svg"
-    return team_url
-
-
 def make_card_data(season, position) -> None:
     """
     Generate a CSV file of all the relevent card data from other CSV files
@@ -129,17 +118,21 @@ def make_card_data(season, position) -> None:
 
     # Load data
     bios_df = file.load_bios_csv(season, position)
-    stats_df = file.load_stats_csv(season, position, 'all')
+    all_stats_df = file.load_stats_csv(season, position, 'all')
+    ev_stats_df = file.load_stats_csv(season, position, '5v5')
     rankings_df = file.load_rankings_csv(season, position)
     ids_df = file.load_ids_csv(season)
+    if position == 'G':
+        logs_df = file.load_goalie_logs_csv(season)
 
     # Select important columns
     bios_cols = bios_df[['Player', 'Team', 'Position', 'Age', 'Date of Birth', 'Birth Country', 
                          'Nationality', 'Height (in)', 'Weight (lbs)', 
-                         'Draft Year', 'Draft Round', 'Round Pick', 'Overall Draft Position']]  
+                         'Draft Year', 'Draft Round', 'Overall Draft Position']]  
 
     if position != 'G':
-        stats_cols = stats_df[['Player', 'Team', 'Position', 'GP', 'TOI', 'Goals', 'First Assists']]
+        all_stats_cols = all_stats_df[['Player', 'Team', 'Position', 'GP', 'TOI', 'Goals', 'Total Assists', 'Total Points', 'ixG']].copy()
+        ev_stats_cols = ev_stats_df[['Player', 'Team', 'Position', 'GF%', 'xGF%',]].copy()
 
         rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
                                      'evo_rank', 'evd_rank', 'ppl_rank', 'pkl_rank', 
@@ -147,8 +140,10 @@ def make_card_data(season, position) -> None:
                                      'zon_rank','pen_rank', 'phy_rank', 'fof_rank', 'fan_rank']]
         
     else:
-        stats_cols = stats_df[['Player', 'Team', 'GP', 'SV%', 'GAA', 'xG Against', 'Goals Against']].copy()
-        stats_cols.loc[:, 'Position'] = 'G'
+        all_stats_cols = all_stats_df[['Player', 'Team', 'GP', 'TOI', 'SV%', 'GAA', 'xG Against', 'Goals Against']].copy()
+        ev_stats_cols = ev_stats_df[['Player', 'Team']].copy()
+        all_stats_cols['Position'] = 'G'
+        ev_stats_cols['Position'] = 'G'
 
         rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
                                      'all_rank', 'evs_rank', 'gpk_rank', 
@@ -157,7 +152,9 @@ def make_card_data(season, position) -> None:
 
     # Merge all data
     card_info_df = rankings_cols.merge(
-        stats_cols, on=['Player', 'Team', 'Position'], how='left'
+        all_stats_cols, on=['Player', 'Team', 'Position'], how='left'
+    ).merge(
+        ev_stats_cols, on=['Player', 'Team', 'Position'], how='left'
     ).merge(
         bios_cols, on=['Player', 'Team', 'Position'], how='left'
     ).merge(
@@ -166,6 +163,51 @@ def make_card_data(season, position) -> None:
         how='left',
         suffixes=('', '_api')
     )
+
+    # For goalies get their record stats
+    if position == 'G':
+        logs_df = logs_df.copy()
+        logs_df['Result'] = logs_df['Result'].fillna('')
+
+        # Get game results ('W', 'L', 'O')
+        record_df = (logs_df
+            .groupby('Player')['Result']
+            .value_counts()
+            .unstack(fill_value=0)
+        )
+
+        # GEt shutouts
+        shutout_df = (logs_df
+            .groupby('Player')['Shutouts']
+            .sum()
+            .reset_index()
+        )
+
+        # Rename 'O' (OT/SO loss) to 'OT/SO'
+        record_df = (record_df
+            .rename(columns={'O': 'OT/SO'})
+            .reset_index()
+        )
+
+        # Merge the record stats into the main card data DataFrame
+        card_info_df = card_info_df.merge(
+            record_df[['Player', 'W', 'L', 'OT/SO']],
+            on='Player',
+            how='left'
+        )
+
+        card_info_df = card_info_df.merge(
+            shutout_df[['Player', 'Shutouts']],
+            on='Player',
+            how='left'
+        )
+
+        # Fill any NaN values with 0
+        card_info_df[['W', 'L', 'OT/SO', 'Shutouts']] = (
+            card_info_df[['W', 'L', 'OT/SO', 'Shutouts']]
+            .fillna(0)
+            .astype(int)
+        )
 
     # Fallback for missing team values
     card_info_df['Team'] = card_info_df.apply(resolve_team, axis=1)
