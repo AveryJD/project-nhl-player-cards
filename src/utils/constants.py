@@ -248,8 +248,8 @@ ATTRIBUTE_NAMES = {
     'fof_rank' : 'Faceoffs',
     'fan_rank' : 'Fantasy',
     'all_rank' : 'Overall',
-    'evs_rank' : 'Even Strength',
-    'gpk_rank' : 'Penalty Kill',
+    'evs_rank' : '5v5',
+    'gpk_rank' : '4v5',
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
     'hdg_rank' : 'High Danger',
@@ -292,7 +292,17 @@ SYMBOLS_TO_REPLACE = {
 # COLOR CONSTANTS
 # ====================================================================================================
 
-# Team primary colors
+# Card color RGB values
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+DARK = (39, 39, 39)
+GRAY = (180, 180, 180)
+GRAPH_WHITE = (255/255, 255/255, 255/255)
+GRAPH_BLACK = (0/255, 0/255, 0/255)
+GRAPH_GRAY = (180/255, 180/255, 180/255)
+GRAPH_DARK = (39/255, 39/255, 39/255)
+
+# Team primary color RBG values
 PRIMARY_COLORS = {
     'ANA': (252, 76, 2),    'ARI': (140, 38, 51),   'BOS': (252, 181, 20),
     'BUF': (0, 48, 135),    'CGY': (210, 0, 28),    'CAR': (206, 17, 38),
@@ -308,7 +318,7 @@ PRIMARY_COLORS = {
     'ATL': (4, 30, 66),     'PHX': (140, 38, 51)
 }
 
-# Team secondary colors
+# Team secondary colors RGB values
 SECONDARY_COLORS = {
     'ANA': (185, 151, 91),  'ARI': (21,71,52),      'BOS': (17, 17, 17),
     'BUF': (255, 184, 28),  'CGY': (250, 175, 25),  'CAR': (0, 0, 0),
@@ -324,62 +334,24 @@ SECONDARY_COLORS = {
     'ATL': (184, 97, 37),   'PHX': (21,71,52)
 }
 
-# Attribute colors for rank components
+# Rank components RBG values
 ATTRIBUTE_COLORS = {
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
     '5v4 Offense':      (255, 150, 130),
     '4v5 Defense':      (130, 150, 255),
-    'On Ice Offense':   (0, 0, 0),
-    'On Ice Defense':   (0, 0, 0),
-    'Scoring':          (0, 0, 0),
-    'Shooting':         (0, 0, 0),
-    'Playmaking':       (0, 0, 0),
-    'O-Zone Starts':    (0, 0, 0),
-    'Penalties':        (0, 0, 0),
-    'Physicality':      (0, 0, 0),
-    'Faceoffs':         (0, 0, 0),
-    'Fantasy':          (0, 0, 0),
     'Overall':          (255, 70, 70),
-    'Even Strength':    (255, 150, 130),
-    'Penalty Kill':     (130, 150, 255),
-    'Low Danger':       (0, 0, 0),
-    'Med. Danger':      (0, 0, 0),
-    'High Danger':      (0, 0, 0),
-    'Rebounds':         (0, 0, 0),
-    'Team Defense':     (0, 0, 0),
-    'Great Starts':     (0, 0, 0),
-    'Quality Starts':   (0, 0, 0),
-    'Bad Starts':       (0, 0, 0),
-    'Awful Starts':     (0, 0, 0),
+    '5v5':              (255, 150, 130),
+    '4v5':              (130, 150, 255),
 }
 
-# Attribute colors for graph components
+# Graph component RBG values
 PLOT_ATTRIBUTE_COLORS = {
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
     'ppl_plot': (255/255, 150/255, 150/255),
     'pkl_plot': (150/255, 150/255, 255/255),
-    'oio_plot': (0/255, 0/255, 0/255),
-    'oid_plot': (0/255, 0/255, 0/255),
-    'scr_plot': (0/255, 0/255, 0/255),
-    'sht_plot': (0/255, 0/255, 0/255),
-    'plm_plot': (0/255, 0/255, 0/255),
-    'zon_plot': (0/255, 0/255, 0/255),
-    'pen_plot': (0/255, 0/255, 0/255),
-    'phy_plot': (0/255, 0/255, 0/255),
-    'fof_plot': (0/255, 0/255, 0/255),
-    'fan_plot': (0/255, 0/255, 0/255),
     'all_plot': (255/255, 70/255, 70/255),
     'evs_plot': (255/255, 150/255, 150/255),
     'gpk_plot': (150/255, 150/255, 255/255),
-    'ldg_plot': (0/255, 0/255, 0/255),
-    'mdg_plot': (0/255, 0/255, 0/255),
-    'hdg_plot': (0/255, 0/255, 0/255),
-    'rbd_plot': (0/255, 0/255, 0/255),
-    'tmd_plot': (0/255, 0/255, 0/255),
-    'gre_plot': (0/255, 0/255, 0/255),
-    'qal_plot': (0/255, 0/255, 0/255),
-    'bad_plot': (0/255, 0/255, 0/255),
-    'awf_plot': (0/255, 0/255, 0/255),
 }
