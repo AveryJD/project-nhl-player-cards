@@ -23,6 +23,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Casey Desmith': 'Casey DeSmith',
         'Christopher Tanev': 'Chris Tanev',
         'Frederic Gaudreau': 'Frederick Gaudreau',
+        'Isac Lundestrom': 'Isac Lundeström',
         'Jani Hakanpaa': 'Jani Hakanpää',
         'Janis Moser': 'J.J. Moser',
         'Jean-Francois Berube': 'J-F Berube',

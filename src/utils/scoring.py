@@ -25,14 +25,15 @@ class SkaterScorer:
             shots_missed = (df['iFF'] - df['Shots']).to_numpy()
             shots_blocked = (df['iCF'] - df['iFF']).to_numpy()
         else:
-            shots_on_net = (df['Shots'] - df['Goals'] - df['Rebounds Created'] - df['Rush Attempts']).to_numpy()
-            shots_missed = (df['iFF'] - df['Shots'] - df['Goals'] - df['Rebounds Created'] - df['Rush Attempts']).to_numpy()
-            shots_blocked = (df['iCF'] - df['iFF']- df['Goals'] - df['Rebounds Created'] - df['Rush Attempts']).to_numpy()
+            shots_on_net = (df['Shots'] - df['Goals'] - df['Rush Attempts']).to_numpy()
+            shots_missed = (df['iFF'] - df['Shots'] - df['Goals'] - df['Rush Attempts']).to_numpy()
+            shots_blocked = (df['iCF'] - df['iFF']- df['Goals'] - df['Rush Attempts']).to_numpy()
 
         score = (
             self.weights['shots_on_net'] * shots_on_net +
             self.weights['shots_missed'] * shots_missed +
-            self.weights['shots_blocked'] * shots_blocked
+            self.weights['shots_blocked'] * shots_blocked +
+            self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
@@ -56,8 +57,7 @@ class SkaterScorer:
         score = (
             self.weights['p_assists'] * df['First Assists'].to_numpy() +
             self.weights['s_assists'] * df['Second Assists'].to_numpy() +
-            self.weights['rebounds_created'] * df['Rebounds Created'].to_numpy() +
-            self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy()
+            self.weights['rebounds_created'] * df['Rebounds Created'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())

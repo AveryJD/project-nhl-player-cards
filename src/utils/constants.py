@@ -67,7 +67,7 @@ CARD_INFO_SEASONS = ['2025-2026',
 # ====================================================================================================
 
 SEASON_GAMES = {
-    '2025-2026': 27,  # Current season (min 9 GP for skaters, 5 GP for goalies)
+    '2025-2026': 33,  # Current season (min 9 GP for skaters, 5 GP for goalies)
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,
@@ -227,8 +227,8 @@ NATIONALITIES = {
     'JAM': 'Jamaica',       'JPN': 'Japan',         'KAZ': 'Kazakhstan',    'KOR': 'South Korea',   
     'LVA': 'Latvia',        'LTU': 'Lithuania',     'NLD': 'Netherlands',   'NOR': 'Norway',
     'POL': 'Poland',        'RUS': 'Russia',        'SVK': 'Slovakia',      'SVN': 'Slovenia',
-    'SWE': 'Sweden',        'CHE': 'Switzerland',   'UKR': 'Ukraine',       'GBR': 'United Kingdom',
-    'USA': 'United States'
+    'SWE': 'Sweden',        'SUI': 'Switzerland',   'CHE': 'Switzerland',   'UKR': 'Ukraine',
+    'GBR': 'United Kingdom', 'USA': 'United States'
 }
 
 # Attribute names with full names
