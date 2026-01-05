@@ -3,24 +3,13 @@
 # ====================================================================================================
 
 # Imports
-from utils import card_generation as card
+from utils import card_generation
 
 """
 Different functions for generating player cards:
 
-card.make_player_card('Sidney Crosby', '2024-2025', 'F')
-card.make_team_player_cards('TOR', '2024-2025')
-card.make_position_player_cards('2024-2025', 'G')
-card.make_rank_player_cards('evo', '2024-2025', 'D')
-card.make_all_player_cards('2024-2025')
-card.make_specific_player_cards(['Connor McDavid', 'Jack Hughes', 'Macklin Celebrini'], '2024-2025', 'F')
+card_generation.make_player_card('Sidney Crosby', '2025-2026', 'F', 'dark')
+card_generation.make_team_player_cards('TOR', '2025-2026', 'light')
+card_generation.make_all_position_player_cards('2025-2026', 'G', 'dark')
+card_generation.make_all_player_cards('2025-2026', 'light')
 """
-
-
-# Generate Preview cards for the website
-card.make_player_card('Sidney Crosby', '2024-2025', 'F')
-card.make_player_card('Adam Fox', '2024-2025', 'D')
-card.make_player_card('Mikko Rantanen', '2024-2025', 'F')
-card.make_player_card('Gustav Forsling', '2024-2025', 'D')
-card.make_player_card('Steven Stamkos', '2024-2025', 'F')
-

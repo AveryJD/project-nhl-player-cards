@@ -1,11 +1,11 @@
 # ====================================================================================================
-# SCRIPT TO GENERATE NHL PLAYER ATTRIBUTE RANKINGS AND ASSEMBLE CARD DATA
+# SCRIPT TO GENERATE NHL PLAYER RANKINGS AND ASSEMBLE CARD DATA
 # ====================================================================================================
 
 # Imports
 from utils import ranking
 from utils import card_data
-import utils.constants as constants
+from utils import constants
 
 
 # Generate yearly rankings
