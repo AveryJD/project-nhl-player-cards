@@ -33,3 +33,29 @@ for season in constants.DATA_SEASONS:
 # Gather goalie game logs from the NHL API
 for season in constants.DATA_SEASONS:
     collect_api_data.get_goalie_game_logs(season)
+
+
+
+"""
+# Clean data that has already been collected
+for season in constants.YEARLY_RANK_SEASONS:
+    for position in constants.POSITIONS:
+
+        bios_df = file.load_bios_csv(season, position)
+        bios_df = clean.clean_dataframe(bios_df)
+        bios_filename = f'{season}_{position}_bios.csv'
+        file.save_csv(bios_df, 'data_scraped', 'bios', bios_filename)
+
+        if position != 'G':
+            for situation in constants.SKATER_SITUATIONS:
+                stats_df = file.load_stats_csv(season, position, situation)
+                stats_df = clean.clean_dataframe(stats_df)
+                stats_filename = f'{season}_{position}_{situation}_stats.csv'
+                file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
+        else:
+            for situation in constants.GOALIE_SITUATIONS: 
+                stats_df = file.load_stats_csv(season, position, situation)
+                stats_df = clean.clean_dataframe(stats_df)
+                stats_filename = f'{season}_{position}_{situation}_stats.csv'
+                file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
+"""
