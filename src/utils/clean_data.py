@@ -16,9 +16,10 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
 
     # Replace names with most commonly used names for consistency
     name_replacements = {
-        'Alex Wennberg' : 'Alexander Wennberg',
-        'Alex Kerfoot' : 'Alexander Kerfoot',
-        'Alexei Toropchenko' : 'Alexey Toropchenko',
+        'Alex Wennberg': 'Alexander Wennberg',
+        'Alex Kerfoot': 'Alexander Kerfoot',
+        'Alexei Toropchenko': 'Alexey Toropchenko',
+        'Zack Bolduc': 'Zachary Bolduc',
         'Cameron Atkinson': 'Cam Atkinson',
         'Casey Desmith': 'Casey DeSmith',
         'Christopher Tanev': 'Chris Tanev',
@@ -37,9 +38,28 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Olli Maatta': 'Olli Määttä',
         'Oskar Back': 'Oskar Bäck',
         'Pat Maroon': 'Patrick Maroon',
-        'Sam Montembeault': 'Samuel Montembeault'
+        'Sam Montembeault': 'Samuel Montembeault',
+        'Juuso Valimaki': 'Juuso Välimäki'
     }
     df['Player'] = df['Player'].replace(name_replacements)
+
+    return df
+
+def clean_country_abreviations(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Standardize country abreviations for consistency.
+
+    :param df: The DataFrame to be cleaned
+    :return: The cleaned DataFrame
+    """
+
+    # Replace names with most commonly used names for consistency
+    abreviation_replacements = {
+        'Lat' : 'LVA',
+        'Fin' : 'FIN',
+    }
+    df['Birth Country'] = df['Birth Country'].replace(abreviation_replacements)
+    df['Nationality'] = df['Nationality'].replace(abreviation_replacements)
 
     return df
 
@@ -100,6 +120,8 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     df = clean_player_names(df)
     df = clean_team_names(df)
     df = clean_positions(df)
+    if 'Birth Country' in df.columns:
+        df = clean_country_abreviations(df)
 
     # Sort by player names alphabetically
     df = df.sort_values(by="Player")
