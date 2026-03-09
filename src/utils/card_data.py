@@ -235,5 +235,5 @@ def make_card_data(season, position) -> None:
         pos_folder = 'goalies'
 
     filename = f'{season}_{position}_card_data.csv'
-    file.save_csv(card_info_df, 'data_card', pos_folder, filename)
+    file.save_csv(card_info_df, 'card_data', pos_folder, filename)
 

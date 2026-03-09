@@ -145,7 +145,7 @@ def scrape_and_save_bios(season: str, position: str) -> None:
     bios_df = clean.clean_dataframe(bios_df)
 
     filename = f'{season}_{position}_bios.csv'
-    file.save_csv(bios_df, main_folder='data_scraped', sub_folder='bios', filename=filename)
+    file.save_csv(bios_df, main_folder='scraped_data', sub_folder='bios', filename=filename)
 
 
 def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
@@ -173,5 +173,5 @@ def scrape_and_save_stats(season: str, position: str, situation: str) -> None:
         stats_df = clean.clean_dataframe(g_stats_df)
 
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
-    file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
+    file.save_csv(stats_df, 'scraped_data', 'stats', stats_filename)
 

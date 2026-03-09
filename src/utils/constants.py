@@ -3,28 +3,36 @@
 # ====================================================================================================
 import os
 
-def find_data_dir(start_dir: str) -> str:
+def find_project_dir(start_dir: str) -> str:
     """
-    Get the data directory for the project (the folder that contains the data_card folder).
+    Traverse upward until a directory containing 'card_data' is found.
 
-    :param start_dir: The directory that this function is being called from
-    :return: The directory that contains the data_card folder
+    :param start_dir: Directory where the search starts
+    :return: Project root directory
     """
-    # Traverse up until a folder containing 'card_data' is found
+
     while True:
-        potential_data_dir = os.path.join(start_dir, 'data_card')
+        potential_data_dir = os.path.join(start_dir, "card_data")
+
         if os.path.exists(potential_data_dir):
             return start_dir
+
         parent = os.path.dirname(start_dir)
+
         if parent == start_dir:
-            raise FileNotFoundError("Could not find 'card_data' folder")
+            raise FileNotFoundError('Could not find "card_data" folder')
+
         start_dir = parent
 
-# Start from the current file
+
+# Directory of the current file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# This is the folder directly above 'card_data' (for standalone card project and website purposes)
-DATA_DIR = find_data_dir(CURRENT_DIR)
+# Root project directory
+PROJECT_DIR = find_project_dir(CURRENT_DIR)
+
+# card_data directory
+DATA_DIR = os.path.join(PROJECT_DIR, "card_data")
 
 
 
@@ -43,7 +51,7 @@ GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 DATA_SEASONS = ['2025-2026']
 
 # Seasons to make single seasons rankings for
-YEARLY_RANK_SEASONS = ['2025-2026', 
+YEARLY_RANK_SEASONS = ['2025-2026',
                        '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
                        '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
                        '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']

@@ -18,8 +18,8 @@ from utils import load_save as file
 DATA_DIR = constants.DATA_DIR
 
 # Load and cache fonts
-BASIC_FONT_PATH = f'{DATA_DIR}/data_card/fonts/basic.ttf'
-HEADING_FONT_PATH = f'{DATA_DIR}/data_card/fonts/header.ttf'
+BASIC_FONT_PATH = f'{DATA_DIR}/assets/fonts/basic.ttf'
+HEADING_FONT_PATH = f'{DATA_DIR}/assets/fonts/header.ttf'
 
 FONT_CACHE = {
     'basic_40': ImageFont.truetype(BASIC_FONT_PATH, 40),
@@ -121,7 +121,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     draw = ImageDraw.Draw(header_section)
     
     # Get team logo
-    with open(f'data_card/team_logos/{team}_{mode}.svg', 'rb') as f:
+    with open(f'card_data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
         svg_bytes = f.read()
     team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
 
@@ -461,7 +461,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
         season_rows = player_multiple_seasons[player_multiple_seasons['Season'] == season]
         if not season_rows.empty:
             team = season_rows.iloc[0]['Team']
-            with open(f'data_card/team_logos/{team}_{mode}.svg', 'rb') as f:
+            with open(f'card_data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
                 svg_bytes = f.read()
             team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
             
