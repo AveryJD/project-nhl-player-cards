@@ -6,9 +6,10 @@
 import pandas as pd
 from PIL import Image
 import os
-import utils.constants as constants
+from utils import constants
 
 DATA_DIR = constants.DATA_DIR
+PROJECT_DIR = constants.PROJECT_DIR
 
 
 def get_prev_season(cur_season: str) -> str:
@@ -45,7 +46,7 @@ def load_bios_csv(season: str, position: str) -> pd.DataFrame:
     :return: The DataFrame containing the player bios
     """
     bio_filename = f'{season}_{position}_bios.csv'
-    bio_file_path = os.path.join(DATA_DIR, 'data_scraped', 'bios', bio_filename)
+    bio_file_path = os.path.join(DATA_DIR, 'player_card_data', 'scraped_data', 'bios', bio_filename)
 
     bios_df = pd.read_csv(bio_file_path)
     return bios_df
@@ -60,7 +61,7 @@ def load_salaries_csv(season: str, position: str) -> pd.DataFrame:
     :return: The DataFrame containing the player salaries
     """
     salaries_filename = f'{season}_{position}_salaries.csv'
-    salaries_file_path = os.path.join(DATA_DIR, 'data_scraped', 'salaries', salaries_filename)
+    salaries_file_path = os.path.join(DATA_DIR, 'player_card_data', 'scraped_data', 'salaries', salaries_filename)
 
     bios_df = pd.read_csv(salaries_file_path)
     return bios_df
@@ -76,7 +77,7 @@ def load_stats_csv(season: str, position: str, situation: str) -> pd.DataFrame:
     :return: The DataFrame containing the player stats
     """
     stats_filename = f'{season}_{position}_{situation}_stats.csv'
-    stats_file_path = os.path.join(DATA_DIR, 'data_scraped', 'stats', stats_filename)
+    stats_file_path = os.path.join(DATA_DIR, 'player_card_data', 'scraped_data', 'stats', stats_filename)
 
     stats_df = pd.read_csv(stats_file_path)
     return stats_df
@@ -104,7 +105,7 @@ def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.Dat
         pos_folder = 'goalies'
 
     filename = f'{season}_{position}_{ranking_str}_ranking.csv'
-    file_path = os.path.join(DATA_DIR, 'data_ranking', f'{ranking_str}_{pos_folder}', filename)
+    file_path = os.path.join(DATA_DIR, 'player_card_data', 'ranking_data', f'{ranking_str}_{pos_folder}', filename)
     
     ranking_df = pd.read_csv(file_path)
     return ranking_df
@@ -117,7 +118,7 @@ def load_ids_csv(season: str) -> pd.DataFrame:
     :return: The DataFrame containing the API information
     """
     ids_filename = f'{season}_ids.csv'
-    ids_file_path = os.path.join(DATA_DIR, 'data_scraped', 'ids', ids_filename)
+    ids_file_path = os.path.join(DATA_DIR, 'player_card_data', 'scraped_data', 'ids', ids_filename)
 
     ids_df = pd.read_csv(ids_file_path)
     return ids_df
@@ -130,7 +131,7 @@ def load_goalie_logs_csv(season: str) -> pd.DataFrame:
     :return: The DataFrame containing the goalie game logs data
     """
     logs_filename = f'{season}_goalie_logs.csv'
-    logs_file_path = os.path.join(DATA_DIR, 'data_scraped', 'goalie_logs', logs_filename)
+    logs_file_path = os.path.join(DATA_DIR, 'player_card_data', 'scraped_data', 'goalie_logs', logs_filename)
 
     logs_df = pd.read_csv(logs_file_path)
     return logs_df
@@ -154,7 +155,7 @@ def load_card_data_csv(season: str, position: str) -> pd.DataFrame:
         pos_folder = 'forwards'
 
     filename = f'{season}_{position}_card_data.csv'
-    file_path = os.path.join(DATA_DIR, 'data_card', pos_folder, filename)
+    file_path = os.path.join(DATA_DIR, 'player_card_data', 'card_data', pos_folder, filename)
     
     card_data_df = pd.read_csv(file_path)
     return card_data_df
@@ -170,7 +171,7 @@ def save_csv(df: pd.DataFrame, main_folder: str, sub_folder: str, filename: str)
     :param filename: Name of the CSV file to save
     :return: None
     """
-    save_dir = os.path.join(DATA_DIR, main_folder, sub_folder)
+    save_dir = os.path.join(DATA_DIR, 'player_card_data', main_folder, sub_folder)
     os.makedirs(save_dir, exist_ok=True)
 
     save_path = os.path.join(save_dir, filename)
@@ -190,7 +191,7 @@ def save_card(card: Image, season: str, team: str, position: str, filename: str)
     :param filename: Name of the card to save
     :return: None
     """
-    save_dir = os.path.join(DATA_DIR, 'cards', season, team, position)
+    save_dir = os.path.join(PROJECT_DIR, 'player_cards', season, team, position)
     os.makedirs(save_dir, exist_ok=True)
 
     save_path = os.path.join(save_dir, filename)
