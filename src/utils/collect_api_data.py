@@ -5,6 +5,8 @@ import os
 from utils import constants
 from utils import load_save as file
 
+DATA_DIR = constants.DATA_DIR
+
 
 def get_player_ids(season: str) -> None:
     """
@@ -46,11 +48,8 @@ def get_player_ids(season: str) -> None:
     ids_df = ids_df.sort_values(['Player', 'Position']).reset_index(drop=True)
 
     # Save IDs CSV
-    os.makedirs('data_scraped/ids', exist_ok=True)
-    filename = f'{season}_ids.csv'
-    filepath = os.path.join('data_scraped/ids', filename)
-    ids_df.to_csv(filepath, index=False)
-    print(f"Saved {filename}")
+    file_name = f'{season}_ids.csv'
+    file.save_csv(ids_df, 'scraped_data', 'ids', file_name)
 
 
 def get_goalie_game_logs(season: str) -> None:
@@ -67,7 +66,7 @@ def get_goalie_game_logs(season: str) -> None:
 
     # Helper to safely load IDs CSV
     def load_ids(s):
-        path = os.path.join('data_scraped/ids', f'{s}_ids.csv')
+        path = os.path.join(f'{DATA_DIR}/player_card_data/scraped_data/ids', f'{s}_ids.csv')
         if os.path.exists(path):
             return pd.read_csv(path)
         return pd.DataFrame(columns=['Player', 'Player ID', 'Team', 'Position'])
@@ -133,8 +132,5 @@ def get_goalie_game_logs(season: str) -> None:
     logs_df = logs_df.sort_values(by=['Player', 'Player ID', 'Date']).reset_index(drop=True)
 
     # Save goalie game logs CSV
-    os.makedirs('data_scraped/goalie_logs', exist_ok=True)
-    filename = f'{season}_goalie_logs.csv'
-    filepath = os.path.join('data_scraped/goalie_logs', filename)
-    logs_df.to_csv(filepath, index=False)
-    print(f"Saved {filename}")
+    file_name = f'{season}_goalie_logs.csv'
+    file.save_csv(logs_df, 'scraped_data', 'goalie_logs', file_name)
