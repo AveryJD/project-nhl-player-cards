@@ -55,7 +55,7 @@ The typical workflow is:
 ### Step 1: Collect & Clean Data
 This step scrapes and stores all raw data required for rankings and card generation.
 
-Open utils/constants.py and set the seasons you want to process (in the format 'YYYY-YYYY', ex: '2024-2025'):
+Open utils/constants.py and set the seasons you want to process (ideally have at least three consecutive seasons in the format 'YYYY-YYYY', ex: '2024-2025'):
 ```python
 # Seasons to scrape stats and bio data for
 DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
@@ -76,7 +76,7 @@ This script will:
 
 Note: Depending on the number of seasons, collecting data could take several minutes due to the implemented request delays to respect Natural Stat Trick’s servers.
 
-All scraped data CSV files will be saved to the 'data_scraped' folder, and team logo SVGs will be saved to the 'data_card' folder.
+All scraped data CSV files will be saved to various folders in 'data/player_card_data/scraped_data', and team logo SVGs will be saved to the 'data/assets/team_logos' folder.
 
 
 ### Step 2: Generate Rankings and Card Data
@@ -110,7 +110,7 @@ This script will:
 * Create weighted attribute scores and rankings using current and prior seasons
 * Assemble all player data required for card generation
 
-Generated ranking CSV files will be saved to the 'data_ranking' folder, and card data CSV files will be saved to the 'data_card' folder.
+Generated ranking CSV files will be saved to various folders in 'data/player_card_data/ranking_data', and card data CSV files will be saved to the 'data/player_card_data/card_data' folder.
 
 
 ### Step 3: Generate Cards
@@ -136,7 +136,7 @@ Execute the following script:
 python src/generate_cards.py
 ```
 
-Generated card PNGs will be saved the 'cards' folder.
+Generated card PNGs will be saved the 'player_cards' folder.
 
 ## License
 This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
