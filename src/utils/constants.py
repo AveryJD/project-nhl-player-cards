@@ -75,7 +75,7 @@ CARD_INFO_SEASONS = ['2025-2026',
 # ====================================================================================================
 
 SEASON_GAMES = {
-    '2025-2026': 33,  # Current season (min 9 GP for skaters, 5 GP for goalies)
+    '2025-2026': 55,  # Current season
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,
@@ -96,8 +96,10 @@ SEASON_GAMES = {
     '2007-2008': 82
 }
 
+# The minimum TOI per total games in the season that a player has to play to qualify for rankings
+SKATER_MIN_TOI = 3.6585
+
 # The minimum percentage of total games in the season that a player has to play to qualify for rankings
-SKATER_MIN_GP = 0.30
 GOALIE_MIN_GP = 0.15
 
 # The minimum percentage of special teams time per game played that a player has to play to qualify for special teams rankings

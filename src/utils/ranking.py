@@ -89,8 +89,8 @@ def make_player_rankings(season: str, position: str) -> None:
         pkl_data = pkl_data.set_index(['Player', 'Team'])
 
         # Filter skaters who do not meet the minimum games played requirement
-        min_games = constants.SEASON_GAMES[season] * constants.SKATER_MIN_GP
-        valid_players = all_data.loc[all_data['GP'] >= min_games].index
+        min_toi = constants.SEASON_GAMES[season] * constants.SKATER_MIN_TOI
+        valid_players = all_data.loc[all_data['TOI'] >= min_toi].index
 
         all_data = all_data.loc[valid_players]
 
