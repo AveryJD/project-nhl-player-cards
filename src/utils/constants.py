@@ -5,14 +5,14 @@ import os
 
 def find_project_dir(start_dir: str) -> str:
     """
-    Traverse upward until a directory containing 'card_data' is found.
+    Traverse upward until a directory containing 'data' is found.
 
     :param start_dir: Directory where the search starts
     :return: Project root directory
     """
 
     while True:
-        potential_data_dir = os.path.join(start_dir, "card_data")
+        potential_data_dir = os.path.join(start_dir, "data")
 
         if os.path.exists(potential_data_dir):
             return start_dir
@@ -20,7 +20,7 @@ def find_project_dir(start_dir: str) -> str:
         parent = os.path.dirname(start_dir)
 
         if parent == start_dir:
-            raise FileNotFoundError('Could not find "card_data" folder')
+            raise FileNotFoundError('Could not find "data" folder')
 
         start_dir = parent
 
@@ -31,8 +31,8 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Root project directory
 PROJECT_DIR = find_project_dir(CURRENT_DIR)
 
-# card_data directory
-DATA_DIR = os.path.join(PROJECT_DIR, "card_data")
+# Data directory
+DATA_DIR = os.path.join(PROJECT_DIR, "data")
 
 
 
