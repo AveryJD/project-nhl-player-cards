@@ -140,9 +140,7 @@ class SkaterScorer:
     def physicality_score(self, df: pd.DataFrame) -> np.ndarray:
         score = (
             self.weights['hits'] * df['Hits'].to_numpy() +
-            self.weights['minors'] * df['Minor'].to_numpy() +
-            self.weights['majors'] * df['Major'].to_numpy() +
-            self.weights['misconducts'] * df['Misconduct'].to_numpy()
+            self.weights['majors'] * df['Major'].to_numpy()
         )
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())

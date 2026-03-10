@@ -160,10 +160,8 @@ S_WEIGHTS = {
     'penalties_taken': -1.000,
 
     # Physicality Weights
-    'hits':             1.000,
-    'minors':           0.250,
-    'majors':           0.500,
-    'misconducts':      1.000,
+    'hits':             0.200,
+    'majors':           1.000,
 
     # Faceoff Weights
     'faceoff_wins':     1.000,
