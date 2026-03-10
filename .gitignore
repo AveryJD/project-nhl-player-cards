@@ -1,7 +1,5 @@
 *.pyc
 .DS_Store
 
-/data_scraped
-/data_ranking
-/data_card
-/cards
+/card_data
+/player_cards

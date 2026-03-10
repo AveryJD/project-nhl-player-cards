@@ -176,7 +176,7 @@ def make_card_data(season, position) -> None:
             .unstack(fill_value=0)
         )
 
-        # GEt shutouts
+        # Get shutouts
         shutout_df = (logs_df
             .groupby('Player')['Shutouts']
             .sum()

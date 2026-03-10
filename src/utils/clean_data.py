@@ -31,6 +31,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Josh Brown': 'Joshua Brown',
         'Josh Mahura': 'Joshua Mahura',
         'Juraj Slafkovsky': 'Juraj Slafkovský',
+        'Juuso Valimaki': 'Juuso Välimäki',
         'Mat?j  Blümel': 'Matěj Blümel',
         'Matt Dumba': 'Mathew Dumba',
         'Mitchell Marner': 'Mitch Marner',
@@ -39,7 +40,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Oskar Back': 'Oskar Bäck',
         'Pat Maroon': 'Patrick Maroon',
         'Sam Montembeault': 'Samuel Montembeault',
-        'Juuso Valimaki': 'Juuso Välimäki'
+        'Yegor Chinakhov': 'Egor Chinakhov'
     }
     df['Player'] = df['Player'].replace(name_replacements)
 
