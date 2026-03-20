@@ -109,7 +109,7 @@ def get_player_age(player_row: pd.Series) -> int:
 
 def make_card_data(season, position) -> None:
     """
-    Generate a CSV file of all the relevent card data from other CSV files
+    Generate a CSV file of all the relevent player card data from other CSV files
     
     :param season: A str of the season to make the card data for ('YYYY-YYYY')
     :param position: A str of the player's position's first letter to make the card data for ('F', 'D', or 'G')

@@ -19,6 +19,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         'Alex Wennberg': 'Alexander Wennberg',
         'Alex Kerfoot': 'Alexander Kerfoot',
         'Alexei Toropchenko': 'Alexey Toropchenko',
+        'Aatu Raty': 'Aatu Räty',
         'Zack Bolduc': 'Zachary Bolduc',
         'Cameron Atkinson': 'Cam Atkinson',
         'Casey Desmith': 'Casey DeSmith',

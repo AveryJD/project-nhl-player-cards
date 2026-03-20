@@ -126,11 +126,11 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
 
     # Calculate proportional height, resize and paste
-    logo_width = 800
+    logo_width = 750
     w_percent = logo_width / team_logo.width
     logo_height = int(team_logo.height * w_percent)
     team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
-    header_section.paste(team_logo, (-50, 135), team_logo)
+    header_section.paste(team_logo, (-25, 150), team_logo)
 
     # Get player image and paste
     headshot_img = ch.get_player_headsot(season, team, player_id)
