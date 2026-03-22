@@ -74,7 +74,6 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     age_birthday = f'{age} ({birth_date})'
     height = f"{int(player_row['Height (in)']) // 12}\'{int(player_row['Height (in)']) % 12}\""
     weight = f"{int(player_row['Weight (lbs)'])} lbs"
-    size = f'{height}, {weight}'
     draft_year = player_row['Draft Year']
     if draft_year == '-':
         draft = 'Undrafted'
@@ -108,9 +107,6 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         gsax = format(xgoals_against - goals_against, '.2f')
         toi = player_row['TOI']
         gsax_per_sixty = format((xgoals_against - goals_against)/toi * 60, '.2f')
-
-    # Get contract variables
-    contract_string = 'Coming Soon' #f'{years_left} x ${cap_hit}M'
 
     # Create header section card
     header_section_width = 2000
@@ -147,17 +143,17 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
 
     ch.draw_righted_text(draw, text='Position:', font=basic_font, y_position=250, x_right=975, fill=text_color)
     ch.draw_righted_text(draw, text='Role:', font=basic_font, y_position=300, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Contract:', font=basic_font, y_position=350, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Age:', font=basic_font, y_position=400, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Size:', font=basic_font, y_position=450, x_right=975, fill=text_color)
+    ch.draw_righted_text(draw, text='Age:', font=basic_font, y_position=350, x_right=975, fill=text_color)
+    ch.draw_righted_text(draw, text='Height:', font=basic_font, y_position=400, x_right=975, fill=text_color)
+    ch.draw_righted_text(draw, text='Weight:', font=basic_font, y_position=450, x_right=975, fill=text_color)
     ch.draw_righted_text(draw, text='Drafted:', font=basic_font, y_position=500, x_right=975, fill=text_color)
     ch.draw_righted_text(draw, text='Country:', font=basic_font, y_position=550, x_right=975, fill=text_color)
 
     draw.text(xy=(1025, 250), text=position_name, font=basic_font, fill=text_color)
     draw.text(xy=(1025, 300), text=role, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 350), text=contract_string, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 400), text=age_birthday, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 450), text=size, font=basic_font, fill=text_color)
+    draw.text(xy=(1025, 350), text=age_birthday, font=basic_font, fill=text_color)
+    draw.text(xy=(1025, 400), text=height, font=basic_font, fill=text_color)
+    draw.text(xy=(1025, 450), text=weight, font=basic_font, fill=text_color)
     draw.text(xy=(1025, 500), text=draft, font=basic_font, fill=text_color)
     draw.text(xy=(1025, 550), text=nationality, font=basic_font, fill=text_color)
 
@@ -501,6 +497,9 @@ def make_branding_section(team: str, mode: str = 'light') -> Image:
     header_text_color = constants.WHITE
     header_shadow_color = constants.SECONDARY_COLORS.get(team)
 
+    # Get updated date string
+    update_date = constants.UPDATE_DATE
+
     # Create branding section card
     branding_section_width = 2000
     branding_section_height = 400
@@ -521,10 +520,10 @@ def make_branding_section(team: str, mode: str = 'light') -> Image:
 
     # Resources text
     draw.text(xy=(1060, 73), text='Player Data From:', font=basic_font, fill=text_color)
-    draw.text(xy=(1060, 156), text='Contract Data From:', font=basic_font, fill=text_color)
+    draw.text(xy=(1060, 156), text='Date Updated:', font=basic_font, fill=text_color)
 
     ch.draw_righted_text(draw, 'naturalstattrick.com', basic_font, 73, 1900, fill=text_color)
-    ch.draw_righted_text(draw, 'Coming Soon', basic_font, 156, 1900, fill=text_color)  #'PuckPedia.com'
+    ch.draw_righted_text(draw, update_date, basic_font, 156, 1900, fill=text_color)  #'PuckPedia.com'
     
     # Get font
     heading_font = basic_font = FONT_CACHE['heading_116']
