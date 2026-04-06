@@ -40,7 +40,7 @@ DATA_DIR = os.path.join(PROJECT_DIR, "data")
 # DATA CONSTANTS
 # ====================================================================================================
 # Date card data was updated on
-UPDATE_DATE = 'March 30, 2026'
+UPDATE_DATE = 'April 5, 2026'
 
 # Positions to scrape stats and bio data for
 POSITIONS = ['F', 'D', 'G']
