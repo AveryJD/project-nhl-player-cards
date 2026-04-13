@@ -34,10 +34,9 @@ FONT_CACHE = {
 def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     """
     Creates the header section of a player card as a PIL Image. The header includes player profile information, team and season 
-    banner, headshot, team logo, contract status (placeholder), and key stats.
+    banner, headshot, team logo, and key stats.
 
     :param player_row: A Series containing player data
-    :param mode: A str determining the style of card ('light' or 'dark')
     :param mode: A str determining the style of card ('light' or 'dark')
     :return: An Image of the header section
     """
@@ -330,8 +329,6 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     else:
         # Draw rectangle
         draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
-
-    plt.close()
     
     return ranking_section
 
@@ -540,7 +537,7 @@ def make_branding_section(team: str, mode: str = 'light') -> Image:
     return branding_section
 
 
-def make_player_card(player_name: str, season: str, pos: str, mode='light', save: bool=True,) -> None:
+def make_player_card(player_name: str, season: str, pos: str, mode: str='light', save: bool=True,) -> None:
     """
     Generate and save a full player card image for a given player and season.
 

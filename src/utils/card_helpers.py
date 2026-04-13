@@ -31,7 +31,7 @@ def draw_centered_text(
     :param text: A str of the text to be centered
     :param font: An ImageFont of the text's font
     :param y_position: An int of where the y position will be
-    :param x_center: An int of where the center x position is (default is at 500)
+    :param x_center: An int of where the center x position is (default is at 1000)
     :param fill: A tuple of rgb values for the color of the text (default is (0,0,0)/black)
     :return: None
     """
@@ -57,7 +57,7 @@ def draw_righted_text(
     :param text: A str of the text to be right-aligned
     :param font: An ImageFont of the text's font
     :param y_position: An int of where the y position will be
-    :param x_center: An int of where the right most x position is
+    :param x_right: An int of where the right most x position is
     :param fill: A tuple of rgb values for the color of the text (default is (0,0,0)/black)
     :return: None
     """
@@ -80,7 +80,7 @@ def get_word_date(number_date: str) -> str:
     return word_date
 
 
-def plot_to_image(fig: plt) -> Image:
+def plot_to_image(fig: plt.Figure) -> Image:
     """
     Change a matplotlib plot into a PIL image.
 
@@ -154,7 +154,7 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
     return rank, percentile
 
 
-def get_percentile_color(percentile: int) -> tuple[float, float, float]:
+def get_percentile_color(percentile: int) -> tuple[int, int, int]:
     """
     Return an RGB color based on the percentile rank.
     0%   -> Red (255, 0, 0)

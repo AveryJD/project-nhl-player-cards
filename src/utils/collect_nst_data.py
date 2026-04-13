@@ -79,12 +79,12 @@ def random_delay() -> None:
     time.sleep(delay)
 
 
-def get_page(url: str) -> str:
+def get_page(url: str) -> bytes:
     """
     Fetch the HTML content of a given URL.
 
     :param url: The URL to fetch
-    :return: The content of the fetched page, or None if the request fails
+    :return: The content of the fetched page
     """
     # Delay before fetching the page
     random_delay()
