@@ -8,7 +8,7 @@ from utils import collect_nst_data
 from utils import collect_logos
 from utils import constants
 
-
+"""
 # Scrape logos from NHL.com
 collect_logos.scrape_logos()
 
@@ -16,7 +16,7 @@ collect_logos.scrape_logos()
 # Gather player IDs from the NHL API
 for season in constants.DATA_SEASONS:
     collect_api_data.get_player_ids(season)
-
+"""
 
 # Gather player bios and stats from NaturalStatTrick
 for season in constants.DATA_SEASONS:
