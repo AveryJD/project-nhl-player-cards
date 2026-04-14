@@ -3,7 +3,7 @@
 # ====================================================================================================
 
 # Imports
-from utils import card_generation
+from player_card_project.utils import card_generation
 
 """
 Different functions for generating player cards:

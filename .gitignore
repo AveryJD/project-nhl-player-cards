@@ -1,6 +1,7 @@
 /venv
 *.pyc
 .DS_Store
+*.egg-info
 
 /data
 /player_cards

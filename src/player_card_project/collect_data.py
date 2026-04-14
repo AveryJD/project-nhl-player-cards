@@ -3,10 +3,10 @@
 # ====================================================================================================
 
 # Imports
-from utils import collect_api_data
-from utils import collect_nst_data
-from utils import collect_logos
-from utils import constants
+from player_card_project.utils import collect_api_data
+from player_card_project.utils import collect_nst_data
+from player_card_project.utils import collect_logos
+from player_card_project.utils import constants
 
 """
 # Scrape logos from NHL.com

@@ -3,9 +3,9 @@
 # ====================================================================================================
 
 # Imports
-from utils import ranking
-from utils import card_data
-from utils import constants
+from player_card_project.utils import ranking
+from player_card_project.utils import card_data
+from player_card_project.utils import constants
 
 
 # Generate yearly rankings

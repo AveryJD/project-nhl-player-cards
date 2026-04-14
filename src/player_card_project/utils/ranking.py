@@ -5,9 +5,9 @@
 # Imports
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from utils import scoring
-from utils import constants
-from utils import load_save as file
+from player_card_project.utils import scoring
+from player_card_project.utils import constants
+from player_card_project.utils import load_save as file
 
 
 def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None, goalie_logs_df=None) -> pd.DataFrame:

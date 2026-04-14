@@ -5,8 +5,8 @@
 # Imports
 import pandas as pd
 from datetime import datetime, date
-from utils import load_save as file
-from utils import constants
+from player_card_project.utils import load_save as file
+from player_card_project.utils import constants
 
 
 def resolve_team(player_row: pd.Series) -> str:

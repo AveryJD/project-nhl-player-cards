@@ -6,7 +6,7 @@
 import pandas as pd
 from PIL import Image
 import os
-from utils import constants
+from player_card_project.utils import constants
 
 DATA_DIR = constants.DATA_DIR
 PROJECT_DIR = constants.PROJECT_DIR

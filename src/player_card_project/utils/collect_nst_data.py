@@ -8,9 +8,9 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import random
-from utils import clean_data as clean
-from utils import constants
-from utils import load_save as file
+from player_card_project.utils import clean_data as clean
+from player_card_project.utils import constants
+from player_card_project.utils import load_save as file
 
 DATA_DIR = constants.DATA_DIR
 
