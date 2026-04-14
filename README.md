@@ -44,6 +44,11 @@ source venv/bin/activate  # On Windows: venv\\Scripts\\activate
 pip install -r requirements.txt
 ```
 
+4. **Install package locally:**
+```bash
+pip install -e .
+```
+
 
 ## Usage
 The typical workflow is:
@@ -55,7 +60,7 @@ The typical workflow is:
 ### Step 1: Collect & Clean Data
 This step scrapes and stores all raw data required for rankings and card generation.
 
-Open utils/constants.py and set the seasons you want to process (ideally have at least three consecutive seasons in the format 'YYYY-YYYY', ex: '2024-2025'):
+Open src/player_card_project/utils/constants.py and set the seasons you want to process (ideally have at least three consecutive seasons in the format 'YYYY-YYYY', ex: '2024-2025'):
 ```python
 # Seasons to scrape stats and bio data for
 DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
@@ -65,7 +70,7 @@ DATA_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021',
 
 Execute the following script:
 ```bash
-python src/collect_data.py
+python -m player_card_project.collect_data
 ```
 
 This script will:
@@ -102,7 +107,7 @@ CARD_INFO_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2
 
 Execute the following script:
 ```bash
-python src/prepare_data.py
+python -m player_card_project.prepare_data
 ```
 
 This script will:
@@ -119,7 +124,7 @@ Once rankings and card data are prepared, this step generates visual player stat
 Call functions in src/generate_cards.py to choose what cards to generate:
 ```python
 # Different functions for generating player cards:
-card_generation.make_player_card('Sidney Crosby', '2024-2024', 'F', 'dark')
+card_generation.make_player_card('Sidney Crosby', '2024-2025', 'F', 'dark')
 card_generation.make_team_player_cards('TOR', '2024-2025', 'light')
 card_generation.make_all_position_player_cards('2024-2025', 'G', 'dark')
 card_generation.make_all_player_cards('2024-2025', 'light')
@@ -133,10 +138,10 @@ Available card generation options include:
 
 Execute the following script:
 ```bash
-python src/generate_cards.py
+python -m player_card_project.generate_cards
 ```
 
-Generated card PNGs will be saved the 'player_cards' folder.
+Generated card PNGs will be saved to the 'player_cards' folder.
 
 ## License
 This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
