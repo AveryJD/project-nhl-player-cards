@@ -144,7 +144,7 @@ This project is licensed under the GNU General Public License v3.0. See the LICE
 
 ## Acknowledgments
 * Data sourced from [Natural Stat Trick](https://www.naturalstattrick.com) and the NHL API.
-* Project inspiration: [JFresh](https://x.com/JFreshHockey) & [Rono](https://x.com/RonoAnalyst).
+* Project inspiration: [HockeyStats.com](https://hockeystats.com/cards/player-cards) & [RonoHockey](https://ronohockey.com/cards/players/single-season/).
 
 
 ## Disclaimer
