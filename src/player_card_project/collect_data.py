@@ -19,7 +19,7 @@ for season in constants.DATA_SEASONS:
 """
 
 # Gather player bios and stats from NaturalStatTrick
-for season in constants.DATA_SEASONS:
+for season in constants.SCRAPE_SEASONS:
     for position in constants.POSITIONS:
         collect_nst_data.scrape_and_save_bios(season, position)
         if position != 'G':

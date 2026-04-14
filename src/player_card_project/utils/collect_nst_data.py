@@ -89,11 +89,26 @@ def get_page(url: str) -> bytes:
     # Delay before fetching the page
     random_delay()
 
-    # Fetch the page content
-    response = requests.get(url)
-    response.raise_for_status()
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/123.0.0.0 Safari/537.36"
+        ),
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;q=0.9,"
+            "image/avif,image/webp,*/*;q=0.8"
+        ),
+        "Accept-Language": "en-CA,en-US;q=0.9,en;q=0.8",
+        "Referer": "https://www.naturalstattrick.com/",
+        "Connection": "keep-alive",
+    }
 
-    return response.content
+    # Fetch the page content
+    with requests.Session() as session:
+        response = session.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        return response.content
 
 
 def merge_data(df_one: pd.DataFrame, df_two: pd.DataFrame, merge_keys: list) -> pd.DataFrame:

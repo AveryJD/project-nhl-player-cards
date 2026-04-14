@@ -19,6 +19,6 @@ for season in constants.WEIGHTED_RANK_SEASONS:
         ranking.make_player_weighted_rankings(season, pos)
 
 # Assemble card data
-for season in constants.CARD_INFO_SEASONS:
+for season in constants.CARD_SEASONS:
     for pos in constants.POSITIONS:
         card_data.make_card_data(season, pos)
