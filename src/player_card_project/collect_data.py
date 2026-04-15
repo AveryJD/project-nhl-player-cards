@@ -8,7 +8,7 @@ from player_card_project.utils import collect_nst_data
 from player_card_project.utils import collect_logos
 from player_card_project.utils import constants
 
-"""
+
 # Scrape logos from NHL.com
 collect_logos.scrape_logos()
 
@@ -16,7 +16,7 @@ collect_logos.scrape_logos()
 # Gather player IDs from the NHL API
 for season in constants.DATA_SEASONS:
     collect_api_data.get_player_ids(season)
-"""
+
 
 # Gather player bios and stats from NaturalStatTrick
 for season in constants.SCRAPE_SEASONS:
@@ -37,7 +37,7 @@ for season in constants.DATA_SEASONS:
 
 
 """
-# Clean data that has already been collected
+# For cleaning data that has already been collected
 for season in constants.YEARLY_RANK_SEASONS:
     for position in constants.POSITIONS:
 

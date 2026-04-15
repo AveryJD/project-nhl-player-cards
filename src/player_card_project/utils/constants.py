@@ -50,33 +50,17 @@ SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 
 # Seasons to scrape stats and bio data for
-SCRAPE_SEASONS = ['2025-2026']
+DATA_SEASONS = ['2025-2026']
 
-# Seasons to make single seasons rankings for
-YEARLY_RANK_SEASONS = ['2025-2026',
-                       '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                       '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                       '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
-
-# Seasons to make weighted rankings for
-WEIGHTED_RANK_SEASONS = ['2025-2026',
-                         '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                         '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                         '2012-2013', '2011-2012', '2010-2011', '2009-2010']
-
-# Seasons to gather card data for
-CARD_SEASONS = ['2025-2026',
-                '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+# Seasons to put together card data for
+CARD_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
                 '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                '2012-2013', '2011-2012', '2010-2011', '2009-2010']
+                '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 
 # All seasons of avalible data
-ALL_SEASONS = [
-    '2007-2008', '2008-2009', '2009-2010', '2010-2011', '2011-2012', 
-    '2012-2013', '2013-2014', '2014-2015', '2015-2016', '2016-2017', 
-    '2017-2018', '2018-2019', '2019-2020', '2020-2021', '2021-2022', 
-    '2022-2023', '2023-2024', '2024-2025', '2025-2026'
-]
+ALL_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+               '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
+               '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 
 
 
@@ -84,6 +68,7 @@ ALL_SEASONS = [
 # RANKING CONSTANTS
 # ====================================================================================================
 
+# Number of games per season
 SEASON_GAMES = {
     '2025-2026': 82,    # Current season (max games any team has played)
     '2024-2025': 82,
@@ -215,6 +200,37 @@ G_WEIGHTS = {
 # ====================================================================================================
 # NAMING CONSTANTS
 # ====================================================================================================
+
+# Names to be fixed for consitency
+FIX_NAMES = {
+    'Alex Wennberg': 'Alexander Wennberg',
+    'Alex Kerfoot': 'Alexander Kerfoot',
+    'Alexei Toropchenko': 'Alexey Toropchenko',
+    'Aatu Raty': 'Aatu Räty',
+    'Zack Bolduc': 'Zachary Bolduc',
+    'Cameron Atkinson': 'Cam Atkinson',
+    'Casey Desmith': 'Casey DeSmith',
+    'Christopher Tanev': 'Chris Tanev',
+    'Frederic Gaudreau': 'Frederick Gaudreau',
+    'Isac Lundestrom': 'Isac Lundeström',
+    'Jani Hakanpaa': 'Jani Hakanpää',
+    'Janis Moser': 'J.J. Moser',
+    'Jean-Francois Berube': 'J-F Berube',
+    'Josh Brown': 'Joshua Brown',
+    'Josh Mahura': 'Joshua Mahura',
+    'Juraj Slafkovsky': 'Juraj Slafkovský',
+    'Juuso Valimaki': 'Juuso Välimäki',
+    'Mat?j  Blümel': 'Matěj Blümel',
+    'Matt Dumba': 'Mathew Dumba',
+    'Mitchell Marner': 'Mitch Marner',
+    'Nicholas Paul': 'Nick Paul',
+    'Olli Maatta': 'Olli Määttä',
+    'Oskar Back': 'Oskar Bäck',
+    'Pat Maroon': 'Patrick Maroon',
+    'Sam Montembeault': 'Samuel Montembeault',
+    'Yegor Chinakhov': 'Egor Chinakhov'
+}
+
 
 # Position first letters with full names
 POSITION_NAMES = {

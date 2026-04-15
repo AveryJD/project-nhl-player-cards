@@ -89,20 +89,10 @@ This step transforms raw data into player rankings and structured card-ready dat
 
 Open utils/constants.py and set the seasons you want to process (Natural Stat Trick's earliest season is 2007-2008):
 ```python
-# Seasons to make single seasons rankings for
-YEARLY_RANK_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                       '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                       '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
-
-# Seasons to make weighted rankings for
-WEIGHTED_RANK_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                         '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                         '2012-2013', '2011-2012', '2010-2011', '2009-2010']
-
-# Seasons to gather card data for
+# Seasons to put together card data for
 CARD_SEASONS = ['2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
                 '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                '2012-2013', '2011-2012', '2010-2011', '2009-2010']
+                '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 ```
 
 Execute the following script:

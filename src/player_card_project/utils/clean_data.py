@@ -4,6 +4,7 @@
 
 # Imports
 import pandas as pd
+from player_card_project.utils import constants
 
 
 def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -15,34 +16,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     """
 
     # Replace names with most commonly used names for consistency
-    name_replacements = {
-        'Alex Wennberg': 'Alexander Wennberg',
-        'Alex Kerfoot': 'Alexander Kerfoot',
-        'Alexei Toropchenko': 'Alexey Toropchenko',
-        'Aatu Raty': 'Aatu Räty',
-        'Zack Bolduc': 'Zachary Bolduc',
-        'Cameron Atkinson': 'Cam Atkinson',
-        'Casey Desmith': 'Casey DeSmith',
-        'Christopher Tanev': 'Chris Tanev',
-        'Frederic Gaudreau': 'Frederick Gaudreau',
-        'Isac Lundestrom': 'Isac Lundeström',
-        'Jani Hakanpaa': 'Jani Hakanpää',
-        'Janis Moser': 'J.J. Moser',
-        'Jean-Francois Berube': 'J-F Berube',
-        'Josh Brown': 'Joshua Brown',
-        'Josh Mahura': 'Joshua Mahura',
-        'Juraj Slafkovsky': 'Juraj Slafkovský',
-        'Juuso Valimaki': 'Juuso Välimäki',
-        'Mat?j  Blümel': 'Matěj Blümel',
-        'Matt Dumba': 'Mathew Dumba',
-        'Mitchell Marner': 'Mitch Marner',
-        'Nicholas Paul': 'Nick Paul',
-        'Olli Maatta': 'Olli Määttä',
-        'Oskar Back': 'Oskar Bäck',
-        'Pat Maroon': 'Patrick Maroon',
-        'Sam Montembeault': 'Samuel Montembeault',
-        'Yegor Chinakhov': 'Egor Chinakhov'
-    }
+    name_replacements = constants.FIX_NAMES
     df['Player'] = df['Player'].replace(name_replacements)
 
     return df

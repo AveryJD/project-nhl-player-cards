@@ -15,7 +15,7 @@ def scrape_logos() -> None:
 
     :return: None
     """
-    os.makedirs(f'{constants.DATA_DIR}/card_data/assets/team_logos', exist_ok=True)
+    os.makedirs(f'{constants.DATA_DIR}/assets/team_logos', exist_ok=True)
     
     for team_code in constants.TEAM_NAMES:
         for variant in ['light', 'dark']:
@@ -28,7 +28,7 @@ def scrape_logos() -> None:
             
             if response.status_code == 200:
                 # Write the SVG content to a file
-                output_path = os.path.join(constants.DATA_DIR, 'card_data', 'assets', 'team_logos', file_name)
+                output_path = os.path.join(constants.DATA_DIR, 'assets', 'team_logos', file_name)
                 with open(output_path, 'wb') as f:
                     f.write(response.content)
                 print(f'Saved {file_name}')
