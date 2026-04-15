@@ -190,14 +190,31 @@ def make_player_weighted_rankings(season: str, position: str):
     :return: None
     """
 
-    # Get the season strings for the two previous seasons
-    prev_season = file.get_prev_season(season)
-    prev_prev_season = file.get_prev_season(prev_season)
-
-    # Get the csv files containing the player rankings/scores
+    # Load current season rankings
     cur_rankings = file.load_rankings_csv(season, position, weighted=False)
-    prev_rankings = file.load_rankings_csv(prev_season, position, weighted=False)
-    prev_prev_rankings = file.load_rankings_csv(prev_prev_season, position, weighted=False)
+
+    # Check if previous seasons are avalible
+    prev_season = file.get_prev_season(season)
+    if prev_season not in constants.ALL_SEASONS:
+        prev_season = None
+
+    if prev_season is not None:
+        prev_prev_season = file.get_prev_season(prev_season)
+        if prev_prev_season not in constants.ALL_SEASONS:
+            prev_prev_season = None
+    else:
+        prev_prev_season = None
+
+    # Load previous rankings if available
+    if prev_season is not None:
+        prev_rankings = file.load_rankings_csv(prev_season, position, weighted=False)
+    else:
+        prev_rankings = pd.DataFrame()
+
+    if prev_prev_season is not None:
+        prev_prev_rankings = file.load_rankings_csv(prev_prev_season, position, weighted=False)
+    else:
+        prev_prev_rankings = pd.DataFrame()
 
     # Determine players to rank (those in the current season)
     rankings_players = cur_rankings[['Season', 'Player', 'Position', 'Team']].copy()
@@ -216,25 +233,25 @@ def make_player_weighted_rankings(season: str, position: str):
         name = row['Player']
         scores = {}
 
-        # Extract season rows (use None if missing)
+        # Extract season rows (use empty DataFrame if missing)
         if not prev_prev_rankings.empty:
             row_prev_prev = prev_prev_rankings[prev_prev_rankings['Player'] == name]
         else:
-            row_prev_prev = None
+            row_prev_prev = pd.DataFrame()
 
         if not prev_rankings.empty:
             row_prev = prev_rankings[prev_rankings['Player'] == name]
         else:
-            row_prev = None
-            row_prev_prev = None
+            row_prev = pd.DataFrame()
+            row_prev_prev = pd.DataFrame()
 
         
         if not cur_rankings.empty:
             row_cur = cur_rankings[cur_rankings['Player'] == name]
         else:
-            row_cur = None
-            row_prev = None
-            row_prev_prev = None
+            row_cur = pd.DataFrame()
+            row_prev = pd.DataFrame()
+            row_prev_prev = pd.DataFrame()
 
         # Maintain season order
         season_rows = [row_cur, row_prev, row_prev_prev]
