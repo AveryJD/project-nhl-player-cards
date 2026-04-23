@@ -119,9 +119,9 @@ def make_player_rankings(season: str, position: str) -> None:
         scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, ppl_df=ppl_data)
 
         # Mask invalid PP/PK players' scores
-        scores_df.loc[invalid_ppl, 'ppl_score'] = -999999
-        scores_df.loc[invalid_pkl, 'pkl_score'] = -999999
-        scores_df.loc[invalid_fof, 'fof_score'] = -999999
+        scores_df.loc[invalid_ppl, 'ppl_score'] = pd.NA
+        scores_df.loc[invalid_pkl, 'pkl_score'] = pd.NA
+        scores_df.loc[invalid_fof, 'fof_score'] = pd.NA
 
         # Put together scores DataFrame
         rankings = all_data.reset_index()[['Player', 'Team', 'Position']].copy()
@@ -167,7 +167,11 @@ def make_player_rankings(season: str, position: str) -> None:
     score_columns = [col for col in scores_df.columns if col.endswith('_score')]
     for col in score_columns:
         attr = col.split('_')[0]
-        rankings[f'{attr}_rank'] = rankings[col].rank(ascending=False, method='dense')
+        rankings[f'{attr}_rank'] = rankings[col].rank(
+            ascending=False,
+            method='dense',
+            na_option='keep'
+        )
 
     # Save rankings CSV file
     if position == 'F':
@@ -264,13 +268,13 @@ def make_player_weighted_rankings(season: str, position: str):
             for df in season_rows:
                 if not df.empty:
                     value = df.iloc[0][col]
-                    values.append(value if value != -999999 else None)
+                    values.append(None if pd.isna(value) else value)
                 else:
                     values.append(None)
 
             # If the player doesn't have scores for the current season, skip them
             if values[0] is None:
-                scores[col] = -999999
+                scores[col] = pd.NA
                 continue
 
             # Count valid seasons
@@ -314,7 +318,7 @@ def make_player_weighted_rankings(season: str, position: str):
     # Scale weighted scores per column
     scaled_scores_df = scores_df.copy()
     for col in score_cols:
-        mask_valid = scores_df[col] != -999999
+        mask_valid = scores_df[col].notna()
         if mask_valid.any():
             scaler = MinMaxScaler()
             scaled_vals = scaler.fit_transform(scores_df.loc[mask_valid, [col]])

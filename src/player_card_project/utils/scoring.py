@@ -14,7 +14,7 @@ class SkaterScorer:
 
 
     def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
-        adjusted = np.full_like(score, -999999, dtype=float)
+        adjusted = np.full_like(score, np.nan, dtype=float)
         np.divide(score * 60 + 1e-10, toi, out=adjusted, where=toi > 0)
         return adjusted
 
@@ -188,7 +188,7 @@ class GoalieScorer:
 
 
     def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
-        adjusted = np.full_like(score, -999999, dtype=float)
+        adjusted = np.full_like(score, np.nan, dtype=float)
         np.divide(score * 60 + 1e-10, toi, out=adjusted, where=toi > 0)
         return adjusted
 
