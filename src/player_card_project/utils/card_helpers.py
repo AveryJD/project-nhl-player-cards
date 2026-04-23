@@ -250,7 +250,7 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
         
         # Load data from previous season, but break if the file is not found
         try:
-            tot_players_season_data = file.load_card_data_csv(tot_players_season, pos)
+            tot_players_season_data = file.load_rankings_csv(tot_players_season, pos, weighted=False)
         except FileNotFoundError:
             print(f'Warning: Data for {tot_players_season} total players not found. Stopping iteration.')
             break
@@ -258,61 +258,32 @@ def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: st
     return yearly_total_players
 
 
-def get_player_multiple_seasons(player_name: str, cur_season: str, pos: str, seasons_num: int = 5) -> pd.DataFrame:
+def get_player_single_season(player_name: str, cur_season: str, pos: str) -> pd.DataFrame:
     """
-    Return a DataFrame of a player's rankings for multiple consecutive seasons.
+    Return a Series of a player's rankings for a single seasons.
 
     :param player_name: A str of the full name of the player to return the multiple seasons for ('First Last')
     :param cur_season: A str of the most recent season ('YYYY-YYYY')
     :param pos: A str of the player's position's first letter ('F', 'D', or 'G')
-    :param seasons_num: An int of the number of seasons to include (default is 5)
-    :return: A DataFrame containing player stats and total player counts over the specified seasons
+    :return: A Series containing player stats and total player counts over the specified seasons
     """
 
-    # Load the current season's data
-    season_zero_data = file.load_card_data_csv(cur_season, pos)
-    
+    # Load the current season's card data
+    season_data = file.load_card_data_csv(cur_season, pos)
+
     # Get player row
-    player_seasons = season_zero_data[season_zero_data['Player'] == player_name].copy()
+    player_season = season_data.loc[season_data['Player'] == player_name].copy()
+    if player_season.empty:
+        raise ValueError(f"{player_name} not found in {cur_season} {pos} card data.")
+    player_season = player_season.iloc[0]
 
-    # Initialize total players dictionary
-    yearly_total_players = get_yearly_total_players(cur_season, season_zero_data, pos, seasons_num)
+    # Add total-player counts expected by make_rank_component
+    player_season['all_players'] = len(season_data)
 
-    # Add total players stats for the current season
-    player_seasons['all_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
+    if pos != 'G':
+        player_season['ppl_players'] = int(season_data['ppl_rank'].notna().sum()) if 'ppl_rank' in season_data.columns else 0
+        player_season['pkl_players'] = int(season_data['pkl_rank'].notna().sum()) if 'pkl_rank' in season_data.columns else 0
+        player_season['fof_players'] = int(season_data['fof_rank'].notna().sum()) if 'fof_rank' in season_data.columns else 0
 
-    if pos == 'G':
-        player_seasons['ppl_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
-        player_seasons['pkl_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
-        player_seasons['fof_players'] = yearly_total_players.get(f'all_{cur_season}', 0)
-    else:
-        player_seasons['ppl_players'] = yearly_total_players.get(f'ppl_{cur_season}', 0)
-        player_seasons['pkl_players'] = yearly_total_players.get(f'pkl_{cur_season}', 0)
-        player_seasons['fof_players'] = yearly_total_players.get(f'fof_{cur_season}', 0)
-    
-
-    # Loop to get previous seasons data
-    season = file.get_prev_season(cur_season)
-    for _ in range(seasons_num):
-        try:
-            season_data = file.load_card_data_csv(season, pos)
-        except FileNotFoundError:
-            print(f"Warning: Data for {season} season not found. Skipping this season.")
-            break
-
-        player_row = season_data[season_data['Player'] == player_name]
-        if not player_row.empty:
-            # Add player row to the DataFrame
-            player_row = player_row.copy()
-            player_row['all_players'] = yearly_total_players.get(f'all_{season}', 0)
-            if pos != 'G':
-                player_row['ppl_players'] = yearly_total_players.get(f'ppl_{season}', 0)
-                player_row['pkl_players'] = yearly_total_players.get(f'pkl_{season}', 0)
-                player_row['fof_players'] = yearly_total_players.get(f'fof_{season}', 0)
-            player_seasons = pd.concat([player_seasons, player_row], ignore_index=True)
-
-        # Move to the previous season
-        season = file.get_prev_season(season)
-
-    return player_seasons
+    return player_season
 

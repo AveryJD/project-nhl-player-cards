@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import io
+import ast
 import cairosvg
 import inflect
 from PIL import Image, ImageDraw, ImageFont
@@ -333,12 +334,12 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     return ranking_section
 
 
-def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: str = 'light') -> Image:
+def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') -> Image:
     """
     Creates the graph section Image for the player card. The rank section contains a graph that displays the some of player's attribute rankings 
     over multiple seasons.
 
-    :param player_multiple_seasons: A DataFrame containing player data over multiple seasons
+    :param player_row: A Series containing player data
     :param pos: A str of the first letter of the player's position ('F', 'D', or 'G')
     :param mode: A str determining the style of card ('light' or 'dark')
     :return: An Image of the graph section
@@ -366,14 +367,7 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
     else:
         attributes_to_plot = ['all', 'evs', 'gpk']
 
-    # Make a list with the current season
-    cur_season = max(player_multiple_seasons['Season'])
-    
-    # Add the previous four seasons to the list and put the oldest season first
-    seasons = [cur_season]
-    for _ in range(4):
-        seasons.append(file.get_prev_season(seasons[-1]))
-    seasons.reverse()
+    x_vals = list(range(len(attributes_to_plot)))
 
     # Store x-axis positions (fixed for 5 seasons)
     x_vals = list(range(1, 16, 3))
@@ -382,46 +376,54 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
     plt.style.use('default')
     fig, ax = plt.subplots(figsize=(graph_section_width / 200, (graph_section_height - 50) / 200), facecolor=graph_background_color, dpi=200)
 
-    # Iterate over attributes
+    # Get a list of the five seasons to plot
+    seasons = [player_row['Season']]
+    for _ in range(4):
+        seasons.append(file.get_prev_season(seasons[-1]))
+    seasons.reverse()
+
+    # Initialize attributes to be plotted with a dashed line
+    dashed_line_attributes = ['ppl', 'pkl', 'evs', 'gpk']
+
+    # Iterate over attributes to plot
     for attribute_name in attributes_to_plot:
-        percentiles = []
-        for season in seasons:
-            season_rows = player_multiple_seasons[player_multiple_seasons['Season'] == season]
-            if not season_rows.empty:
-                cur_player_row = season_rows.iloc[0]
-                
-                # Check if attribute data exists and keep track of percentiles to graph
-                attr_rank_col = f"{attribute_name}_rank"
-                if pd.notna(cur_player_row.get(attr_rank_col)) and cur_player_row.get(attr_rank_col) != 'N/A':
-                    if attribute_name not in ['ppl', 'pkl', 'fof']:
-                        total_players = cur_player_row.get('all_players')
-                    else:
-                        total_players = cur_player_row.get(f'{attribute_name}_players')
-                    if pd.notna(total_players) and total_players > 0:
-                        rank, percentile = ch.get_rank_and_percentile(cur_player_row, attr_rank_col, total_players)
-                        if rank == 'N/A':
-                            percentiles.append(None)
-                        else:
-                            percentiles.append(percentile)
-                    else:
-                        percentiles.append(None)
-                else:
-                    percentiles.append(None)
-            else:
-                percentiles.append(None)
+        history_col = f"{attribute_name}_history"
 
-        # Plot lines
-        dashed_line_attributes = ['ppl', 'pkl', 'evs', 'gpk']
+        history = player_row[history_col]
 
-        valid_data = [(x, y) for x, y in zip(x_vals, percentiles) if y is not None]
-        if valid_data:
-            if attribute_name in dashed_line_attributes:
-                x_plot, y_plot = zip(*valid_data)
-                ax.plot(x_plot, y_plot, linewidth=2, linestyle='--', marker='o', markersize=6, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
-            else:
-                x_plot, y_plot = zip(*valid_data)
-                ax.plot(x_plot, y_plot, linewidth=4, linestyle='-', marker='o', markersize=9, color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'), alpha=1)
-    
+        # Convert string lists like to a real list
+        if isinstance(history, str):
+            history = ast.literal_eval(history)
+
+        # Keep only valid values for plotting
+        valid_data = [(x, y) for x, y in zip(x_vals, history) if y is not None and pd.notna(y)]
+        if not valid_data:
+            continue
+
+        x_plot, y_plot = zip(*valid_data)
+
+        # Plot any dashed line attributes
+        if attribute_name in dashed_line_attributes:
+            ax.plot(
+                x_plot, y_plot,
+                linewidth=2,
+                linestyle='--',
+                marker='o',
+                markersize=6,
+                color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'),
+                alpha=1
+            )
+        # Plot any solid line attributes
+        else:
+            ax.plot(
+                x_plot, y_plot,
+                linewidth=4,
+                linestyle='-',
+                marker='o',
+                markersize=9,
+                color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'),
+                alpha=1
+            )
 
     # X-axis settings
     ax.set_xticks(x_vals)
@@ -450,20 +452,21 @@ def make_graph_section(player_multiple_seasons: pd.DataFrame, pos: str, mode: st
 
     # Add player team image per season
     logo_x = 150
-    for season in seasons:
-        season_rows = player_multiple_seasons[player_multiple_seasons['Season'] == season]
-        if not season_rows.empty:
-            team = season_rows.iloc[0]['Team']
-            with open(f'data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
-                svg_bytes = f.read()
-            team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
+    team_history = ast.literal_eval(player_row['team_history'])
+    for team in team_history:
+        if team is None:
+            logo_x += 220
+            continue
+        with open(f'data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
+            svg_bytes = f.read()
+        team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
             
-            # Calculate proportional height, resize and paste
-            logo_width = 80
-            w_percent = logo_width / team_logo.width
-            logo_height = int(team_logo.height * w_percent)
-            team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
-            graph_section.paste(team_logo, (logo_x, 575), team_logo)
+        # Calculate proportional height, resize and paste
+        logo_width = 80
+        w_percent = logo_width / team_logo.width
+        logo_height = int(team_logo.height * w_percent)
+        team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+        graph_section.paste(team_logo, (logo_x, 575), team_logo)
         logo_x += 220
 
     plt.close(fig)
@@ -552,11 +555,8 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
     :return: None
     """
 
-    # Get the data for a player's five seasons
-    player_five_seasons = ch.get_player_multiple_seasons(player_name, season, pos)
-
     # Get the player's current season data
-    player_cur_season = player_five_seasons.iloc[0]
+    player_cur_season = ch.get_player_single_season(player_name, season, pos)
 
     # Get the player's team
     team = player_cur_season['Team']
@@ -593,7 +593,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         player_card.paste(pkl_rank_section, (455, 1050))
 
         # Add graph section
-        graph_section = make_graph_section(player_five_seasons, pos, mode)
+        graph_section = make_graph_section(player_cur_season, pos, mode)
         player_card.paste(graph_section, (800, 700))
 
         # Draw divider rectangle
@@ -644,7 +644,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         player_card.paste(gpk_rank_section, (455, 1050))
 
         # Add graph section
-        graph_section = make_graph_section(player_five_seasons, pos, mode)
+        graph_section = make_graph_section(player_cur_season, pos, mode)
         player_card.paste(graph_section, (800, 700))
 
         # Draw divider rectangle

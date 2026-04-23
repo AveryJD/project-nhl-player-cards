@@ -107,6 +107,134 @@ def get_player_age(player_row: pd.Series) -> int:
     return age
 
 
+def add_percentiles(df: pd.DataFrame, pos: str) -> pd.DataFrame:
+    """
+    Add percentile rankings for key attributes based on player ranks.
+
+    :param df: A DataFrame containing player rankings for a given season
+    :param pos: A str of the player's position ('F', 'D', or 'G')
+    :return: A DataFrame with additional percentile columns for each attribute
+    """
+    df = df.copy()
+
+    # Select important attributes based on position
+    if pos != 'G':
+        attributes = ['evo', 'evd', 'ppl', 'pkl']
+    else:
+        attributes = ['all', 'evs', 'gpk']
+
+    for attribute in attributes:
+        rank_col = f"{attribute}_rank"
+
+        # For certain attributes, only include valid players
+        if attribute in ['ppl', 'pkl', 'fof'] and pos != 'G':
+            total_players = df[rank_col].notna().sum()
+        else:
+            total_players = len(df)
+
+        # Percentile calculation
+        pct_col = f"{attribute}_pct"
+        df[pct_col] = ((total_players - df[rank_col]) / total_players * 100).round().astype('Int64')
+
+        # Set any invalid players to NA
+        df.loc[df[rank_col].isna(), pct_col] = pd.NA
+
+    return df
+
+
+def load_multi_season_data(cur_season: str, pos: str, seasons_num: int = 5):
+    """
+    Load ranking data and compute percentiles for multiple seasons.
+
+    :param cur_season: A str of the most recent season ('YYYY-YYYY')
+    :param pos: A str of the player's position ('F', 'D', or 'G')
+    :param seasons_num: An int of how many seasons to include (default is 5)
+    :return: A tuple containing a list of seasons and a dictionary mapping season to DataFrame with percentiles
+    """
+
+    # Build list of seasons (newest to oldest)
+    seasons = [cur_season]
+    for _ in range(seasons_num - 1):
+        seasons.append(file.get_prev_season(seasons[-1]))
+
+    # Reverse the order is (oldest to newest for graphing)
+    seasons.reverse()
+
+    season_dfs = {}
+
+    # For each season load yearly rankings and calculate percentiles
+    for season in seasons:
+        try:
+            df = file.load_rankings_csv(season, pos, weighted=False)
+            df = add_percentiles(df, pos)
+            season_dfs[season] = df
+        # Skip missing seasons
+        except FileNotFoundError:
+            continue
+
+    return seasons, season_dfs
+
+
+def make_history_columns(cur_df: pd.DataFrame, seasons: list, season_dfs: dict, pos: str) -> pd.DataFrame:
+    """
+    Build multi-season history columns for player attribute percentiles and teams.
+
+    :param cur_df: A DataFrame containing current season player data
+    :param seasons: A list of seasons (oldest to newest)
+    :param season_dfs: A dictionary mapping seasons to yearly ranking DataFrames with percentile data
+    :param pos: A str of the player's position ('F', 'D', or 'G')
+    :return: A DataFrame with added attribute history and team history columns
+    """
+    cur_df = cur_df.copy()
+
+    if pos != 'G':
+        attributes = ['evo', 'evd', 'ppl', 'pkl']
+    else:
+        attributes = ['all', 'evs', 'gpk']
+
+    for attribute in attributes:
+        cur_df[f"{attribute}_history"] = [[] for _ in range(len(cur_df))]
+
+    cur_df["team_history"] = [[] for _ in range(len(cur_df))]
+
+    for season in seasons:
+        if season not in season_dfs:
+            continue
+
+        season_df = season_dfs[season]
+
+        # Attribute history comes from yearly ranking data
+        for attribute in attributes:
+            pct_col = f"{attribute}_pct"
+            mapping = {
+                player: (None if pd.isna(value) else int(value))
+                for player, value in zip(season_df['Player'], season_df[pct_col])
+            }
+
+            cur_df[f"{attribute}_history"] = cur_df.apply(
+                lambda row: row[f"{attribute}_history"] + [mapping.get(row['Player'], None)],
+                axis=1
+            )
+
+        # Add current team
+        if season == seasons[-1]:
+            team_mapping = dict(zip(cur_df['Player'], cur_df['Team']))
+        # Add team history
+        else:
+            try:
+                team_df = file.load_card_data_csv(season, pos)
+                team_mapping = dict(zip(team_df['Player'], team_df['Team']))
+            except FileNotFoundError:
+                team_mapping = {}
+
+        cur_df["team_history"] = cur_df.apply(
+            lambda row: row["team_history"] + [team_mapping.get(row['Player'], None)],
+            axis=1
+        )
+
+    return cur_df
+
+
 def make_card_data(season, position) -> None:
     """
     Generate a CSV file of all the relevent player card data from other CSV files
@@ -224,6 +352,11 @@ def make_card_data(season, position) -> None:
     cols = cols[:stats_start] + ["Role"] + cols[stats_start:]
     card_info_df = card_info_df[cols]
 
+    # Add previous five season main attribute percentiles
+    seasons, season_dfs = load_multi_season_data(season, position)
+    card_info_df = make_history_columns(card_info_df, seasons, season_dfs, position)
+
+    # Sort based on player name
     card_info_df = card_info_df.sort_values('Player').reset_index(drop=True)
 
     # Save CSV file
