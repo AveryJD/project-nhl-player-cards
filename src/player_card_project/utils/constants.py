@@ -116,7 +116,7 @@ S_WEIGHTS = {
     'x_goals':          0.250,
     'shots_on_net' :    0.100,
     'shots_missed':     0.020,
-    'shots_blocked':    0.005,
+    'shots_blocked':    0.010,
     'rush_attempts':    0.050,
 
     # Playmaking Weights
@@ -128,13 +128,11 @@ S_WEIGHTS = {
     'oi_ldsf':          0.050,
     'oi_mdsf':          0.120,
     'oi_hdsf':          0.190,
-    'oi_ldgf':          0.000,
-    'oi_mdgf':          0.000,
-    'oi_hdgf':          0.000,
+    'oi_gf':            1.000,
     'oi_xgf':           1.000,
 
     # Defensive Weights
-    'blocks':           0.100,
+    'blocks':           0.050,
     'takeaways':        0.100,
     'giveaways':       -0.100,
 
@@ -142,8 +140,8 @@ S_WEIGHTS = {
     'oi_ldsa':          -0.050,
     'oi_mdsa':          -0.120,
     'oi_hdsa':          -0.190,
-    'oi_ga':            -0.250,
-    'oi_xga':           -0.750,
+    'oi_ga':            -1.000,
+    'oi_xga':           -1.000,
 
     # Zone Start Weights
     'o_zone_starts':    1.000,
@@ -173,8 +171,7 @@ S_WEIGHTS = {
 
 G_WEIGHTS = {
     # Goalie Weights
-    'goals_against':   -0.750,
-    'x_goals_against': -0.250,
+    'gsax':             1.000,
     'ld_shots':        -0.050,
     'md_shots':        -0.120,
     'hd_shots':        -0.190,

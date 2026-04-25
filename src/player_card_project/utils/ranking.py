@@ -10,6 +10,41 @@ from player_card_project.utils import constants
 from player_card_project.utils import load_save as file
 
 
+def shrink_scores_to_average(scores: pd.Series, sample: pd.Series, k: float) -> pd.Series:
+    """
+    Shrink only above-average player scores toward the league average based on sample size.
+
+    Low-sample players with strong scores are pulled toward the average, reducing small-sample
+    overrating. Players at or below league average are left unchanged, so poor low-sample
+    players are not artificially improved.
+
+    :param scores: A Series containing player scores.
+    :param sample: A Series containing the sample size for each player, such as TOI or GP.
+    :param k: Stabilization constant. Higher values create stronger shrinkage.
+    :return: A Series of adjusted scores with the same index as scores.
+    """
+
+    valid = scores.notna() & sample.notna() & (sample > 0)
+
+    sample_sum = sample.loc[valid].sum()
+
+    if sample_sum <= 0 or pd.isna(sample_sum):
+        return scores.copy()
+
+    league_average = (scores.loc[valid] * sample.loc[valid]).sum() / sample.loc[valid].sum()
+
+    shrunk_scores = scores.copy()
+
+    above_average = valid & (scores > league_average)
+
+    shrunk_scores.loc[above_average] = (
+        (scores.loc[above_average] * sample.loc[above_average] + league_average * k)
+        / (sample.loc[above_average] + k)
+    )
+
+    return shrunk_scores
+
+
 def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None, goalie_logs_df=None) -> pd.DataFrame:
     """
     Calculate player scores for all attributes.
@@ -123,6 +158,40 @@ def make_player_rankings(season: str, position: str) -> None:
         scores_df.loc[invalid_pkl, 'pkl_score'] = pd.NA
         scores_df.loc[invalid_fof, 'fof_score'] = pd.NA
 
+        # Apply shrinkage towards the average of low time on ice skater scores
+        all_toi = all_data['TOI']
+        evs_toi = evs_data['TOI']
+        ppl_toi = ppl_data['TOI']
+        pkl_toi = pkl_data['TOI']
+
+        all_k = all_toi.quantile(0.25)
+        evs_k = evs_toi.quantile(0.25)
+        ppl_k = ppl_toi[ppl_toi > 0].quantile(0.25)
+        pkl_k = pkl_toi[pkl_toi > 0].quantile(0.25)
+
+        toi_k_map = {
+            'evo_score': (evs_toi, evs_k),
+            'evd_score': (evs_toi, evs_k),
+            'ppl_score': (ppl_toi, ppl_k),
+            'pkl_score': (pkl_toi, pkl_k),
+            'oio_score': (evs_toi, evs_k),
+            'oid_score': (evs_toi, evs_k),
+            'sht_score': (evs_toi, evs_k),
+            'scr_score': (evs_toi, evs_k),
+            'plm_score': (evs_toi, evs_k),
+            'zon_score': (evs_toi, evs_k),
+            'pen_score': (evs_toi, evs_k),
+            'phy_score': (evs_toi, evs_k),
+            'fof_score': (evs_toi, evs_k),
+            'fan_score': (all_toi, all_k)
+        }
+
+        for col in scores_df.columns:
+            toi_series = toi_k_map[col][0]
+            k = toi_k_map[col][1]
+
+            scores_df[col] = shrink_scores_to_average(scores_df[col], toi_series, k)
+
         # Put together scores DataFrame
         rankings = all_data.reset_index()[['Player', 'Team', 'Position']].copy()
         rankings = rankings.set_index(['Player', 'Team'])
@@ -156,6 +225,35 @@ def make_player_rankings(season: str, position: str) -> None:
 
         # Calculate goalie scores
         scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, goalie_logs_df=logs_data)
+
+        # Apply shrinkage towards the average of low games played goalie scores
+        all_gp = all_data['GP']
+        all_gp_k = all_gp.quantile(0.25)
+
+        gp_k_map = {
+            'all_score': (all_gp, all_gp_k),
+            'evs_score': (all_gp, all_gp_k),
+            'gpk_score': (all_gp, all_gp_k),
+
+            'ldg_score': (all_gp, all_gp_k),
+            'mdg_score': (all_gp, all_gp_k),
+            'hdg_score': (all_gp, all_gp_k),
+            'rbd_score': (all_gp, all_gp_k),
+            'tmd_score': (all_gp, all_gp_k),
+
+            'gre_score': (all_gp, all_gp_k),
+            'qal_score': (all_gp, all_gp_k),
+            'bad_score': (all_gp, all_gp_k),
+            'awf_score': (all_gp, all_gp_k),
+
+            'fan_score': (all_gp, all_gp_k)
+        }
+
+        for col in scores_df.columns:
+            gp_series = gp_k_map[col][0]
+            k = gp_k_map[col][1]
+
+            scores_df[col] = shrink_scores_to_average(scores_df[col], gp_series, k)
 
         # Put together scores DataFrame
         rankings = all_data.reset_index()[['Player', 'Team']].copy()
