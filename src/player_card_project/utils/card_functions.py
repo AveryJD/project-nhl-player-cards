@@ -69,6 +69,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     player_id = player_row['Player ID']
     position = player_row['Position']
     position_name = constants.POSITION_NAMES.get(position)
+    role = player_row['Role']
     age = int(player_row['Age'])
     birth_date = ch.get_word_date(player_row['Date of Birth'])
     age_birthday = f'{age} ({birth_date})'
@@ -88,7 +89,6 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         nationality = constants.NATIONALITIES.get(player_row['Nationality'])
 
     # Get stats variables
-    role = player_row['Role']
     games_played = str(player_row['GP'])
     if position != 'G':
         goals = str(player_row['Goals'])
@@ -97,6 +97,11 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         xgoals = str(player_row['ixG'])
         goals_for_percent = format((player_row['GF%']/100), '.3f')
         xgoals_for_percent = format((player_row['xGF%']/100), '.3f')
+        toi = float(player_row['TOI'])
+        toi_per_gp = toi / int(games_played)
+        toi_minutes = int(toi_per_gp)
+        toi_seconds = int((toi_per_gp - toi_minutes) * 60)
+        toi_formatted = f"{toi_minutes}:{toi_seconds:02d}"
     else:
         record = f"{player_row['W']}-{player_row['L']}-{player_row['OT/SO']}"
         shutouts = str(player_row['Shutouts'])
@@ -150,7 +155,6 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     ch.draw_righted_text(draw, text='Country:', font=basic_font, y_position=550, x_right=975, fill=text_color)
 
     draw.text(xy=(1025, 250), text=position_name, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 300), text=role, font=basic_font, fill=text_color)
     draw.text(xy=(1025, 350), text=age_birthday, font=basic_font, fill=text_color)
     draw.text(xy=(1025, 400), text=height, font=basic_font, fill=text_color)
     draw.text(xy=(1025, 450), text=weight, font=basic_font, fill=text_color)
@@ -175,6 +179,8 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         draw.text(xy=(1692, 450), text=xgoals, font=basic_font, fill=text_color)
         draw.text(xy=(1692, 500), text=goals_for_percent, font=basic_font, fill=text_color)
         draw.text(xy=(1692, 550), text=xgoals_for_percent, font=basic_font, fill=text_color)
+
+        draw.text(xy=(1025, 300), text=f'{role} ({toi_formatted})', font=basic_font, fill=text_color)
     else:
         ch.draw_righted_text(draw, text='Games:', font=basic_font, y_position=250, x_right=1642, fill=text_color)
         ch.draw_righted_text(draw, text='Record:', font=basic_font, y_position=300, x_right=1642, fill=text_color)
@@ -191,6 +197,8 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         draw.text(xy=(1692, 450), text=goals_against_avg, font=basic_font, fill=text_color)
         draw.text(xy=(1692, 500), text=gsax, font=basic_font, fill=text_color)
         draw.text(xy=(1692, 550), text=gsax_per_sixty, font=basic_font, fill=text_color)
+
+        draw.text(xy=(1025, 300), text=role, font=basic_font, fill=text_color)
 
     # Draw banner
     draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
