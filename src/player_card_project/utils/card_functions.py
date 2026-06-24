@@ -237,14 +237,14 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     if mode == 'light':
         background_color = constants.WHITE
         text_color = constants.DARK
-        if attribute_name in ['5v5 Offense', '5v5 Defense', '5v4 Offense', '4v5 Defense', 'Overall', '5v5', '4v5']:
+        if attribute_name in ['5v5 Offense', '5v5 Defense', 'Power Play', 'Penalty Kill', 'Overall', 'Even Strength']:
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.DARK
     else:
         background_color = constants.DARK
         text_color = constants.WHITE
-        if attribute_name in ['5v5 Offense', '5v5 Defense', '5v4 Offense', '4v5 Defense', 'Overall', '5v5', '4v5']:
+        if attribute_name in ['5v5 Offense', '5v5 Defense', 'Power Play', 'Penalty Kill', 'Overall', 'Even Strength']:
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.WHITE
@@ -309,7 +309,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     if rank != 'N/A':
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=249, fill=text_color)
     
-    if attribute_name in ['5v4 Offense', '4v5 Defense', '5v5', '4v5']:
+    if attribute_name in ['Power Play', 'Penalty Kill', 'Even Strength']:
         # Draw dashed line
         draw.rectangle([(15, 64), (33, 70)], fill=attribute_color)
         draw.rectangle([(42, 64), (65, 70)], fill=attribute_color)
@@ -591,11 +591,11 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         evo_rank_section = make_rank_component(player_cur_season, 'evo_rank', mode)
         player_card.paste(evo_rank_section, (50, 750))
 
-        ppl_rank_section = make_rank_component(player_cur_season, 'ppl_rank', mode)
-        player_card.paste(ppl_rank_section, (455, 750))
-
         evd_rank_section = make_rank_component(player_cur_season, 'evd_rank', mode)
-        player_card.paste(evd_rank_section, (50, 1050))
+        player_card.paste(evd_rank_section, (455, 750))
+
+        ppl_rank_section = make_rank_component(player_cur_season, 'ppl_rank', mode)
+        player_card.paste(ppl_rank_section, (50, 1050))
 
         pkl_rank_section = make_rank_component(player_cur_season, 'pkl_rank', mode)
         player_card.paste(pkl_rank_section, (455, 1050))

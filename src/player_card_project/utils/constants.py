@@ -266,8 +266,8 @@ NATIONALITIES = {
 ATTRIBUTE_NAMES = {
     'evo_rank' : '5v5 Offense',
     'evd_rank' : '5v5 Defense',
-    'ppl_rank' : '5v4 Offense',
-    'pkl_rank' : '4v5 Defense',
+    'ppl_rank' : 'Power Play',
+    'pkl_rank' : 'Penalty Kill',
     'oio_rank' : 'On Ice Offense',
     'oid_rank' : 'On Ice Defense',
     'scr_rank' : 'Scoring',
@@ -279,8 +279,8 @@ ATTRIBUTE_NAMES = {
     'fof_rank' : 'Faceoffs',
     'fan_rank' : 'Fantasy',
     'all_rank' : 'Overall',
-    'evs_rank' : '5v5',
-    'gpk_rank' : '4v5',
+    'evs_rank' : 'Even Strength',
+    'gpk_rank' : 'Penalty Kill',
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
     'hdg_rank' : 'High Danger',
@@ -369,11 +369,10 @@ SECONDARY_COLORS = {
 ATTRIBUTE_COLORS = {
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
-    '5v4 Offense':      (255, 150, 130),
-    '4v5 Defense':      (130, 150, 255),
+    'Power Play':       (255, 150, 130),
+    'Penalty Kill':     (130, 150, 255),
     'Overall':          (255, 70, 70),
-    '5v5':              (255, 150, 130),
-    '4v5':              (130, 150, 255),
+    'Even Strength':    (255, 150, 130),
 }
 
 # Graph component RBG values
