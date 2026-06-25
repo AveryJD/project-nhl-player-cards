@@ -40,21 +40,6 @@ def make_team_player_cards(team: str, season: str, mode: str = 'light') -> None:
                 cf.make_player_card(player_name, season, pos, mode=mode)
 
 
-def make_all_position_player_cards(season: str, pos: str, mode: str = 'light') -> None:
-    """
-    Generate player cards for all players of a given position during a specific season.
-
-    :param season: A str representing the season ('YYYY-YYYY')
-    :param pos: A str representing the position ('F', 'D', or 'G')
-    :param mode: A str determining the style of card ('light' or 'dark')
-    :return: None
-    """
-    cur_season_data = file.load_card_data_csv(season, pos)
-    for _, player_row in cur_season_data.iterrows():
-        player_name = player_row['Player']
-        cf.make_player_card(player_name, season, pos, mode=mode)
-
-
 def make_all_player_cards(season: str, mode: str = 'light') -> None:
     """
     Generate player cards for every player in all positions for a given season.
