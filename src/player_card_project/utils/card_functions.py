@@ -68,7 +68,8 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     # Get profile variables
     player_id = player_row['Player ID']
     position = player_row['Position']
-    position_name = constants.POSITION_NAMES.get(position)
+    specific_position = player_row.get('Specific Position')
+    position_name = constants.SPECIFIC_POSITION_NAMES.get(specific_position, constants.POSITION_NAMES.get(position))
     role = player_row['Role']
     age = int(player_row['Age'])
     birth_date = ch.get_word_date(player_row['Date of Birth'])
@@ -94,7 +95,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         goals = str(player_row['Goals'])
         assists = str(player_row['Total Assists'])
         points = str(player_row['Total Points'])
-        xgoals = str(player_row['ixG'])
+        xgoals = str(format(player_row['ixG'], '.2f'))
         goals_for_percent = format((player_row['GF%']/100), '.3f')
         xgoals_for_percent = format((player_row['xGF%']/100), '.3f')
         toi = float(player_row['TOI'])
@@ -587,7 +588,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
 
     # For skater cards
     if pos != 'G':
-        # Add offense and defense rankings    
+        # Add main rankings    
         evo_rank_section = make_rank_component(player_cur_season, 'evo_rank', mode)
         player_card.paste(evo_rank_section, (50, 750))
 
@@ -608,36 +609,36 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         draw = ImageDraw.Draw(player_card)
         draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
-        # Add skill rankings
-        oio_rank_section = make_rank_component(player_cur_season, 'oio_rank', mode)
-        player_card.paste(oio_rank_section, (50, 1425))
+        # Add secondary rankings
+        xgl_rank_section = make_rank_component(player_cur_season, 'xgl_rank', mode)
+        player_card.paste(xgl_rank_section, (50, 1425))
 
-        sht_rank_section = make_rank_component(player_cur_season, 'sht_rank', mode)
-        player_card.paste(sht_rank_section, (455, 1425))
+        gol_rank_section = make_rank_component(player_cur_season, 'gol_rank', mode)
+        player_card.paste(gol_rank_section, (50, 1715))
 
-        scr_rank_section = make_rank_component(player_cur_season, 'scr_rank', mode)
-        player_card.paste(scr_rank_section, (850, 1425))
+        fin_rank_section = make_rank_component(player_cur_season, 'fin_rank', mode)
+        player_card.paste(fin_rank_section, (455, 1425))
 
-        plm_rank_section = make_rank_component(player_cur_season, 'plm_rank', mode)
-        player_card.paste(plm_rank_section, (1245, 1425))
+        ast_rank_section = make_rank_component(player_cur_season, 'ast_rank', mode)
+        player_card.paste(ast_rank_section, (455, 1715))
 
-        zon_rank_section = make_rank_component(player_cur_season, 'zon_rank', mode)
-        player_card.paste(zon_rank_section, (1640, 1425))
+        pen_rank_section = make_rank_component(player_cur_season, 'pen_rank', mode) 
+        player_card.paste(pen_rank_section, (850, 1425))
 
-        oid_rank_section = make_rank_component(player_cur_season, 'oid_rank', mode)
-        player_card.paste(oid_rank_section, (50, 1715))
+        hit_rank_section = make_rank_component(player_cur_season, 'hit_rank', mode)
+        player_card.paste(hit_rank_section, (850, 1715))
 
-        pen_rank_section = make_rank_component(player_cur_season, 'pen_rank', mode)
-        player_card.paste(pen_rank_section, (455, 1715))
+        pdo_rank_section = make_rank_component(player_cur_season, 'pdo_rank', mode) # ADDADDADD
+        player_card.paste(pdo_rank_section, (1245, 1425))
 
-        phy_rank_section = make_rank_component(player_cur_season, 'phy_rank', mode)
-        player_card.paste(phy_rank_section, (850, 1715))
+        ozs_rank_section = make_rank_component(player_cur_season, 'ozs_rank', mode)
+        player_card.paste(ozs_rank_section, (1245, 1715))
 
-        fof_rank_section = make_rank_component(player_cur_season, 'fof_rank', mode)
-        player_card.paste(fof_rank_section, (1245, 1715))
+        cmp_rank_section = make_rank_component(player_cur_season, 'cmp_rank', mode)
+        player_card.paste(cmp_rank_section, (1640, 1425))
 
-        fan_rank_section = make_rank_component(player_cur_season, 'fan_rank', mode)
-        player_card.paste(fan_rank_section, (1640, 1715))
+        tmt_rank_section = make_rank_component(player_cur_season, 'tmt_rank', mode)
+        player_card.paste(tmt_rank_section, (1640, 1715))
 
     # For goalie cards
     else:
