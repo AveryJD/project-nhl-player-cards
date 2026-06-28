@@ -42,15 +42,17 @@ DATA_DIR = os.path.join(PROJECT_DIR, "data")
 # Date card data was updated on
 UPDATE_DATE = 'April 17, 2026'
 
-# Positions to scrape stats and bio data for
+# Positions to scrape stats for
 POSITIONS = ['F', 'D', 'G']
 
 # Situations to scrape stats for
 SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 
-# Seasons to scrape stats and bio data for
-DATA_SEASONS = ['2025-2026']
+# Seasons to scrape data for
+DATA_SEASONS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
+               '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
+               '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 
 # Seasons to put together card data for
 CARD_SEASONS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
@@ -62,6 +64,8 @@ ALL_SEASONS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023', '2021-2022', 
                '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
                '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
 
+# Earliest season the NHL API has shift data for
+EARLIEST_MODEL_SEASON = '2010-2011'
 
 
 # ====================================================================================================
@@ -100,8 +104,6 @@ GOALIE_MIN_GP = 0.15
 # The minimum percentage of special teams time per game played that a player has to play to qualify for special teams rankings
 SKATER_MIN_PP = 0.75
 SKATER_MIN_PK = 0.75
-# The faceoffs taken per game played that a player has to play to qualify for faceoff rankings
-SKATER_MIN_FO = 3
 
 # Weighting values for per weighted season rankings
 THREE_SEASONS_WEIGHTS = [0.60, 0.30, 0.10]
@@ -198,40 +200,14 @@ G_WEIGHTS = {
 # NAMING CONSTANTS
 # ====================================================================================================
 
-# Names to be fixed for consitency
-FIX_NAMES = {
-    'Alex Wennberg': 'Alexander Wennberg',
-    'Alex Kerfoot': 'Alexander Kerfoot',
-    'Alexei Toropchenko': 'Alexey Toropchenko',
-    'Aatu Raty': 'Aatu Räty',
-    'Zack Bolduc': 'Zachary Bolduc',
-    'Cameron Atkinson': 'Cam Atkinson',
-    'Casey Desmith': 'Casey DeSmith',
-    'Christopher Tanev': 'Chris Tanev',
-    'Frederic Gaudreau': 'Frederick Gaudreau',
-    'Isac Lundestrom': 'Isac Lundeström',
-    'Jani Hakanpaa': 'Jani Hakanpää',
-    'Janis Moser': 'J.J. Moser',
-    'Jean-Francois Berube': 'J-F Berube',
-    'Josh Brown': 'Joshua Brown',
-    'Josh Mahura': 'Joshua Mahura',
-    'Juraj Slafkovsky': 'Juraj Slafkovský',
-    'Juuso Valimaki': 'Juuso Välimäki',
-    'Mat?j  Blümel': 'Matěj Blümel',
-    'Matt Dumba': 'Mathew Dumba',
-    'Mitchell Marner': 'Mitch Marner',
-    'Nicholas Paul': 'Nick Paul',
-    'Olli Maatta': 'Olli Määttä',
-    'Oskar Back': 'Oskar Bäck',
-    'Pat Maroon': 'Patrick Maroon',
-    'Sam Montembeault': 'Samuel Montembeault',
-    'Yegor Chinakhov': 'Egor Chinakhov'
-}
-
-
 # Position first letters with full names
 POSITION_NAMES = {
     'F': 'Forward', 'D': 'Defense', 'G': 'Goalie'
+}
+
+# Specific position first letters with full names
+SPECIFIC_POSITION_NAMES = {
+    'C': 'Center', 'L': 'Left Wing', 'R': 'Right Wing', 'D': 'Defense', 'G': 'Goalie',
 }
 
 # Team abreviations with full names
@@ -264,20 +240,22 @@ NATIONALITIES = {
 
 # Attribute names with full names
 ATTRIBUTE_NAMES = {
+    # Skaters
     'evo_rank' : '5v5 Offense',
     'evd_rank' : '5v5 Defense',
     'ppl_rank' : 'Power Play',
     'pkl_rank' : 'Penalty Kill',
-    'oio_rank' : 'On Ice Offense',
-    'oid_rank' : 'On Ice Defense',
-    'scr_rank' : 'Scoring',
-    'sht_rank' : 'Shooting',
-    'plm_rank' : 'Playmaking',
-    'zon_rank' : 'O-Zone Starts',
+    'fin_rank' : 'Finishing',
+    'gol_rank' : 'Goals',
+    'xgl_rank' : 'xGoals',
+    'ast_rank' : 'Assists',
     'pen_rank' : 'Penalties',
-    'phy_rank' : 'Physicality',
-    'fof_rank' : 'Faceoffs',
-    'fan_rank' : 'Fantasy',
+    'hit_rank' : 'Physicality',
+    'pdo_rank' : 'PDO (Luck)',
+    'ozs_rank' : 'O-Zone Starts',
+    'cmp_rank' : 'Competition',
+    'tmt_rank' : 'Teammates',
+    # Goalies
     'all_rank' : 'Overall',
     'evs_rank' : 'Even Strength',
     'gpk_rank' : 'Penalty Kill',
@@ -290,6 +268,61 @@ ATTRIBUTE_NAMES = {
     'qal_rank' : 'Quality Starts',
     'bad_rank' : 'Bad Starts',
     'awf_rank' : 'Awful Starts',
+    'fan_rank' : 'Fantasy'
+}
+
+# Names to be fixed for consitency
+FIX_NAMES = {
+    'Aatu Raty': 'Aatu Räty',
+    'Alex Barre-Boulet': 'Alex Barré-Boulet',
+    'Alex Kerfoot': 'Alexander Kerfoot',
+    'Alexander Nylander': 'Alex Nylander',
+    'Alex Petrovic': 'Alexander Petrovic',
+    'Alex Wennberg': 'Alexander Wennberg',
+    'Alexei Toropchenko': 'Alexey Toropchenko',
+    'Anthony DeAngelo': 'Tony DeAngelo',
+    'Cameron Atkinson': 'Cam Atkinson',
+    'Casey Desmith': 'Casey DeSmith',
+    'Christopher Tanev': 'Chris Tanev',
+    'Daniel Briere': 'Daniel Brière',
+    'Evgeny Dadonov': 'Evgenii Dadonov',
+    'Frederic Gaudreau': 'Frederick Gaudreau',
+    'Isac Lundestrom': 'Isac Lundeström',
+    'Jacob De La Rose': 'Jacob de la Rose',
+    'Jacob Lucchini': 'Jake Lucchini',
+    'Jacob Middleton': 'Jake Middleton',
+    'Jani Hakanpaa': 'Jani Hakanpää',
+    'Janis Moser': 'J.J. Moser',
+    'Jean-Francois Berube': 'J-F Berube',
+    'Jesse Ylönen': 'Jesse Ylonen',
+    'Jonathan Lekkerimaki': 'Jonathan Lekkerimäki',
+    'Josh Brown': 'Joshua Brown',
+    'Josh Mahura': 'Joshua Mahura',
+    'J.T. Brown': 'JT Brown',
+    'Juraj Slafkovsky': 'Juraj Slafkovský',
+    'Juuso Valimaki': 'Juuso Välimäki',
+    'Martin Fehervary': 'Martin Fehérváry',
+    'Matt Dumba': 'Mathew Dumba',
+    'Matthew Benning': 'Matt Benning',
+    'Max Comtois': 'Maxime Comtois',
+    'Michael Matheson': 'Mike Matheson',
+    'Michael Zigomanis': 'Mike Zigomanis',
+    'Mike Cammalleri': 'Michael Cammalleri',
+    'Mitchell Marner': 'Mitch Marner',
+    'Nicholas Baptiste': 'Nick Baptiste',
+    'Nicholas Merkley': 'Nick Merkley',
+    'Nicholas Paul': 'Nick Paul',
+    'Nick Shore': 'Nicholas Shore',
+    'Olli Määttä': 'Olli Maatta',
+    'Oskar Back': 'Oskar Bäck',
+    'P.O Joseph': 'Pierre-Olivier Joseph',
+    'Pat Maroon': 'Patrick Maroon',
+    'Sam Montembeault': 'Samuel Montembeault',
+    'Thomas Novak': 'Tommy Novak',
+    'Yegor Chinakhov': 'Egor Chinakhov',
+    'Zach Aston-Reese': 'Zachary Aston-Reese',
+    'Zach Sanford': 'Zachary Sanford',
+    'Zack Bolduc': 'Zachary Bolduc',
 }
 
 # Symbols to be replaced in player names for the header
