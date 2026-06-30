@@ -89,30 +89,14 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     else:
         nationality = constants.NATIONALITIES.get(player_row['Nationality'])
 
-    # Get stats variables
-    games_played = str(player_row['GP'])
+    # Compute TOI per game for role display (skaters only)
+    games_played = int(player_row['GP'])
     if position != 'G':
-        goals = str(player_row['Goals'])
-        assists = str(player_row['Total Assists'])
-        points = str(player_row['Total Points'])
-        xgoals = str(format(player_row['ixG'], '.2f'))
-        goals_for_percent = format((player_row['GF%']/100), '.3f')
-        xgoals_for_percent = format((player_row['xGF%']/100), '.3f')
         toi = float(player_row['TOI'])
-        toi_per_gp = toi / int(games_played)
+        toi_per_gp = toi / games_played
         toi_minutes = int(toi_per_gp)
         toi_seconds = int((toi_per_gp - toi_minutes) * 60)
         toi_formatted = f"{toi_minutes}:{toi_seconds:02d}"
-    else:
-        record = f"{player_row['W']}-{player_row['L']}-{player_row['OT/SO']}"
-        shutouts = str(player_row['Shutouts'])
-        save_percentage = format(float(player_row['SV%']), '.3f')
-        goals_against_avg = format(player_row['GAA'], '.2f')
-        xgoals_against = player_row['xG Against']
-        goals_against = player_row['Goals Against']
-        gsax = format(xgoals_against - goals_against, '.2f')
-        toi = player_row['TOI']
-        gsax_per_sixty = format((xgoals_against - goals_against)/toi * 60, '.2f')
 
     # Create header section card
     header_section_width = 2000
@@ -122,84 +106,54 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     # Create draw object
     draw = ImageDraw.Draw(header_section)
     
-    # Get team logo
-    with open(f'data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
-        svg_bytes = f.read()
-    team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
-
-    # Calculate proportional height, resize and paste
-    logo_width = 750
-    w_percent = logo_width / team_logo.width
-    logo_height = int(team_logo.height * w_percent)
-    team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
-    header_section.paste(team_logo, (-25, 150), team_logo)
-
-    # Get player image and paste
-    headshot_img = ch.get_player_headsot(season, team, player_id)
-    headshot_img = headshot_img.resize((500, 500))
-    header_section.paste(headshot_img, (100, 160), headshot_img)
-
     # Load fonts
     basic_font = FONT_CACHE['basic_50']
     subheading_font = FONT_CACHE['heading_70']
     heading_font = FONT_CACHE['heading_116']
 
-    # Draw player profile text
-    ch.draw_centered_text(draw, text='PROFILE', font=subheading_font, y_position=190, x_center=1000, fill=text_color)
+    # -- Center section: headshot and team logo (x=669-1331) --
+    with open(f'data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
+        svg_bytes = f.read()
+    team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
+    logo_width = 850
+    w_percent = logo_width / team_logo.width
+    logo_height = int(team_logo.height * w_percent)
+    team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+    logo_x = 669 + (662 - logo_width) // 2  # bleeds ~44px into adjacent sections on each side
+    header_section.paste(team_logo, (logo_x, 140), team_logo)
 
-    ch.draw_righted_text(draw, text='Position:', font=basic_font, y_position=250, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Role:', font=basic_font, y_position=300, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Age:', font=basic_font, y_position=350, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Height:', font=basic_font, y_position=400, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Weight:', font=basic_font, y_position=450, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Drafted:', font=basic_font, y_position=500, x_right=975, fill=text_color)
-    ch.draw_righted_text(draw, text='Country:', font=basic_font, y_position=550, x_right=975, fill=text_color)
+    headshot_img = ch.get_player_headsot(season, team, player_id)
+    headshot_img = headshot_img.resize((520, 520))
+    # Crop transparent bottom padding then paste bottom-aligned so jerseys line up with header bottom bar (y=660)
+    bbox = headshot_img.getbbox()
+    if bbox:
+        headshot_img = headshot_img.crop((0, 0, headshot_img.width, bbox[3]))
+    headshot_x = 669 + (662 - 520) // 2
+    paste_y = 660 - headshot_img.height
+    header_section.paste(headshot_img, (headshot_x, paste_y), headshot_img)
 
-    draw.text(xy=(1025, 250), text=position_name, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 350), text=age_birthday, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 400), text=height, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 450), text=weight, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 500), text=draft, font=basic_font, fill=text_color)
-    draw.text(xy=(1025, 550), text=nationality, font=basic_font, fill=text_color)
+    # -- Right section: player profile text (x=1336-2000) --
+    ch.draw_centered_text(draw, text='PROFILE', font=subheading_font, y_position=190, x_center=1617, fill=text_color)
 
-    # Draw player stats text
-    ch.draw_centered_text(draw, text='STATS', font=subheading_font, y_position=190, x_center=1667, fill=text_color)
-    if position != 'G': 
-        ch.draw_righted_text(draw, text='Games:', font=basic_font, y_position=250, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='Goals:', font=basic_font, y_position=300, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='Assists:', font=basic_font, y_position=350, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='Points:', font=basic_font, y_position=400, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='xGoals:', font=basic_font, y_position=450, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='5v5 GF %:', font=basic_font, y_position=500, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='5v5 xGF %:', font=basic_font, y_position=550, x_right=1642, fill=text_color)
+    ch.draw_righted_text(draw, text='Position:', font=basic_font, y_position=250, x_right=1592, fill=text_color)
+    ch.draw_righted_text(draw, text='Role:', font=basic_font, y_position=300, x_right=1592, fill=text_color)
+    ch.draw_righted_text(draw, text='Age:', font=basic_font, y_position=350, x_right=1592, fill=text_color)
+    ch.draw_righted_text(draw, text='Height:', font=basic_font, y_position=400, x_right=1592, fill=text_color)
+    ch.draw_righted_text(draw, text='Weight:', font=basic_font, y_position=450, x_right=1592, fill=text_color)
+    ch.draw_righted_text(draw, text='Drafted:', font=basic_font, y_position=500, x_right=1592, fill=text_color)
+    ch.draw_righted_text(draw, text='Country:', font=basic_font, y_position=550, x_right=1592, fill=text_color)
 
-        draw.text(xy=(1692, 250), text=games_played, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 300), text=goals, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 350), text=assists, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 400), text=points, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 450), text=xgoals, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 500), text=goals_for_percent, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 550), text=xgoals_for_percent, font=basic_font, fill=text_color)
+    draw.text(xy=(1642, 250), text=position_name, font=basic_font, fill=text_color)
+    draw.text(xy=(1642, 350), text=age_birthday, font=basic_font, fill=text_color)
+    draw.text(xy=(1642, 400), text=height, font=basic_font, fill=text_color)
+    draw.text(xy=(1642, 450), text=weight, font=basic_font, fill=text_color)
+    draw.text(xy=(1642, 500), text=draft, font=basic_font, fill=text_color)
+    draw.text(xy=(1642, 550), text=nationality, font=basic_font, fill=text_color)
 
-        draw.text(xy=(1025, 300), text=f'{role} ({toi_formatted})', font=basic_font, fill=text_color)
+    if position != 'G':
+        draw.text(xy=(1642, 300), text=f'{role} ({toi_formatted})', font=basic_font, fill=text_color)
     else:
-        ch.draw_righted_text(draw, text='Games:', font=basic_font, y_position=250, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='Record:', font=basic_font, y_position=300, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='Shutouts:', font=basic_font, y_position=350, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='Save %:', font=basic_font, y_position=400, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='GAA:', font=basic_font, y_position=450, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='GSAx:', font=basic_font, y_position=500, x_right=1642, fill=text_color)
-        ch.draw_righted_text(draw, text='GSAx/60:', font=basic_font, y_position=550, x_right=1642, fill=text_color)
-
-        draw.text(xy=(1692, 250), text=games_played, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 300), text=record, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 350), text=shutouts, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 400), text=save_percentage, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 450), text=goals_against_avg, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 500), text=gsax, font=basic_font, fill=text_color)
-        draw.text(xy=(1692, 550), text=gsax_per_sixty, font=basic_font, fill=text_color)
-
-        draw.text(xy=(1025, 300), text=role, font=basic_font, fill=text_color)
+        draw.text(xy=(1642, 300), text=role, font=basic_font, fill=text_color)
 
     # Draw banner
     draw.polygon([(20, 20), (1980, 20), (1940, 140), (60, 140)], fill=primary_team_color)
@@ -209,10 +163,6 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     # Draw name and season text
     draw.text(xy=(80, 24), text=header_name, font=heading_font, fill=header_text_color)
     ch.draw_righted_text(draw, season, heading_font, 24, 1924, fill=header_text_color)
-
-    # Draw divider rectangles
-    draw.rectangle([(664, 200), (669, 600)], fill=secondary_team_color)
-    draw.rectangle([(1331, 200), (1336, 600)], fill=secondary_team_color)
 
     # Draw bottom rectangle
     draw.rectangle([(60, 660), (1940, 700)], fill=primary_team_color)
@@ -249,6 +199,10 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.WHITE
+
+    # Skater special teams only: use theme text color (dark on light, white on dark) like regular attributes
+    if attribute_rank_name in ['ppl_rank', 'pkl_rank']:
+        attribute_color = text_color
 
     # Create ranking component card
     ranking_section_width = 300
@@ -310,21 +264,15 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     if rank != 'N/A':
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=249, fill=text_color)
     
-    if attribute_name in ['Power Play', 'Penalty Kill', 'Even Strength']:
-        # Draw dashed line
-        draw.rectangle([(15, 64), (33, 70)], fill=attribute_color)
-        draw.rectangle([(42, 64), (65, 70)], fill=attribute_color)
-        draw.rectangle([(74, 64), (97, 70)], fill=attribute_color)
-        draw.rectangle([(106, 64), (129, 70)], fill=attribute_color)
-        draw.rectangle([(138, 64), (161, 70)], fill=attribute_color)
-        draw.rectangle([(170, 64), (193, 70)], fill=attribute_color)
-        draw.rectangle([(202, 64), (225, 70)], fill=attribute_color)
-        draw.rectangle([(234, 64), (257, 70)], fill=attribute_color)
-        draw.rectangle([(266, 64), (284, 70)], fill=attribute_color)
+    if attribute_rank_name in ['ppl_rank', 'pkl_rank']:
+        # Skater special teams: plain theme-colored line, no dots
+        draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
 
-        # Draw circles at both ends
+    elif attribute_rank_name in ['evs_rank', 'gpk_rank']:
+        # Goalie special teams: colored solid line with dots
+        draw.rectangle([(15, 64), (284, 70)], fill=attribute_color)
         r = 9
-        draw.ellipse([(15 - r, 67 - r), (15 + r, 67 + r)], fill=attribute_color)
+        draw.ellipse([(18 - r, 67 - r), (18 + r, 67 + r)], fill=attribute_color)
         draw.ellipse([(281 - r, 67 - r), (281 + r, 67 + r)], fill=attribute_color)
 
     elif attribute_name in ['5v5 Offense', '5v5 Defense', 'Overall']:
@@ -372,7 +320,7 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
 
     # Define attributes top plot depending on the position
     if pos != 'G':
-        attributes_to_plot = ['evd', 'evo', 'pkl','ppl']
+        attributes_to_plot = ['tot', 'evd', 'evo']
     else:
         attributes_to_plot = ['all', 'evs', 'gpk']
 
@@ -411,25 +359,25 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
 
         x_plot, y_plot = zip(*valid_data)
 
-        # Plot any dashed line attributes
-        if attribute_name in dashed_line_attributes:
+        # Plot overall line attribute
+        if attribute_name == 'tot':
             ax.plot(
                 x_plot, y_plot,
-                linewidth=2,
-                linestyle='--',
+                linewidth=5,
+                linestyle='-',
                 marker='o',
-                markersize=6,
+                markersize=12,
                 color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'),
                 alpha=1
             )
-        # Plot any solid line attributes
+        # Plot 5v5 attributes
         else:
             ax.plot(
                 x_plot, y_plot,
-                linewidth=4,
+                linewidth=3,
                 linestyle='-',
                 marker='o',
-                markersize=9,
+                markersize=7,
                 color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'),
                 alpha=1
             )
@@ -588,7 +536,12 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
 
     # For skater cards
     if pos != 'G':
-        # Add main rankings    
+        # Add Overall (tot_war) ranking scaled up, centered in left third of header (x=0-664, y=140-660)
+        tot_rank_section = make_rank_component(player_cur_season, 'tot_rank', mode)
+        tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
+        player_card.paste(tot_rank_section, (76, 195))
+
+        # Add main rankings
         evo_rank_section = make_rank_component(player_cur_season, 'evo_rank', mode)
         player_card.paste(evo_rank_section, (50, 750))
 
