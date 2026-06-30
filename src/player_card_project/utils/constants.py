@@ -241,6 +241,7 @@ NATIONALITIES = {
 # Attribute names with full names
 ATTRIBUTE_NAMES = {
     # Skaters
+    'tot_rank' : 'Overall',
     'evo_rank' : '5v5 Offense',
     'evd_rank' : '5v5 Defense',
     'ppl_rank' : 'Power Play',
@@ -402,19 +403,20 @@ SECONDARY_COLORS = {
 ATTRIBUTE_COLORS = {
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
-    'Power Play':       (255, 150, 130),
-    'Penalty Kill':     (130, 150, 255),
-    'Overall':          (255, 70, 70),
-    'Even Strength':    (255, 150, 130),
+    'Power Play':       (0, 0, 130),
+    'Penalty Kill':     (70, 70, 255),
+    'Overall':          (46, 204, 113),
+    'Even Strength':    (255, 70, 70),
 }
 
 # Graph component RBG values
 PLOT_ATTRIBUTE_COLORS = {
+    'tot_plot': (46/255, 204/255, 113/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
     'ppl_plot': (255/255, 150/255, 150/255),
     'pkl_plot': (150/255, 150/255, 255/255),
-    'all_plot': (255/255, 70/255, 70/255),
-    'evs_plot': (255/255, 150/255, 150/255),
-    'gpk_plot': (150/255, 150/255, 255/255),
+    'all_plot': (46/255, 204/255, 113/255),
+    'evs_plot': (255/255, 70/255, 70/255),
+    'gpk_plot': (70/255, 70/255, 255/255),
 }
