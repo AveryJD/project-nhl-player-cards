@@ -401,22 +401,22 @@ SECONDARY_COLORS = {
 
 # Rank components RBG values
 ATTRIBUTE_COLORS = {
+    'Overall':          (210, 110, 210),
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
     'Power Play':       (0, 0, 130),
     'Penalty Kill':     (70, 70, 255),
-    'Overall':          (46, 204, 113),
     'Even Strength':    (255, 70, 70),
 }
 
 # Graph component RBG values
 PLOT_ATTRIBUTE_COLORS = {
-    'tot_plot': (46/255, 204/255, 113/255),
+    'tot_plot': (210/255, 110/255, 210/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
     'ppl_plot': (255/255, 150/255, 150/255),
     'pkl_plot': (150/255, 150/255, 255/255),
-    'all_plot': (46/255, 204/255, 113/255),
+    'all_plot': (210/255, 110/255, 210/255),
     'evs_plot': (255/255, 70/255, 70/255),
     'gpk_plot': (70/255, 70/255, 255/255),
 }
