@@ -276,7 +276,7 @@ ATTRIBUTE_NAMES = {
     'qal_rank' : 'Quality Starts',
     'bad_rank' : 'Bad Starts',
     'awf_rank' : 'Awful Starts',
-    'dur_rank' : 'Durability'
+    'wrk_rank' : 'Workload'
 }
 
 # Player names to be fixed for consitency

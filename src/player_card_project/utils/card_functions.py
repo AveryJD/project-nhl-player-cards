@@ -621,8 +621,8 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         awf_rank_section = make_rank_component(player_cur_season, 'awf_rank', mode)
         player_card.paste(awf_rank_section, (1245, 1715))
 
-        dur_rank_section = make_rank_component(player_cur_season, 'dur_rank', mode)
-        player_card.paste(dur_rank_section, (1640, 1715))
+        wrk_rank_section = make_rank_component(player_cur_season, 'wrk_rank', mode)
+        player_card.paste(wrk_rank_section, (1640, 1715))
 
     # Add branding section
     branding_section = make_branding_section(team, mode)
