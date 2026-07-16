@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import io
 import ast
 import cairosvg
-import inflect
 from PIL import Image, ImageDraw, ImageFont
 from player_card_project.utils import card_helpers as ch
 from player_card_project.utils import constants
@@ -50,11 +49,9 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     if mode == 'light':
         background_color = constants.WHITE
         text_color = constants.DARK
-        secondary_team_color = constants.SECONDARY_COLORS.get(team)
     else:
         background_color = constants.DARK
         text_color = constants.WHITE
-        secondary_team_color = constants.WHITE
     primary_team_color = constants.PRIMARY_COLORS.get(team)
     header_text_color = constants.WHITE
     header_shadow_color = constants.SECONDARY_COLORS.get(team)
@@ -194,21 +191,17 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     if mode == 'light':
         background_color = constants.WHITE
         text_color = constants.DARK
-        if attribute_name in ['5v5 Offense', '5v5 Defense', 'Power Play', 'Penalty Kill', 'Overall', 'Even Strength']:
+        if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.DARK
     else:
         background_color = constants.DARK
         text_color = constants.WHITE
-        if attribute_name in ['5v5 Offense', '5v5 Defense', 'Power Play', 'Penalty Kill', 'Overall', 'Even Strength']:
+        if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.WHITE
-
-    # Skater special teams only: use theme text color (dark on light, white on dark) like regular attributes
-    if attribute_rank_name in ['ppl_rank', 'pkl_rank']:
-        attribute_color = text_color
 
     # Create ranking component card
     ranking_section_width = 300
@@ -218,18 +211,16 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     # Create draw object 
     draw = ImageDraw.Draw(ranking_section)
     
-    # Get rank and percentile
+    # Get attribute abbreviation
     if attribute_rank_name == 'ppl_rank':
-        attribute_abrev = 'ppl'
-    elif attribute_rank_name == 'pkl_rank':
-        attribute_abrev = 'pkl'
-    elif attribute_rank_name == 'fof_rank':
-        attribute_abrev = 'fof'
+        attribute_abbrev = 'ppl'
+    elif attribute_rank_name == 'pkl_rank' and player_row.get('Position') != 'G':
+        attribute_abbrev = 'pkl'
     else:
-        attribute_abrev = 'all'
+        attribute_abbrev = 'all'
 
     # Get total players
-    total_players = int(player_row[f'{attribute_abrev}_players'])
+    total_players = int(player_row[f'{attribute_abbrev}_players'])
 
     # Get rank and percentile
     rank, percentile = ch.get_rank_and_percentile(player_row, attribute_rank_name, total_players)
@@ -269,29 +260,13 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     ch.draw_centered_text(draw, f'/ {total_players}', total_players_font, y_position=200, x_center=110, fill=text_color)
     if rank != 'N/A':
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=249, fill=text_color)
-    
-    if attribute_rank_name in ['ppl_rank', 'pkl_rank']:
-        # Skater special teams: plain theme-colored line, no dots
-        draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
 
-    elif attribute_rank_name in ['evs_rank', 'gpk_rank']:
-        # Goalie special teams: colored solid line with dots
+    if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank', 'pkl_rank']:
         draw.rectangle([(15, 64), (284, 70)], fill=attribute_color)
         r = 9
         draw.ellipse([(18 - r, 67 - r), (18 + r, 67 + r)], fill=attribute_color)
         draw.ellipse([(281 - r, 67 - r), (281 + r, 67 + r)], fill=attribute_color)
-
-    elif attribute_name in ['5v5 Offense', '5v5 Defense', 'Overall']:
-        # Draw rectangle
-        draw.rectangle([(15, 64), (284, 70)], fill=attribute_color)
-
-        # Draw circles at both ends
-        r = 9
-        draw.ellipse([(18 - r, 67 - r), (18 + r, 67 + r)], fill=attribute_color)
-        draw.ellipse([(281 - r, 67 - r), (281 + r, 67 + r)], fill=attribute_color)
-
     else:
-        # Draw rectangle
         draw.rectangle([(10, 64), (290, 70)], fill=attribute_color)
     
     return ranking_section
@@ -328,7 +303,7 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
     if pos != 'G':
         attributes_to_plot = ['tot', 'evd', 'evo']
     else:
-        attributes_to_plot = ['all', 'evs', 'gpk']
+        attributes_to_plot = ['tot', 'evs', 'pkl']
 
     x_vals = list(range(len(attributes_to_plot)))
 
@@ -346,8 +321,8 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
     seasons.reverse()
 
     # Iterate over attributes to plot
-    for attribute_name in attributes_to_plot:
-        history_col = f"{attribute_name}_history"
+    for attribute_abbrev in attributes_to_plot:
+        history_col = f"{attribute_abbrev}_history"
 
         history = player_row[history_col]
 
@@ -363,14 +338,14 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
         x_plot, y_plot = zip(*valid_data)
 
         # Plot overall line attribute
-        if attribute_name in ['tot', 'all']:
+        if attribute_abbrev == 'tot':
             ax.plot(
                 x_plot, y_plot,
-                linewidth=4,
+                linewidth=5,
                 linestyle='-',
                 marker='o',
-                markersize=8,
-                color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'),
+                markersize=9,
+                color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_abbrev}_plot'),
                 alpha=1
             )
         # Plot 5v5 attributes
@@ -381,7 +356,7 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
                 linestyle='-',
                 marker='o',
                 markersize=6,
-                color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_name}_plot'),
+                color=constants.PLOT_ATTRIBUTE_COLORS.get(f'{attribute_abbrev}_plot'),
                 alpha=1
             )
 
@@ -482,8 +457,8 @@ def make_branding_section(team: str, mode: str = 'light') -> Image:
     draw.text(xy=(1060, 73), text='Player Data From:', font=basic_font, fill=text_color)
     draw.text(xy=(1060, 156), text='Date Updated:', font=basic_font, fill=text_color)
 
-    ch.draw_righted_text(draw, 'naturalstattrick.com', basic_font, 73, 1900, fill=text_color)
-    ch.draw_righted_text(draw, update_date, basic_font, 156, 1900, fill=text_color)  #'PuckPedia.com'
+    ch.draw_righted_text(draw, 'nhl.com', basic_font, 73, 1900, fill=text_color)
+    ch.draw_righted_text(draw, update_date, basic_font, 156, 1900, fill=text_color)
     
     # Get font
     heading_font = basic_font = FONT_CACHE['heading_116']
@@ -500,7 +475,7 @@ def make_branding_section(team: str, mode: str = 'light') -> Image:
     return branding_section
 
 
-def make_player_card(player_name: str, season: str, pos: str, mode: str='light', save: bool=True,) -> None:
+def make_player_card(player_name: str, season: str, pos: str, mode: str='light', save: bool=True,) -> Image:
     """
     Generate and save a full player card image for a given player and season.
 
@@ -539,7 +514,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
 
     # For skater cards
     if pos != 'G':
-        # Add Overall (tot_war) ranking scaled up, centered in center third of header (x=665-1331, y=140-660)
+        # Add overall ranking
         tot_rank_section = make_rank_component(player_cur_season, 'tot_rank', mode)
         tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
         player_card.paste(tot_rank_section, (742, 195))
@@ -584,7 +559,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         hit_rank_section = make_rank_component(player_cur_season, 'hit_rank', mode)
         player_card.paste(hit_rank_section, (850, 1715))
 
-        pdo_rank_section = make_rank_component(player_cur_season, 'pdo_rank', mode) # ADDADDADD
+        pdo_rank_section = make_rank_component(player_cur_season, 'pdo_rank', mode)
         player_card.paste(pdo_rank_section, (1245, 1425))
 
         ozs_rank_section = make_rank_component(player_cur_season, 'ozs_rank', mode)
@@ -598,16 +573,17 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
 
     # For goalie cards
     else:
-        # Add Overall ranking scaled up in center third of header (same position as skaters)
-        all_rank_section = make_rank_component(player_cur_season, 'all_rank', mode)
-        all_rank_section = all_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
-        player_card.paste(all_rank_section, (742, 195))
+        # Add overall ranking
+        tot_rank_section = make_rank_component(player_cur_season, 'tot_rank', mode)
+        tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
+        player_card.paste(tot_rank_section, (742, 195))
 
+        # Add main rankings
         evs_rank_section = make_rank_component(player_cur_season, 'evs_rank', mode)
-        player_card.paste(evs_rank_section, (50, 750))
+        player_card.paste(evs_rank_section, (252, 750))
 
-        gpk_rank_section = make_rank_component(player_cur_season, 'gpk_rank', mode)
-        player_card.paste(gpk_rank_section, (455, 750))
+        pkl_rank_section = make_rank_component(player_cur_season, 'pkl_rank', mode)
+        player_card.paste(pkl_rank_section, (252, 1050))
 
         # Add graph section
         graph_section = make_graph_section(player_cur_season, pos, mode)
@@ -617,7 +593,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         draw = ImageDraw.Draw(player_card)
         draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
-        # Add skill rankings
+        # Add secondary rankings
         ldg_rank_section = make_rank_component(player_cur_season, 'ldg_rank', mode)
         player_card.paste(ldg_rank_section, (50, 1425))
 
@@ -645,9 +621,8 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         awf_rank_section = make_rank_component(player_cur_season, 'awf_rank', mode)
         player_card.paste(awf_rank_section, (1245, 1715))
 
-        fan_rank_section = make_rank_component(player_cur_season, 'fan_rank', mode)
-        player_card.paste(fan_rank_section, (1640, 1715))
-
+        dur_rank_section = make_rank_component(player_cur_season, 'dur_rank', mode)
+        player_card.paste(dur_rank_section, (1640, 1715))
 
     # Add branding section
     branding_section = make_branding_section(team, mode)

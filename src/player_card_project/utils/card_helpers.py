@@ -114,13 +114,20 @@ def get_player_headsot(season: str, team: str, player_id: float) -> Image.Image:
     headshot_url = f"https://assets.nhle.com/mugs/nhl/{season_clean}/{team}/{player_id_clean}.png"
 
     try:
-        response = requests.get(headshot_url, stream=True)
+        response = requests.get(headshot_url, stream=True, timeout=5)
         response.raise_for_status()
+        img_bytes = response.content
     except requests.RequestException:
-        url = 'https://assets.nhle.com/mugs/nhl/default-skater.png'
-        response = requests.get(url, stream=True)
-    
-    img = Image.open(io.BytesIO(response.content)).convert("RGBA")
+        try:
+            fallback_url = 'https://assets.nhle.com/mugs/nhl/default-skater.png'
+            response = requests.get(fallback_url, stream=True, timeout=5)
+            img_bytes = response.content
+        except requests.RequestException:
+            # Network unavailable — return a blank transparent image
+            img = Image.new("RGBA", (300, 300), (0, 0, 0, 0))
+            return img
+
+    img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
 
     img_data = img.getdata()
     img.putdata([
@@ -142,8 +149,8 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
     :param total_players: An int of the total players that qualify for the attribute
     :return: A tuple of the player's rank and percentile for the given attribute
     """
-    # For player's that do not qualify for certain attributes (power play, penalty kill, and faceoffs)
-    if attribute_rank_name in ["ppl_rank", "pkl_rank", "fof_rank"] and pd.isna(player_row[attribute_rank_name]):
+    # For player's that do not qualify for certain attributes (power play, penalty kill, or past quality of competition/teammates)
+    if attribute_rank_name in ["ppl_rank", "pkl_rank", "fof_rank", "cmp_rank", "tmt_rank"] and pd.isna(player_row[attribute_rank_name]):
         rank = 'N/A'
         percentile = 100
     # For attributes that all players qualify for
