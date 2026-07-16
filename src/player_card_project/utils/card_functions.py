@@ -83,7 +83,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         toi_minutes = int(toi_per_gp)
         toi_seconds = int((toi_per_gp - toi_minutes) * 60)
         toi_formatted = f"{toi_minutes}:{toi_seconds:02d}"
-        stat_line = f"{player_row['Goals']}-{player_row['Total Assists']}-{player_row['Goals'] + player_row['Total Assists']}"
+        stat_line = f"{int(player_row['Goals'])}-{int(player_row['Total Assists'])}-{int(player_row['Goals'] + player_row['Total Assists'])}"
         xgoals = format(player_row['ixG'], '.2f')
         xgoals_for_percent = format((player_row['xGF%'] / 100), '.3f')
     else:
