@@ -1,6 +1,7 @@
 # ====================================================================================================
 # GET PROJECT FILE LOCATION
 # ====================================================================================================
+
 import os
 
 def find_project_dir(start_dir: str) -> str:
@@ -39,8 +40,6 @@ DATA_DIR = os.path.join(PROJECT_DIR, "data")
 # ====================================================================================================
 # DATA CONSTANTS
 # ====================================================================================================
-# Date card data was updated on
-UPDATE_DATE = 'April 17, 2026'
 
 # Positions to scrape stats for
 POSITIONS = ['F', 'D', 'G']
@@ -200,14 +199,22 @@ G_WEIGHTS = {
 # NAMING CONSTANTS
 # ====================================================================================================
 
-# Position first letters with full names
+# Date card data was updated on
+UPDATE_DATE = 'July 1, 2026'
+
+# Position full names
 POSITION_NAMES = {
     'F': 'Forward', 'D': 'Defense', 'G': 'Goalie'
 }
 
-# Specific position first letters with full names
+# Specific position full names
 SPECIFIC_POSITION_NAMES = {
-    'C': 'Center', 'L': 'Left Wing', 'R': 'Right Wing', 'D': 'Defense', 'G': 'Goalie',
+    'C': 'Center', 'L': 'Left Wing', 'R': 'Right Wing', 'D': 'Defense', 'G': 'Goalie'
+}
+
+# Handedness full names
+HANDEDNESS_NAMES = {
+    'L': 'Left Shoot', 'R': 'Right Shoot',
 }
 
 # Team abreviations with full names
@@ -257,9 +264,9 @@ ATTRIBUTE_NAMES = {
     'cmp_rank' : 'Competition',
     'tmt_rank' : 'Teammates',
     # Goalies
-    'all_rank' : 'Overall',
+    'tot_rank' : 'Overall',
     'evs_rank' : 'Even Strength',
-    'gpk_rank' : 'Penalty Kill',
+    'pkl_rank' : 'Penalty Kill',
     'ldg_rank' : 'Low Danger',
     'mdg_rank' : 'Med. Danger',
     'hdg_rank' : 'High Danger',
@@ -269,10 +276,10 @@ ATTRIBUTE_NAMES = {
     'qal_rank' : 'Quality Starts',
     'bad_rank' : 'Bad Starts',
     'awf_rank' : 'Awful Starts',
-    'fan_rank' : 'Fantasy'
+    'dur_rank' : 'Durability'
 }
 
-# Names to be fixed for consitency
+# Player names to be fixed for consitency
 FIX_NAMES = {
     'Aatu Raty': 'Aatu Räty',
     'Alex Barre-Boulet': 'Alex Barré-Boulet',
@@ -383,7 +390,7 @@ PRIMARY_COLORS = {
     'ATL': (4, 30, 66),     'PHX': (140, 38, 51)
 }
 
-# Team secondary colors RGB values
+# Team secondary color RGB values
 SECONDARY_COLORS = {
     'ANA': (185, 151, 91),  'ARI': (21,71,52),      'BOS': (17, 17, 17),
     'BUF': (255, 184, 28),  'CGY': (250, 175, 25),  'CAR': (0, 0, 0),
@@ -404,9 +411,8 @@ ATTRIBUTE_COLORS = {
     'Overall':          (210, 110, 210),
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
-    'Power Play':       (0, 0, 130),
-    'Penalty Kill':     (70, 70, 255),
     'Even Strength':    (255, 70, 70),
+    'Penalty Kill':     (70, 70, 255),
 }
 
 # Graph component RBG values
@@ -414,9 +420,7 @@ PLOT_ATTRIBUTE_COLORS = {
     'tot_plot': (210/255, 110/255, 210/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
-    'ppl_plot': (255/255, 150/255, 150/255),
-    'pkl_plot': (150/255, 150/255, 255/255),
     'all_plot': (210/255, 110/255, 210/255),
     'evs_plot': (255/255, 70/255, 70/255),
-    'gpk_plot': (70/255, 70/255, 255/255),
+    'pkl_plot': (70/255, 70/255, 255/255),
 }
