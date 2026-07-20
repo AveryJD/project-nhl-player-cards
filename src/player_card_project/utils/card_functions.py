@@ -261,7 +261,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     if rank != 'N/A':
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=249, fill=text_color)
 
-    if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank', 'pkl_rank']:
+    if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
         draw.rectangle([(15, 64), (284, 70)], fill=attribute_color)
         r = 9
         draw.ellipse([(18 - r, 67 - r), (18 + r, 67 + r)], fill=attribute_color)
