@@ -1,61 +1,41 @@
 # ====================================================================================================
-# SCRIPT TO SCRAPE NHL PLAYER BIOS AND STATS DATA
+# SCRIPT TO SCRAPE ALL NHL PLAYER/GAME DATA
 # ====================================================================================================
 
 # Imports
 from player_card_project.utils import collect_api_data
-from player_card_project.utils import collect_nst_data
 from player_card_project.utils import collect_logos
 from player_card_project.utils import constants
 
-"""
-# Scrape logos from NHL.com
-collect_logos.scrape_logos()
+
+if __name__ == '__main__':
+
+    # Scrape team logos from NHL.com
+    collect_logos.scrape_logos()
+
+    for season in constants.DATA_SEASONS:
+
+        # Gather player IDs
+        collect_api_data.get_player_ids(season)
+
+        # Gather goalie game logs
+        collect_api_data.get_goalie_game_logs(season)
+
+        # Gather play-by-play data (goals, shot events, faceoffs, penalty events, and possession events)
+        collect_api_data.scrape_and_save_play_by_play(season)
+
+        # Gather shift data
+        collect_api_data.scrape_and_save_shifts(season, force_recheck=True)
+
+        # Gather GP/TOI and goalie situational stats
+        collect_api_data.scrape_and_save_boxscore(season)
+
+        # Gather regular-season team standings
+        collect_api_data.get_team_standings(season)
+
+        # Gather game schedule/results
+        collect_api_data.scrape_and_save_schedule(season)
 
 
-# Gather player IDs from the NHL API
-for season in constants.DATA_SEASONS:
-    collect_api_data.get_player_ids(season)
-"""
-
-# Gather player bios and stats from NaturalStatTrick
-for season in constants.DATA_SEASONS:
-    for position in constants.POSITIONS:
-        collect_nst_data.scrape_and_save_bios(season, position)
-        if position != 'G':
-            for situation in constants.SKATER_SITUATIONS:
-                collect_nst_data.scrape_and_save_stats(season, position, situation)
-        else:
-            for situation in constants.GOALIE_SITUATIONS:
-                collect_nst_data.scrape_and_save_stats(season, position, situation)
-
-
-# Gather goalie game logs from the NHL API
-for season in constants.DATA_SEASONS:
-    collect_api_data.get_goalie_game_logs(season)
-
-
-
-"""
-# For cleaning data that has already been collected
-for season in constants.YEARLY_RANK_SEASONS:
-    for position in constants.POSITIONS:
-
-        bios_df = file.load_bios_csv(season, position)
-        bios_df = clean.clean_dataframe(bios_df)
-        bios_filename = f'{season}_{position}_bios.csv'
-        file.save_csv(bios_df, 'data_scraped', 'bios', bios_filename)
-
-        if position != 'G':
-            for situation in constants.SKATER_SITUATIONS:
-                stats_df = file.load_stats_csv(season, position, situation)
-                stats_df = clean.clean_dataframe(stats_df)
-                stats_filename = f'{season}_{position}_{situation}_stats.csv'
-                file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
-        else:
-            for situation in constants.GOALIE_SITUATIONS: 
-                stats_df = file.load_stats_csv(season, position, situation)
-                stats_df = clean.clean_dataframe(stats_df)
-                stats_filename = f'{season}_{position}_{situation}_stats.csv'
-                file.save_csv(stats_df, 'data_scraped', 'stats', stats_filename)
-"""
+    # Gather general player bios from the NHL API
+    collect_api_data.scrape_bios()
