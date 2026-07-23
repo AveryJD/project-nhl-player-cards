@@ -142,25 +142,25 @@ def get_player_headshot(season: str, team: str, player_id: float) -> Image.Image
     return img
 
 
-def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, total_players: int) -> tuple:
+def get_rank_and_percentile(player_row: pd.Series, attribute_key: str) -> tuple:
     """
-    Return the player's rank and percentile of a given attribute.
-    If a player does not qualify for an attribute ranking they will receive a rank of 'N/A'
-    and their percentile will be 100 so that they receive a full percentile bar on their card.
+    Return the player's rank and percentile of a given attribute. The percentile is read directly
+    from the '{attr}_pct' column ranking.py already computed, not recalculated here. If a player
+    does not qualify for an attribute ranking they receive a rank of 'N/A' and a percentile of 100
+    (full percentile bar).
 
-    :param player_row: A series from a data frame containing player ranks
-    :param attribute_rank_name: A str of the attribute name of the rank to return
-    :param total_players: An int of the total players that qualify for the attribute
+    :param player_row: A series from a data frame containing player ranks/percentiles
+    :param attribute_key: A str of the attribute key of the rank an percentile to return
     :return: A tuple of the player's rank (int or 'N/A') and percentile (int) for the given attribute
     """
     # For player's that do not qualify for certain attributes (power play, penalty kill, or quality of competition/teammates)
-    if attribute_rank_name in ["ppl_rank", "pkl_rank", "cmp_rank", "tmt_rank"] and pd.isna(player_row[attribute_rank_name]):
+    if attribute_key in ["ppl", "pkl", "cmp", "tmt"] and pd.isna(player_row[f'{attribute_key}_rank']):
         rank = 'N/A'
         percentile = 100
     # For attributes that all players qualify for
     else:
-        rank = int(player_row[attribute_rank_name])
-        percentile = int(round((total_players - rank) / total_players, 2) * 100)
+        rank = int(player_row[f'{attribute_key}_rank'])
+        percentile = int(round(player_row[f'{attribute_key}_pct']))
 
     return rank, percentile
 

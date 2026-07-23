@@ -23,7 +23,7 @@ HEADING_FONT_PATH = f'{DATA_DIR}/assets/fonts/header.ttf'
 
 FONT_CACHE = {
     'basic_40': ImageFont.truetype(BASIC_FONT_PATH, 40),
-    'basic_50': ImageFont.truetype(BASIC_FONT_PATH, 50),
+    'basic_60': ImageFont.truetype(BASIC_FONT_PATH, 60),
     'basic_73': ImageFont.truetype(BASIC_FONT_PATH, 73),
     'basic_150': ImageFont.truetype(BASIC_FONT_PATH, 150),
     'heading_50': ImageFont.truetype(HEADING_FONT_PATH, 50),
@@ -67,11 +67,17 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     player_id = player_row['Player ID']
     position = player_row['Position']
     specific_position = player_row.get('Specific Position')
-    position_name = constants.SPECIFIC_POSITION_NAMES.get(specific_position, constants.POSITION_NAMES.get(position))
+    position_name = constants.SPECIFIC_POSITION_NAMES.get(specific_position)
+    shoots_catches = player_row.get('Shoots Catches')
+    handedness = constants.HANDEDNESS_NAMES.get(shoots_catches)
+    if position != 'G':
+        position_str = f'{position_name} ({handedness} Shot)'
+    else:
+        position_str = f'{position_name} (Catches {handedness})'
     role = player_row['Role']
     age = int(player_row['Age'])
     birth_date = ch.get_word_date(player_row['Date of Birth'])
-    age_birthday = f'{age} ({birth_date})'
+    age_str = f'{age} ({birth_date})'
     size_str = f"{int(player_row['Height (in)']) // 12}\'{int(player_row['Height (in)']) % 12}\", {int(player_row['Weight (lbs)'])} lbs"
 
     # Compute stats for profile display
@@ -100,7 +106,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     draw = ImageDraw.Draw(header_section)
     
     # Load fonts
-    basic_font = FONT_CACHE['basic_50']
+    basic_font = FONT_CACHE['basic_60']
     heading_font = FONT_CACHE['heading_116']
 
     # x center for team logo and player headshot
@@ -126,9 +132,9 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     header_section.paste(headshot_img, (left_center_x - headshot_size // 2, paste_y), headshot_img)
 
     # Row y positions
-    row_ys = [195, 248, 301, 354, 407, 460, 513, 566]
-    x_right = 1562
-    x_val   = 1612
+    row_ys = [165, 222, 279, 336, 395, 450, 507, 564]
+    x_right = 1500
+    x_val   = 1550
 
     ch.draw_righted_text(draw, text='Position:', font=basic_font, y_position=row_ys[0], x_right=x_right, fill=text_color)
     ch.draw_righted_text(draw, text='Role:',     font=basic_font, y_position=row_ys[1], x_right=x_right, fill=text_color)
@@ -136,22 +142,22 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     ch.draw_righted_text(draw, text='Size:',   font=basic_font, y_position=row_ys[3], x_right=x_right, fill=text_color)
     ch.draw_righted_text(draw, text='Games:',   font=basic_font, y_position=row_ys[4], x_right=x_right, fill=text_color)
 
-    draw.text(xy=(x_val, row_ys[0]), text=position_name,  font=basic_font, fill=text_color)
-    draw.text(xy=(x_val, row_ys[2]), text=age_birthday,   font=basic_font, fill=text_color)
+    draw.text(xy=(x_val, row_ys[0]), text=position_str,  font=basic_font, fill=text_color)
+    draw.text(xy=(x_val, row_ys[2]), text=age_str,   font=basic_font, fill=text_color)
     draw.text(xy=(x_val, row_ys[3]), text=size_str,         font=basic_font, fill=text_color)
     draw.text(xy=(x_val, row_ys[4]), text=games_played_str, font=basic_font, fill=text_color)
 
     if position != 'G':
         ch.draw_righted_text(draw, text='G-A-P:',  font=basic_font, y_position=row_ys[5], x_right=x_right, fill=text_color)
         ch.draw_righted_text(draw, text='xG:',     font=basic_font, y_position=row_ys[6], x_right=x_right, fill=text_color)
-        ch.draw_righted_text(draw, text='xGF %:',  font=basic_font, y_position=row_ys[7], x_right=x_right, fill=text_color)
+        ch.draw_righted_text(draw, text='5v5 xGF%:',  font=basic_font, y_position=row_ys[7], x_right=x_right, fill=text_color)
         draw.text(xy=(x_val, row_ys[1]), text=f'{role} ({toi_formatted})', font=basic_font, fill=text_color)
         draw.text(xy=(x_val, row_ys[5]), text=stat_line,          font=basic_font, fill=text_color)
         draw.text(xy=(x_val, row_ys[6]), text=xgoals,             font=basic_font, fill=text_color)
         draw.text(xy=(x_val, row_ys[7]), text=xgoals_for_percent, font=basic_font, fill=text_color)
     else:
         ch.draw_righted_text(draw, text='W-L-OTL:', font=basic_font, y_position=row_ys[5], x_right=x_right, fill=text_color)
-        ch.draw_righted_text(draw, text='Save %:',  font=basic_font, y_position=row_ys[6], x_right=x_right, fill=text_color)
+        ch.draw_righted_text(draw, text='Save%:',  font=basic_font, y_position=row_ys[6], x_right=x_right, fill=text_color)
         ch.draw_righted_text(draw, text='GSAx:',    font=basic_font, y_position=row_ys[7], x_right=x_right, fill=text_color)
         draw.text(xy=(x_val, row_ys[1]), text=role,            font=basic_font, fill=text_color)
         draw.text(xy=(x_val, row_ys[5]), text=record,          font=basic_font, fill=text_color)
@@ -173,33 +179,32 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     return header_section
 
 
-def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: str = 'light') -> Image:
+def make_rank_component(player_row: pd.Series, attribute_key: str, mode: str = 'light') -> Image:
     """
     Creates a ranking component for a specific player attribute, displaying the player's rank, total players, 
     percentile, and a visual percentile bar.
 
     :param player_row: A Series containing player data
-    :param attribute_rank_name: A str representing the name of the attribute that is being ranked (e.g. 'sht_rank')
+    :param attribute_key: A str representing the attribute key that is being ranked (e.g. 'ovr')
     :param mode: A str determining the style of card ('light' or 'dark')
     :return: An Image of the rank component
     """
 
     # Get attribute name
-    attribute_abbrev_key = attribute_rank_name[:-len('_rank')]
-    attribute_name = constants.ATTRIBUTE_NAMES.get(attribute_abbrev_key)
+    attribute_name = constants.ATTRIBUTE_NAMES.get(attribute_key)
 
     # Get color variables
     if mode == 'light':
         background_color = constants.WHITE
         text_color = constants.DARK
-        if attribute_rank_name in ['ovr_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
+        if attribute_key in ['ovr', 'evo', 'evd', 'evs'] or (player_row['Position'] == 'G' and attribute_key == 'pkl'):
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.DARK
     else:
         background_color = constants.DARK
         text_color = constants.WHITE
-        if attribute_rank_name in ['ovr_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
+        if attribute_key in ['ovr', 'evo', 'evd', 'evs'] or (player_row['Position'] == 'G' and attribute_key == 'pkl'):
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.WHITE
@@ -213,18 +218,18 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     draw = ImageDraw.Draw(ranking_section)
     
     # Get attribute abbreviation
-    if attribute_rank_name == 'ppl_rank':
-        attribute_abbrev = 'ppl'
-    elif attribute_rank_name == 'pkl_rank' and player_row.get('Position') != 'G':
-        attribute_abbrev = 'pkl'
+    if attribute_key == 'ppl':
+        total_players_key = 'ppl'
+    elif attribute_key == 'pkl' and player_row.get('Position') != 'G':
+        total_players_key = 'pkl'
     else:
-        attribute_abbrev = 'all'
+        total_players_key = 'all'
 
     # Get total players
-    total_players = int(player_row[f'{attribute_abbrev}_players'])
+    total_players = int(player_row[f'{total_players_key}_players'])
 
     # Get rank and percentile
-    rank, percentile = ch.get_rank_and_percentile(player_row, attribute_rank_name, total_players)
+    rank, percentile = ch.get_rank_and_percentile(player_row, attribute_key)
         
     # Get percentile color
     if rank == 'N/A':
@@ -262,7 +267,7 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     if rank != 'N/A':
         ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=253, fill=text_color, stroke_width=3, stroke_fill=background_color)
 
-    if attribute_rank_name in ['ovr_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
+    if attribute_key in ['ovr', 'evo', 'evd', 'evs'] or (player_row['Position'] == 'G' and attribute_key == 'pkl'):
         draw.rectangle([(15, 64), (284, 70)], fill=attribute_color)
         r = 9
         draw.ellipse([(18 - r, 67 - r), (18 + r, 67 + r)], fill=attribute_color)
@@ -448,18 +453,18 @@ def make_branding_section(team: str, mode: str = 'light') -> Image:
     basic_font = FONT_CACHE['basic_73']
     
     # Branding text
-    draw.text(xy=(100, 73), text='Website:', font=basic_font, fill=text_color)
-    draw.text(xy=(100, 156), text='Socials:', font=basic_font, fill=text_color)
+    draw.text(xy=(100, 68), text='Website:', font=basic_font, fill=text_color)
+    draw.text(xy=(100, 145), text='Socials:', font=basic_font, fill=text_color)
 
-    ch.draw_righted_text(draw, 'analyticswithavery.com', basic_font, 73, 940, fill=text_color)
-    ch.draw_righted_text(draw, 'analyticswavery', basic_font, 156, 940, fill=text_color)
+    ch.draw_righted_text(draw, 'analyticswithavery.com', basic_font, 68, 940, fill=text_color)
+    ch.draw_righted_text(draw, 'analyticswavery', basic_font, 145, 940, fill=text_color)
 
     # Resources text
-    draw.text(xy=(1060, 73), text='Player Data From:', font=basic_font, fill=text_color)
-    draw.text(xy=(1060, 156), text='Date Updated:', font=basic_font, fill=text_color)
+    draw.text(xy=(1060, 68), text='Data and Images Sourced From:', font=basic_font, fill=text_color)
+    draw.text(xy=(1060, 145), text='Date Updated:', font=basic_font, fill=text_color)
 
-    ch.draw_righted_text(draw, 'nhl.com', basic_font, 73, 1900, fill=text_color)
-    ch.draw_righted_text(draw, update_date, basic_font, 156, 1900, fill=text_color)
+    ch.draw_righted_text(draw, 'NHL', basic_font, 68, 1900, fill=text_color)
+    ch.draw_righted_text(draw, update_date, basic_font, 145, 1900, fill=text_color)
     
     # Get font
     heading_font = basic_font = FONT_CACHE['heading_116']
@@ -516,21 +521,21 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
     # For skater cards
     if pos != 'G':
         # Add overall ranking
-        tot_rank_section = make_rank_component(player_cur_season, 'ovr_rank', mode)
+        tot_rank_section = make_rank_component(player_cur_season, 'ovr', mode)
         tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
         player_card.paste(tot_rank_section, (742, 195))
 
         # Add main rankings
-        evo_rank_section = make_rank_component(player_cur_season, 'evo_rank', mode)
+        evo_rank_section = make_rank_component(player_cur_season, 'evo', mode)
         player_card.paste(evo_rank_section, (50, 750))
 
-        evd_rank_section = make_rank_component(player_cur_season, 'evd_rank', mode)
+        evd_rank_section = make_rank_component(player_cur_season, 'evd', mode)
         player_card.paste(evd_rank_section, (455, 750))
 
-        ppl_rank_section = make_rank_component(player_cur_season, 'ppl_rank', mode)
+        ppl_rank_section = make_rank_component(player_cur_season, 'ppl', mode)
         player_card.paste(ppl_rank_section, (50, 1050))
 
-        pkl_rank_section = make_rank_component(player_cur_season, 'pkl_rank', mode)
+        pkl_rank_section = make_rank_component(player_cur_season, 'pkl', mode)
         player_card.paste(pkl_rank_section, (455, 1050))
 
         # Add graph section
@@ -542,48 +547,48 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
         # Add secondary rankings
-        xgl_rank_section = make_rank_component(player_cur_season, 'xgl_rank', mode)
+        xgl_rank_section = make_rank_component(player_cur_season, 'xgl', mode)
         player_card.paste(xgl_rank_section, (50, 1425))
 
-        gol_rank_section = make_rank_component(player_cur_season, 'gol_rank', mode)
+        gol_rank_section = make_rank_component(player_cur_season, 'gol', mode)
         player_card.paste(gol_rank_section, (50, 1715))
 
-        fin_rank_section = make_rank_component(player_cur_season, 'fin_rank', mode)
+        fin_rank_section = make_rank_component(player_cur_season, 'fin', mode)
         player_card.paste(fin_rank_section, (455, 1425))
 
-        ast_rank_section = make_rank_component(player_cur_season, 'ast_rank', mode)
+        ast_rank_section = make_rank_component(player_cur_season, 'ast', mode)
         player_card.paste(ast_rank_section, (455, 1715))
 
-        pen_rank_section = make_rank_component(player_cur_season, 'pen_rank', mode) 
+        pen_rank_section = make_rank_component(player_cur_season, 'pen', mode) 
         player_card.paste(pen_rank_section, (850, 1425))
 
-        hit_rank_section = make_rank_component(player_cur_season, 'hit_rank', mode)
+        hit_rank_section = make_rank_component(player_cur_season, 'hit', mode)
         player_card.paste(hit_rank_section, (850, 1715))
 
-        pdo_rank_section = make_rank_component(player_cur_season, 'pdo_rank', mode)
+        pdo_rank_section = make_rank_component(player_cur_season, 'pdo', mode)
         player_card.paste(pdo_rank_section, (1245, 1425))
 
-        ozs_rank_section = make_rank_component(player_cur_season, 'ozs_rank', mode)
+        ozs_rank_section = make_rank_component(player_cur_season, 'ozs', mode)
         player_card.paste(ozs_rank_section, (1245, 1715))
 
-        cmp_rank_section = make_rank_component(player_cur_season, 'cmp_rank', mode)
+        cmp_rank_section = make_rank_component(player_cur_season, 'cmp', mode)
         player_card.paste(cmp_rank_section, (1640, 1425))
 
-        tmt_rank_section = make_rank_component(player_cur_season, 'tmt_rank', mode)
+        tmt_rank_section = make_rank_component(player_cur_season, 'tmt', mode)
         player_card.paste(tmt_rank_section, (1640, 1715))
 
     # For goalie cards
     else:
         # Add overall ranking
-        tot_rank_section = make_rank_component(player_cur_season, 'ovr_rank', mode)
+        tot_rank_section = make_rank_component(player_cur_season, 'ovr', mode)
         tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
         player_card.paste(tot_rank_section, (742, 195))
 
         # Add main rankings
-        evs_rank_section = make_rank_component(player_cur_season, 'evs_rank', mode)
+        evs_rank_section = make_rank_component(player_cur_season, 'evs', mode)
         player_card.paste(evs_rank_section, (252, 750))
 
-        pkl_rank_section = make_rank_component(player_cur_season, 'pkl_rank', mode)
+        pkl_rank_section = make_rank_component(player_cur_season, 'pkl', mode)
         player_card.paste(pkl_rank_section, (252, 1050))
 
         # Add graph section
@@ -595,34 +600,34 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
         draw.rectangle([(60, 1340), (1940, 1380)], fill=primary_team_color)
 
         # Add secondary rankings
-        ldg_rank_section = make_rank_component(player_cur_season, 'ldg_rank', mode)
+        ldg_rank_section = make_rank_component(player_cur_season, 'ldg', mode)
         player_card.paste(ldg_rank_section, (50, 1425))
 
-        mdg_rank_section = make_rank_component(player_cur_season, 'mdg_rank', mode)
+        mdg_rank_section = make_rank_component(player_cur_season, 'mdg', mode)
         player_card.paste(mdg_rank_section, (455, 1425))
 
-        hdg_rank_section = make_rank_component(player_cur_season, 'hdg_rank', mode)
+        hdg_rank_section = make_rank_component(player_cur_season, 'hdg', mode)
         player_card.paste(hdg_rank_section, (850, 1425))
 
-        rbd_rank_section = make_rank_component(player_cur_season, 'rbd_rank', mode)
+        rbd_rank_section = make_rank_component(player_cur_season, 'rbd', mode)
         player_card.paste(rbd_rank_section, (1245, 1425))
 
-        tmd_rank_section = make_rank_component(player_cur_season, 'tmd_rank', mode)
+        tmd_rank_section = make_rank_component(player_cur_season, 'tmd', mode)
         player_card.paste(tmd_rank_section, (1640, 1425))
 
-        gre_rank_section = make_rank_component(player_cur_season, 'gre_rank', mode)
+        gre_rank_section = make_rank_component(player_cur_season, 'gre', mode)
         player_card.paste(gre_rank_section, (50, 1715))
 
-        qal_rank_section = make_rank_component(player_cur_season, 'qal_rank', mode)
+        qal_rank_section = make_rank_component(player_cur_season, 'qal', mode)
         player_card.paste(qal_rank_section, (455, 1715))
 
-        bad_rank_section = make_rank_component(player_cur_season, 'bad_rank', mode)
+        bad_rank_section = make_rank_component(player_cur_season, 'bad', mode)
         player_card.paste(bad_rank_section, (850, 1715))
 
-        awf_rank_section = make_rank_component(player_cur_season, 'awf_rank', mode)
+        awf_rank_section = make_rank_component(player_cur_season, 'awf', mode)
         player_card.paste(awf_rank_section, (1245, 1715))
 
-        wrk_rank_section = make_rank_component(player_cur_season, 'wrk_rank', mode)
+        wrk_rank_section = make_rank_component(player_cur_season, 'wrk', mode)
         player_card.paste(wrk_rank_section, (1640, 1715))
 
     # Add branding section
