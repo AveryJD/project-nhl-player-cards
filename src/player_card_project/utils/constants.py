@@ -38,7 +38,7 @@ DATA_DIR = os.path.join(PROJECT_DIR, "data")
 
 
 # ====================================================================================================
-# DATA CONSTANTS
+# DATA/MODEL CONSTANTS
 # ====================================================================================================
 
 # Positions to scrape stats for
@@ -214,7 +214,7 @@ SPECIFIC_POSITION_NAMES = {
 
 # Handedness full names
 HANDEDNESS_NAMES = {
-    'L': 'Left Shoot', 'R': 'Right Shoot',
+    'L': 'Left', 'R': 'Right',
 }
 
 # Team abreviations with full names
@@ -249,7 +249,6 @@ NATIONALITIES = {
 ATTRIBUTE_NAMES = {
     'ovr' : 'Overall WAR',
     # Skaters
-    'tot_rank' : 'Overall',
     'evo' : '5v5 Offense',
     'evd' : '5v5 Defense',
     'ppl' : 'Power Play',
@@ -265,7 +264,6 @@ ATTRIBUTE_NAMES = {
     'cmp' : 'Competition',
     'tmt' : 'Teammates',
     # Goalies
-    'tot_rank' : 'Overall',
     'evs' : 'Even Strength',
     # Also use 'pkl' : 'Penalty Kill',
     'ldg' : 'Low Danger',
@@ -409,7 +407,6 @@ SECONDARY_COLORS = {
 
 # Rank components RBG values
 ATTRIBUTE_COLORS = {
-    'Overall':          (210, 110, 210),
     'Overall WAR':      (210, 110, 210),
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
@@ -419,7 +416,6 @@ ATTRIBUTE_COLORS = {
 
 # Graph component RBG values
 PLOT_ATTRIBUTE_COLORS = {
-    'tot_plot': (210/255, 110/255, 210/255),
     'ovr_plot': (210/255, 110/255, 210/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
