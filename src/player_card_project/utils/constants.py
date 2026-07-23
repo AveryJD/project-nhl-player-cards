@@ -245,38 +245,39 @@ NATIONALITIES = {
     'GBR': 'United Kingdom', 'USA': 'United States'
 }
 
-# Attribute names with full names
+# Attribute abbreviations with full names
 ATTRIBUTE_NAMES = {
+    'ovr' : 'Overall WAR',
     # Skaters
     'tot_rank' : 'Overall',
-    'evo_rank' : '5v5 Offense',
-    'evd_rank' : '5v5 Defense',
-    'ppl_rank' : 'Power Play',
-    'pkl_rank' : 'Penalty Kill',
-    'fin_rank' : 'Finishing',
-    'gol_rank' : 'Goals',
-    'xgl_rank' : 'xGoals',
-    'ast_rank' : 'Assists',
-    'pen_rank' : 'Penalties',
-    'hit_rank' : 'Physicality',
-    'pdo_rank' : 'PDO (Luck)',
-    'ozs_rank' : 'O-Zone Starts',
-    'cmp_rank' : 'Competition',
-    'tmt_rank' : 'Teammates',
+    'evo' : '5v5 Offense',
+    'evd' : '5v5 Defense',
+    'ppl' : 'Power Play',
+    'pkl' : 'Penalty Kill',
+    'fin' : 'Finishing',
+    'gol' : 'Goals',
+    'xgl' : 'xGoals',
+    'ast' : 'Assists',
+    'pen' : 'Penalties',
+    'hit' : 'Physicality',
+    'pdo' : 'PDO (Luck)',
+    'ozs' : 'O-Zone Starts',
+    'cmp' : 'Competition',
+    'tmt' : 'Teammates',
     # Goalies
     'tot_rank' : 'Overall',
-    'evs_rank' : 'Even Strength',
-    'pkl_rank' : 'Penalty Kill',
-    'ldg_rank' : 'Low Danger',
-    'mdg_rank' : 'Med. Danger',
-    'hdg_rank' : 'High Danger',
-    'rbd_rank' : 'Rebounds',
-    'tmd_rank' : 'Team Defense',
-    'gre_rank' : 'Great Starts',
-    'qal_rank' : 'Quality Starts',
-    'bad_rank' : 'Bad Starts',
-    'awf_rank' : 'Awful Starts',
-    'wrk_rank' : 'Workload'
+    'evs' : 'Even Strength',
+    # Also use 'pkl' : 'Penalty Kill',
+    'ldg' : 'Low Danger',
+    'mdg' : 'Med. Danger',
+    'hdg' : 'High Danger',
+    'rbd' : 'Rebounds',
+    'tmd' : 'Team Defense',
+    'gre' : 'Great Starts',
+    'qal' : 'Quality Starts',
+    'bad' : 'Bad Starts',
+    'awf' : 'Awful Starts',
+    'wrk' : 'Workload',
 }
 
 # Player names to be fixed for consitency
@@ -409,6 +410,7 @@ SECONDARY_COLORS = {
 # Rank components RBG values
 ATTRIBUTE_COLORS = {
     'Overall':          (210, 110, 210),
+    'Overall WAR':      (210, 110, 210),
     '5v5 Offense':      (255, 70, 70),
     '5v5 Defense':      (70, 70, 255),
     'Even Strength':    (255, 70, 70),
@@ -418,6 +420,7 @@ ATTRIBUTE_COLORS = {
 # Graph component RBG values
 PLOT_ATTRIBUTE_COLORS = {
     'tot_plot': (210/255, 110/255, 210/255),
+    'ovr_plot': (210/255, 110/255, 210/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
     'all_plot': (210/255, 110/255, 210/255),
