@@ -22,8 +22,10 @@ def draw_centered_text(
         font: ImageFont.ImageFont,
         y_position: int,
         x_center: int = 1000,
-        fill: tuple[int, int, int] = (0, 0, 0)
-    ) -> None:    
+        fill: tuple[int, int, int] = (0, 0, 0),
+        stroke_width: int = 0,
+        stroke_fill: tuple[int, int, int] = None,
+    ) -> None:
     """
     Draws text that is centered on a PIL drawing.
 
@@ -33,13 +35,15 @@ def draw_centered_text(
     :param y_position: An int of where the y position will be
     :param x_center: An int of where the center x position is (default is at 1000)
     :param fill: A tuple of rgb values for the color of the text (default is (0,0,0)/black)
+    :param stroke_width: An int outline thickness in pixels around the text (default is 0/no outline)
+    :param stroke_fill: A tuple of rgb values for the outline color (default is None)
     :return: None
     """
 
-    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     text_width = text_bbox[2] - text_bbox[0]
-    x_position = x_center - (text_width // 2)  
-    draw.text((x_position, y_position), text, font=font, fill=fill)
+    x_position = x_center - (text_width // 2)
+    draw.text((x_position, y_position), text, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 
 def draw_righted_text(
@@ -96,7 +100,7 @@ def plot_to_image(fig: plt.Figure) -> Image:
     return img
 
 
-def get_player_headsot(season: str, team: str, player_id: float) -> Image.Image:
+def get_player_headshot(season: str, team: str, player_id: float) -> Image.Image:
     """
     Fetch a player's headshot image based on the season, team, and player ID.
     
@@ -138,7 +142,7 @@ def get_player_headsot(season: str, team: str, player_id: float) -> Image.Image:
     return img
 
 
-def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, total_players: int) -> tuple[int, int]:
+def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, total_players: int) -> tuple:
     """
     Return the player's rank and percentile of a given attribute.
     If a player does not qualify for an attribute ranking they will receive a rank of 'N/A'
@@ -147,10 +151,10 @@ def get_rank_and_percentile(player_row: pd.Series, attribute_rank_name: str, tot
     :param player_row: A series from a data frame containing player ranks
     :param attribute_rank_name: A str of the attribute name of the rank to return
     :param total_players: An int of the total players that qualify for the attribute
-    :return: A tuple of the player's rank and percentile for the given attribute
+    :return: A tuple of the player's rank (int or 'N/A') and percentile (int) for the given attribute
     """
-    # For player's that do not qualify for certain attributes (power play, penalty kill, or past quality of competition/teammates)
-    if attribute_rank_name in ["ppl_rank", "pkl_rank", "fof_rank", "cmp_rank", "tmt_rank"] and pd.isna(player_row[attribute_rank_name]):
+    # For player's that do not qualify for certain attributes (power play, penalty kill, or quality of competition/teammates)
+    if attribute_rank_name in ["ppl_rank", "pkl_rank", "cmp_rank", "tmt_rank"] and pd.isna(player_row[attribute_rank_name]):
         rank = 'N/A'
         percentile = 100
     # For attributes that all players qualify for
@@ -201,78 +205,14 @@ def get_percentile_color(percentile: int) -> tuple[int, int, int]:
     return (r, g, b)
 
 
-def get_total_players(season_data: pd.DataFrame, pos: str, attribute: str,) -> int:
-    """
-    Return the total amount of players that qualify for the given attribute rank 
-    (some players are not given a rank for certain attributes).
-
-    :param season_data: A DataFrame of player stats
-    :param pos: A str of the player's position's first letter ('F', 'D', or 'G')
-    :param attribute: A str of the attribute to return the total players for
-    :return: An int of the total players that are included in an attribute
-    """
-    # Total players for when attribute is not a special case or for any goalie attriibutes is all players
-    if attribute not in ['ppl', 'pkl', 'fof'] or pos == 'G':
-        total_players = len(season_data)
-
-    # For attributes that not all players qualify for, ignore players whose attribute score is NAN
-    else:
-        score_column = f"{attribute}_rank"
-        total_players = season_data[score_column].notna().sum()
-
-
-    return total_players
-
-
-def get_yearly_total_players(season: str, cur_season_data: pd.DataFrame, pos: str, seasons_num: int=5) -> dict[str, int]:
-    """
-    Return the total number of players for multiple past seasons based on different attributes.
-
-    :param season: A str of the most recent season ('YYYY-YYYY')
-    :param cur_season_data: A DataFrame containing player stats for the given season
-    :param pos: A str of the first letter of the player's position ('F', 'D', or 'G')
-    :param seasons_num: An int specifying the number of past seasons to retrieve player totals for (default is 5)
-    :return: A dict mapping attribute-year keys to the corresponding total number of players
-    """
-
-    # Initialize dictionary, initial season, and initial data
-    yearly_total_players = {}
-    tot_players_season = season
-    tot_players_season_data = cur_season_data
-
-    # Set which attributes to count players by depending on position
-    if pos != 'G':
-        attribute_list = ['all', 'ppl', 'pkl', 'fof']
-    else:
-        attribute_list = ['all']
-
-    # Iterate through the specified number of past seasons and get total players per attribute
-    for _ in range(seasons_num):
-        for attribute in attribute_list:
-            value = get_total_players(tot_players_season_data, pos, attribute)
-            yearly_total_players[f'{attribute}_{tot_players_season}'] = int(value)
-        
-        # Get previous season str
-        tot_players_season = file.get_prev_season(tot_players_season)
-        
-        # Load data from previous season, but break if the file is not found
-        try:
-            tot_players_season_data = file.load_rankings_csv(tot_players_season, pos, weighted=False)
-        except FileNotFoundError:
-            print(f'Warning: Data for {tot_players_season} total players not found. Stopping iteration.')
-            break
-
-    return yearly_total_players
-
-
 def get_player_single_season(player_name: str, cur_season: str, pos: str) -> pd.DataFrame:
     """
-    Return a Series of a player's rankings for a single seasons.
+    Return a Series of a player's card data for a single season.
 
     :param player_name: A str of the full name of the player to return the multiple seasons for ('First Last')
     :param cur_season: A str of the most recent season ('YYYY-YYYY')
     :param pos: A str of the player's position's first letter ('F', 'D', or 'G')
-    :return: A Series containing player stats and total player counts over the specified seasons
+    :return: A Series containing player stats for the given season
     """
 
     # Load the current season's card data
@@ -284,13 +224,4 @@ def get_player_single_season(player_name: str, cur_season: str, pos: str) -> pd.
         raise ValueError(f"{player_name} not found in {cur_season} {pos} card data.")
     player_season = player_season.iloc[0]
 
-    # Add total-player counts expected by make_rank_component
-    player_season['all_players'] = len(season_data)
-
-    if pos != 'G':
-        player_season['ppl_players'] = int(season_data['ppl_rank'].notna().sum()) if 'ppl_rank' in season_data.columns else 0
-        player_season['pkl_players'] = int(season_data['pkl_rank'].notna().sum()) if 'pkl_rank' in season_data.columns else 0
-        player_season['fof_players'] = int(season_data['fof_rank'].notna().sum()) if 'fof_rank' in season_data.columns else 0
-
     return player_season
-

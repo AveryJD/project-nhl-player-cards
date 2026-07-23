@@ -106,7 +106,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     # x center for team logo and player headshot
     left_center_x = 362
 
-    with open(f'data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
+    with open(f'{DATA_DIR}/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
         svg_bytes = f.read()
     team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
     logo_width = 808
@@ -116,7 +116,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     header_section.paste(team_logo, (left_center_x - logo_width // 2, 140), team_logo)
 
     headshot_size = 520
-    headshot_img = ch.get_player_headsot(season, team, player_id)
+    headshot_img = ch.get_player_headshot(season, team, player_id)
     headshot_img = headshot_img.resize((headshot_size, headshot_size))
     # Crop transparent bottom padding then paste bottom-aligned so jerseys line up with header bottom bar
     bbox = headshot_img.getbbox()
@@ -185,20 +185,21 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     """
 
     # Get attribute name
-    attribute_name = constants.ATTRIBUTE_NAMES.get(attribute_rank_name)
+    attribute_abbrev_key = attribute_rank_name[:-len('_rank')]
+    attribute_name = constants.ATTRIBUTE_NAMES.get(attribute_abbrev_key)
 
     # Get color variables
     if mode == 'light':
         background_color = constants.WHITE
         text_color = constants.DARK
-        if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
+        if attribute_rank_name in ['ovr_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.DARK
     else:
         background_color = constants.DARK
         text_color = constants.WHITE
-        if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
+        if attribute_rank_name in ['ovr_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
             attribute_color = constants.ATTRIBUTE_COLORS[attribute_name]
         else:
             attribute_color = constants.WHITE
@@ -259,9 +260,9 @@ def make_rank_component(player_row: pd.Series, attribute_rank_name: str, mode: s
     ch.draw_centered_text(draw, str(rank), rank_font, y_position=50, x_center=110, fill=text_color)
     ch.draw_centered_text(draw, f'/ {total_players}', total_players_font, y_position=200, x_center=110, fill=text_color)
     if rank != 'N/A':
-        ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=249, fill=text_color)
+        ch.draw_centered_text(draw, str(percentile), percentile_font, y_position=155, x_center=253, fill=text_color, stroke_width=3, stroke_fill=background_color)
 
-    if attribute_rank_name in ['tot_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
+    if attribute_rank_name in ['ovr_rank', 'evo_rank', 'evd_rank', 'evs_rank'] or (player_row['Position'] == 'G' and attribute_rank_name == 'pkl_rank'):
         draw.rectangle([(15, 64), (284, 70)], fill=attribute_color)
         r = 9
         draw.ellipse([(18 - r, 67 - r), (18 + r, 67 + r)], fill=attribute_color)
@@ -301,9 +302,9 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
 
     # Define attributes top plot depending on the position
     if pos != 'G':
-        attributes_to_plot = ['tot', 'evd', 'evo']
+        attributes_to_plot = ['ovr', 'evd', 'evo']
     else:
-        attributes_to_plot = ['tot', 'evs', 'pkl']
+        attributes_to_plot = ['ovr', 'evs', 'pkl']
 
     x_vals = list(range(len(attributes_to_plot)))
 
@@ -338,7 +339,7 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
         x_plot, y_plot = zip(*valid_data)
 
         # Plot overall line attribute
-        if attribute_abbrev == 'tot':
+        if attribute_abbrev == 'ovr':
             ax.plot(
                 x_plot, y_plot,
                 linewidth=5,
@@ -392,10 +393,10 @@ def make_graph_section(player_row: pd.DataFrame, pos: str, mode: str = 'light') 
         if team is None:
             logo_x += 220
             continue
-        with open(f'data/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
+        with open(f'{DATA_DIR}/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
             svg_bytes = f.read()
         team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
-            
+
         # Calculate proportional height, resize and paste
         logo_width = 80
         w_percent = logo_width / team_logo.width
@@ -515,7 +516,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
     # For skater cards
     if pos != 'G':
         # Add overall ranking
-        tot_rank_section = make_rank_component(player_cur_season, 'tot_rank', mode)
+        tot_rank_section = make_rank_component(player_cur_season, 'ovr_rank', mode)
         tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
         player_card.paste(tot_rank_section, (742, 195))
 
@@ -574,7 +575,7 @@ def make_player_card(player_name: str, season: str, pos: str, mode: str='light',
     # For goalie cards
     else:
         # Add overall ranking
-        tot_rank_section = make_rank_component(player_cur_season, 'tot_rank', mode)
+        tot_rank_section = make_rank_component(player_cur_season, 'ovr_rank', mode)
         tot_rank_section = tot_rank_section.resize((512, 410), Image.Resampling.LANCZOS)
         player_card.paste(tot_rank_section, (742, 195))
 
