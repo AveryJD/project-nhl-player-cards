@@ -1,297 +1,484 @@
 # ====================================================================================================
-# CLASSES FOR GENERATING SCORES FOR NHL PLAYERS BASED ON STATS
+# FUNCTIONS FOR SCORING PLAYER ATTRIBUTES
 # ====================================================================================================
 
 # Imports
 import numpy as np
 import pandas as pd
+from player_card_project.utils import player_stats
 from player_card_project.utils import constants
+from player_card_project.utils import load_save as file
+
 
 
 class SkaterScorer:
-    def __init__(self):
-        self.weights = constants.S_WEIGHTS
+
+    def __init__(self, position: str, season: str):
+        """
+        :param position: A str representing the position ('F' or 'D')
+        :param season: A str representing the season ('YYYY-YYYY')
+        """
+        self.position = position
+        self.season = season
+        self.war_by_player = self.build_war_lookup(position, season)
 
 
     def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
+        """
+        Convert a raw score to a per-60-minute rate.
+
+        :param score: The score to be rate adjusted
+        :param toi: the time on ice
+        :return: An array of per-60 rates
+        """
         adjusted_score = np.full_like(score, np.nan, dtype=float)
         np.divide(score * 60, toi, out=adjusted_score, where=toi > 0)
         return adjusted_score
 
 
-    def shooting_score(self, df: pd.DataFrame) -> np.ndarray:
-        shots_on_net = (df['Shots'] - df['Goals']).to_numpy()
-        shots_missed = (df['iFF'] - df['Shots']).to_numpy()
-        shots_blocked = (df['iCF'] - df['iFF']).to_numpy()
+    def build_war_lookup(self, position: str, season: str) -> pd.DataFrame:
+        """
+        Build a player to WAR row lookup table for the position and season.
 
-        score = (
-            self.weights['shots_on_net'] * shots_on_net +
-            self.weights['shots_missed'] * shots_missed +
-            self.weights['shots_blocked'] * shots_blocked +
-            self.weights['rush_attempts'] * df['Rush Attempts'].to_numpy()
-        )
+        :param position: A str representing the position ('F' or 'D')
+        :param season: A str representing the season ('YYYY-YYYY')
+        :return: A DataFrame indexed by Player name with WAR columns, restricted to this position
+        """
 
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
+        war_df = file.load_skater_war_scores_csv(season)
+        player_ids_df = file.load_player_ids_csv(season)
 
+        war_df = war_df[war_df['Position'] == position]
+        id_map = player_ids_df[['Player', 'Player ID']].drop_duplicates(subset='Player ID')
+        war_with_names = war_df.merge(id_map, on='Player ID', how='inner')
 
-    def scoring_score(self, df: pd.DataFrame) -> np.ndarray:
-        goals = df['Goals'].to_numpy()
-        x_goals = df['ixG'].to_numpy()
-
-        score = (
-            self.weights['goals'] * goals +
-            self.weights['x_goals'] * x_goals
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
+        war_lookup = war_with_names.drop_duplicates(subset='Player').set_index('Player')
+        return war_lookup
 
 
-    def playmaking_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['p_assists'] * df['First Assists'].to_numpy() +
-            self.weights['s_assists'] * df['Second Assists'].to_numpy() +
-            self.weights['rebounds_created'] * df['Rebounds Created'].to_numpy()
-        )
+    def lookup_war(self, df: pd.DataFrame, war_col: str) -> np.ndarray:
+        """
+        Look up war column for each player in df.
 
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
+        :param df: A DataFrame indexed by a 'Player' level
+        :param war_col: The war column to get the score for
+        :return: An array of WAR values
+        """
+        players = df.index.get_level_values('Player')
+
+        war_values = players.map(self.war_by_player[war_col]).to_numpy(dtype=float)
+        return war_values
 
 
-    def oniceoffense_score(self, df: pd.DataFrame, is_ppl:bool=False) -> np.ndarray:
-        if is_ppl:
-            player_weight = 1/4
+    def total_war_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Total score: this player's own total war for the season.
+
+        :param df: A DataFrame containing the player's all-situations stats
+        :return: An array of total WAR values
+        """
+        total_score = self.lookup_war(df, 'tot_war')
+        return total_score
+
+
+    def offensive_war_score(self, df: pd.DataFrame, is_ppl: bool = False) -> np.ndarray:
+        """
+        Offense score: this player's own WAR in this situation.
+
+        :param df: A DataFrame containing the player's stats for one situation (5v5 or 5v4)
+        :param is_ppl: Whether df is power play (5v4) stats (looks up ppl_war instead of evo_war)
+        :return: An array of offense WAR values
+        """
+        offense_score = self.lookup_war(df, 'ppl_war' if is_ppl else 'evo_war')
+        return offense_score
+
+
+    def defensive_war_score(self, df: pd.DataFrame, is_pkl: bool = False) -> np.ndarray:
+        """
+        Defense score: this player's own WAR in this situation.
+
+        :param df: A DataFrame containing the player's stats in all situations
+        :param is_pkl: Whether df is penalty kill (4v5) stats (looks up pkl_war instead of evd_war)
+        :return: An array of defense WAR values
+        """
+        defense_score = self.lookup_war(df, 'pkl_war' if is_pkl else 'evd_war')
+        return defense_score
+
+
+    def finishing_war_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Finishing score: this player's own finishing WAR (goals above xG).
+
+        :param df: A DataFrame containing the player's stats in all situations
+        :return: An array of finishing WAR values
+        """
+        finishing_score = self.lookup_war(df, 'fin_war')
+        return finishing_score
+
+
+    def penalty_war_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Penalty WAR score: this player's own penalties WAR (net penalty drawing/taking).
+
+        :param df: A DataFrame containing the player's all-situations stats
+        :return: An array of penalty WAR values
+        """
+        penalty_score = self.lookup_war(df, 'pen_war')
+        return penalty_score
+
+
+    def secondary_score(self, df: pd.DataFrame, stat_str: str, total: bool = False) -> np.ndarray:
+        """
+        Compute one of the card's secondary (non-WAR) stat scores.
+
+        :param df: A DataFrame containing the player's stats for the relevant situation
+        :param stat_str: One of 'ixG', 'Goals', 'Assists', 'Physicality', 'PDO', or 'O-Zone Starts'
+        :param total: If True, return the raw season value instead of the per-60 rate
+        :return: An array of secondary scores
+        """
+        if stat_str == 'Assists':
+            score = df['First Assists'].to_numpy() * 0.8 + df['Second Assists'].to_numpy() * 0.2
+        elif stat_str == 'Physicality':
+            score = df['Hits'].to_numpy() + df['Hits Taken'].to_numpy() * 0.5
+        elif stat_str == 'O-Zone Starts':
+            off_starts = df['Off. Zone Starts'].to_numpy()
+            total_starts = off_starts + df['Neu. Zone Starts'].to_numpy() + df['Def. Zone Starts'].to_numpy()
+            score = off_starts / total_starts * 100
+        else:   # Goals, ixG, PDO
+            score = df[stat_str].to_numpy()
+
+        if total:
+            final_score = score
         else:
-            player_weight = 1/5
-    
-        oi_ldsf = df['LDCF']
-        oi_mdsf = df['MDCF']
-        oi_hdsf = df['HDCF']
-        oi_goals = df['GF'] - df['Goals']
-        oi_xgoals = df['xGF'] - df['ixG']
-
-        score = (
-            (self.weights['oi_ldsf'] * oi_ldsf.to_numpy() +
-            self.weights['oi_mdsf'] * oi_mdsf.to_numpy() +
-            self.weights['oi_hdsf'] * oi_hdsf.to_numpy()) * 0.2 +
-            self.weights['oi_gf'] * oi_goals.to_numpy() * 0.5 +
-            self.weights['oi_xgf'] * oi_xgoals.to_numpy() * 0.3
-        ) * player_weight
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-    
-
-    def ozonestarts_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['o_zone_starts'] * df['Off. Zone Starts'].to_numpy() +
-            self.weights['n_zone_starts'] * df['Neu. Zone Starts'].to_numpy() +
-            self.weights['d_zone_starts'] * df['Def. Zone Starts'].to_numpy()
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-
-
-    def offensive_score(self, df: pd.DataFrame, is_ppl:bool=False) -> np.ndarray:
-
-        score = (
-            self.scoring_score(df) * (2/3) +
-            self.shooting_score(df) * (1/3) +
-            self.playmaking_score(df) +
-            self.oniceoffense_score(df, is_ppl)
-        )
-
-        return score
-
-
-    def onicedefense_score(self, df: pd.DataFrame, is_pkl:bool=False) -> np.ndarray:
-        if is_pkl:
-            player_weight = 1/4
-        else:
-            player_weight = 1/5
-
-        score = (
-            (self.weights['oi_ldsa'] * df['LDCA'].to_numpy() +
-            self.weights['oi_mdsa'] * df['MDCA'].to_numpy() +
-            self.weights['oi_hdsa'] * df['HDCA'].to_numpy()) * 0.2 +
-            self.weights['oi_ga'] * df['GA'].to_numpy() * 0.3 +
-            self.weights['oi_xga'] * df['xGA'].to_numpy() * 0.5
-        ) * player_weight
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-
-
-    def defensive_score(self, df: pd.DataFrame, is_pkl:bool=False) -> np.ndarray:
-
-        score = (
-            self.weights['blocks'] * df['Shots Blocked'].to_numpy() +
-            self.weights['takeaways'] * df['Takeaways'].to_numpy() +
-            self.weights['giveaways'] * df['Giveaways'].to_numpy()
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy()) + self.onicedefense_score(df, is_pkl)
-        return adjusted_score
-
-
-    def physicality_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['hits'] * df['Hits'].to_numpy() +
-            self.weights['majors'] * df['Major'].to_numpy()
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-
-
-    def penalties_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['penalties_taken'] * df['Total Penalties'].to_numpy() +
-            self.weights['penalties_drawn'] * df['Penalties Drawn'].to_numpy()
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-
-
-    def faceoff_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['faceoff_wins'] * df['Faceoffs Won'].to_numpy() +
-            self.weights['faceoff_losses'] * df['Faceoffs Lost'].to_numpy()
-        )
-
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
-    
-
-    def fantasy_score(self, all_df: pd.DataFrame, ppl_df: pd.DataFrame, pkl_df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['fan_goals'] * all_df['Goals'].to_numpy() +
-            self.weights['fan_assists'] * all_df['Total Assists'].to_numpy() +
-            self.weights['fan_shots'] * all_df['Shots'].to_numpy() +
-            self.weights['fan_blocks'] * all_df['Shots Blocked'].to_numpy() +
-            self.weights['fan_pp_points'] * ppl_df['Total Points'].to_numpy() +
-            self.weights['fan_pk_points'] * pkl_df['Total Points'].to_numpy() 
-        )
-
-        adjusted_score = score / all_df['GP'].to_numpy()
-        return adjusted_score
+            final_score = self.adjust_score(score, df['TOI'].to_numpy())
+        return final_score
 
 
 
 class GoalieScorer:
-    def __init__(self):
-        self.weights = constants.G_WEIGHTS
+
+    def __init__(self, season: str):
+        """
+        :param season: A str representing the season ('YYYY-YYYY')
+        """
+        self.season = season
+        self.war_by_player = self.build_goalie_war_lookup(season)
+        self.game_gsax = self.buildgame_gsax_lookup(season)
 
 
     def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
+        """
+        Convert a raw score to a per-60-minute rate.
+
+        :param score: The score to be rate adjusted
+        :param toi: the time on ice
+        :return: An array of per-60 rates
+        """
         adjusted = np.full_like(score, np.nan, dtype=float)
         np.divide(score * 60, toi, out=adjusted, where=toi > 0)
         return adjusted
 
 
-    def total_score(self, df: pd.DataFrame) -> np.ndarray:
-        gsax = (df['xG Against'] - df['Goals Against']).to_numpy()
-        score = (
-            self.weights['gsax'] * gsax * 0.8 +
-            (self.weights['hd_saves'] * df['HD Saves'].to_numpy() +
-            self.weights['md_saves'] * df['MD Saves'].to_numpy() +
-            self.weights['ld_saves'] * df['LD Saves'].to_numpy()) * 0.2 
-        )
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
-        return adjusted_score
+    def build_goalie_war_lookup(self, season: str):
+        """
+        Build a player to WAR row lookup table for the season.
+
+        :param season: A str representing the season ('YYYY-YYYY')
+        :return: A DataFrame with WAR values
+        """
+        war_df = file.load_goalie_war_scores_csv(season)
+        player_ids_df = file.load_player_ids_csv(season)
+
+        id_map = (player_ids_df[player_ids_df['Position'] == 'G'][['Player', 'Team', 'Player ID']].drop_duplicates(subset='Player ID'))
+        war_with_names = war_df.merge(id_map, on='Player ID', how='inner')
+        goalie_war_lookup = war_with_names.drop_duplicates(subset=['Player', 'Team']).set_index(['Player', 'Team'])
+        return goalie_war_lookup
+
+
+    def buildgame_gsax_lookup(self, season: str):
+        """
+        Build a per-game GSAx lookup table for the season.
+
+        :param season: A str representing the season ('YYYY-YYYY')
+        :return: A DataFrame with goalie stats
+        """
+        game_gsax_df = player_stats.compute_goalie_game_gsax(season)
+
+        return game_gsax_df
+
+
+    def lookup_goalie_war(self, df: pd.DataFrame, war_col: str) -> np.ndarray:
+        """
+        Look up war_col for each goalie row in df, gated on positive TOI.
+
+        :param df: A DataFrame with a 'TOI' column
+        :param war_col: One of 'evs_war', 'pkl_war', 'tot_war'
+        :return: An array of WAR values
+        """
+
+        war_values = df.index.map(self.war_by_player[war_col]).to_numpy(dtype=float)
+        return war_values
+
+
+    def total_war_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Total score: this player's own total war for the season.
+
+        :param df: A DataFrame containing the goalie's all-situations stats
+        :return: An array of total WAR values
+        """
+        total_score = self.lookup_goalie_war(df, 'tot_war')
+        return total_score
+
+
+    def evs_war_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Total score: this player's own 5v5 war for the season.
+
+        :param df: A DataFrame containing the goalie's 5v5 stats
+        :return: An array of 5v5 WAR values
+        """
+        evs_score = self.lookup_goalie_war(df, 'evs_war')
+        return evs_score
+
+
+    def pkl_war_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Total score: this player's own 4v5 war for the season.
+
+        :param df: A DataFrame containing the goalie's 4v5 stats
+        :return: An array of penalty kill WAR values
+        """
+        pkl_score = self.lookup_goalie_war(df, 'pkl_war')
+        return pkl_score
 
 
     def zone_score(self, df: pd.DataFrame, zone: str) -> np.ndarray:
-        if zone == 'LD':
-            score = (
-                self.weights['ld_saves'] * df['LD Saves'].to_numpy() +
-                self.weights['ld_ga'] * df['LD Goals Against'].to_numpy()
-            )
-        elif zone == 'MD':
-            score = (
-                self.weights['md_saves'] * df['MD Saves'].to_numpy() +
-                self.weights['md_ga'] * df['MD Goals Against'].to_numpy()
-            )
-        elif zone == 'HD':
-            score = (
-                self.weights['hd_saves'] * df['HD Saves'].to_numpy() +
-                self.weights['hd_ga'] * df['HD Goals Against'].to_numpy()
-            )
+        """
+        xG Against minus Goals Against for a specific zone
 
+        :param df: A DataFrame containing the goalie's stats
+        :param zone: One of 'HD', 'MD', 'LD'
+        :param total: If True, return the raw season total instead of the per-60 rate
+        :return: An array of zone GSAx scores (per-60 unless total=True); NaN for zero TOI
+        """
+        score = df[f'{zone} xG Against'].to_numpy() - df[f'{zone} Goals Against'].to_numpy()
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return adjusted_score
 
 
     def start_score(self, all_df: pd.DataFrame, logs_df: pd.DataFrame, level: str) -> np.ndarray:
-        if level == 'Great':
-            logs_df['Great'] = (logs_df['Save %'] >= 0.915).astype(int)
-            score = logs_df.groupby('Player')['Great'].sum()
-        elif level == 'Quality':
-            logs_df['Quality'] = (logs_df['Save %'] >= 0.900).astype(int)
-            score = logs_df.groupby('Player')['Quality'].sum()
-        elif level == 'Bad':
-            logs_df['Bad'] = (logs_df['Save %'] < 0.900).astype(int)
-            score = logs_df.groupby('Player')['Bad'].sum()
-            score = -score
-        elif level == 'Awful':
-            logs_df['Awful'] = (logs_df['Save %'] < 0.885).astype(int)
-            score = logs_df.groupby('Player')['Awful'].sum()
-            score = -score
+        """
+        Rate of Great/Quality/Bad/Awful starts (qualifying starts / games played), by per-game GSAx.
 
-        score = score.reindex(all_df.index.get_level_values('Player'))
-        games_played = all_df['GP'].reindex(all_df.index.get_level_values('Player'))
+        :param all_df: A DataFrame containing the goalie's all-situations stats
+        :param logs_df: A DataFrame of goalie game logs
+        :param level: One of 'Great', 'Quality', 'Bad', 'Awful'
+        :return: An array of qualifying-start rates
+        """
+
+        if 'Player' not in logs_df.columns:
+            logs_df = logs_df.reset_index()
+
+        merged = logs_df.merge(self.game_gsax[['Player ID', 'Game ID', 'GSAx']],
+                                on=['Player ID', 'Game ID'], how='left')
+
+        if level == 'Great':
+            merged['flag'] = (merged['GSAx'] >= constants.GREAT_START_GSAX).astype(float)
+        elif level == 'Quality':
+            merged['flag'] = (merged['GSAx'] >= constants.QUALITY_START_GSAX).astype(float)
+        elif level == 'Bad':
+            merged['flag'] = (merged['GSAx'] < constants.QUALITY_START_GSAX).astype(float)
+        elif level == 'Awful':
+            merged['flag'] = (merged['GSAx'] <= constants.AWFUL_START_GSAX).astype(float)
+
+        merged.loc[merged['GSAx'].isna(), 'flag'] = np.nan
+
+        score = merged.groupby(['Player', 'Team'])['flag'].sum()
+        score = score.reindex(all_df.index)
+        games_played = all_df['GP'].reindex(all_df.index)
 
         adjusted_score = score / games_played
-        return adjusted_score.to_numpy()
+        if level in ('Bad', 'Awful'):
+            adjusted_score = -adjusted_score
+        start_rate = adjusted_score.to_numpy()
+        return start_rate
 
 
     def rebound_score(self, df: pd.DataFrame) -> np.ndarray:
-        score = (
-            self.weights['rebounds_given'] * df['Rebound Attempts Against'].to_numpy()
-        )
+        """
+        Rebound danger allowed: negated 'Rebound xG Against'.
+
+        :param df: A DataFrame containing the goalie's stats (must have 'Rebound xG Against', 'TOI')
+        :return: An array of Rebound scores (-Rebound xG Against/60); NaN for zero TOI
+        """
+        score = -df['Rebound xG Against'].to_numpy()
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return adjusted_score
 
 
     def team_d_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Team Defense: negated 5v5 Team xG Against per 60 (shot quality allowed by the skaters).
 
-        score = (
-            self.weights['hd_shots'] * df['HD Shots Against'].to_numpy() +
-            self.weights['md_shots'] * df['MD Shots Against'].to_numpy() +
-            self.weights['ld_shots'] * df['LD Shots Against'].to_numpy()
-            )
-        
+        :param df: A DataFrame containing the goalie's 5v5 stats
+        :return: An array of Team Defense scores
+        """
+        score = -df['xG Against'].to_numpy()
 
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
         return adjusted_score
-    
-    def goalie_fantasy_score(self, df: pd.DataFrame, logs_df: pd.DataFrame) -> np.ndarray:
-        logs_df['Wins'] = (logs_df['Result'] == 'W').astype(int)
-        logs_df['OTL'] = (logs_df['Result'] == 'O').astype(int)
-        logs_df['Shutouts'] = (logs_df['Shutouts'] == 1).astype(int)
 
-        wins_series = logs_df.groupby('Player')['Wins'].sum()
-        ot_losses_series = logs_df.groupby('Player')['OTL'].sum()
-        shutouts_series = logs_df.groupby('Player')['Shutouts'].sum()
-        
-        player_index = df.index.get_level_values('Player')
-        
-        wins_aligned = wins_series.reindex(player_index, fill_value=0).to_numpy()
-        ot_losses_aligned = ot_losses_series.reindex(player_index, fill_value=0).to_numpy()
-        shutouts_aligned = shutouts_series.reindex(player_index, fill_value=0).to_numpy()
 
-        score = (
-            self.weights['fan_goals_against'] * df['Goals Against'].to_numpy() +
-            self.weights['fan_saves'] * df['Saves'].to_numpy() +
-            self.weights['fan_wins'] * wins_aligned +
-            self.weights['fan_otl'] * ot_losses_aligned +
-            self.weights['fan_shutouts'] * shutouts_aligned
-        )
+    def workload_score(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Workload: total games played plus total TOI (in hours) this season.
 
-        games_played = df['GP'].to_numpy()
-        adjusted_score = score / games_played
-        return adjusted_score
+        :param df: A DataFrame containing the goalie's all-situations stats
+        :return: An array of durability scores
+        """
+        games_played = df['GP'].to_numpy(dtype=float)
+        toi_hours = df['TOI'].to_numpy(dtype=float) / 60.0
+        workload = games_played + toi_hours
+        return workload
+
+
+
+# Quality of teammates/competition scoring
+
+def build_player_id_map(season: str, position: str) -> pd.DataFrame:
+    """
+    Build a Player to Player ID lookup for a season.
+
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the position ('F' or 'D')
+    :return: A DataFrame with player information
+    """
+    player_ids_df = file.load_player_ids_csv(season)
+
+    if position is not None:
+        player_ids_df = player_ids_df[player_ids_df['Position'] == position]
+        dedup_subset = ['Player']
+    else:
+        dedup_subset = ['Player', 'Position']
+
+    player_id_map = player_ids_df[['Player', 'Position', 'Player ID']].drop_duplicates(subset=dedup_subset)
+    return player_id_map
+
+
+def compute_score_based_talent(scores_df: pd.DataFrame, id_map: pd.DataFrame, talent_col: str) -> pd.Series:
+    """
+    Build a talent proxy per Player ID from a player's own raw WAR score, used to weight QoT/QoC.
+
+    :param scores_df: A DataFrame with WAR scores
+    :param id_map: A DataFrame with player information
+    :param talent_col: The WAR score column to use as the talent proxy
+    :return: A Series of talent values
+    """
+    flat = scores_df[[talent_col, 'Position']].rename(columns={talent_col: 'Talent'}).reset_index()[['Player', 'Position', 'Talent']].copy()
+
+    # Collapse a player with multiple team rows (ex. traded) to one talent value
+    flat = flat.groupby(['Player', 'Position'], as_index=False)['Talent'].mean()
+
+    merged = flat.merge(id_map, on=['Player', 'Position'], how='inner')
+    talent_by_id = merged.set_index('Player ID')['Talent']
+    talent_by_id = talent_by_id[~talent_by_id.index.duplicated(keep='first')]
+
+    return talent_by_id
+
+
+def weighted_quality(toi_df: pd.DataFrame, talent_by_id: pd.Series) -> pd.DataFrame:
+    """
+    Compute the shared-TOI-weighted average talent for every player from a long-format TOI table.
+
+    :param toi_df: A DataFrame with players shared TOI with other players
+    :param talent_by_id: A Series of talent values
+    :return: A DataFrame with quality and sample
+    """
+    work = toi_df.copy()
+    work['Talent'] = work['Other Player ID'].map(talent_by_id)
+    work = work.dropna(subset=['Talent'])
+
+    work['Weighted'] = work['Shared TOI'] * work['Talent']
+    grouped = work.groupby('Player ID').agg(Weighted=('Weighted', 'sum'), Sample=('Shared TOI', 'sum'))
+
+    result = pd.DataFrame(index=grouped.index)
+    result['Quality'] = grouped['Weighted'] / grouped['Sample']
+    result['Sample'] = grouped['Sample']
+
+    return result
+
+
+def compute_quality_metrics(season: str, scores_df: pd.DataFrame, situation: str, talent_col: str, position: str = None) -> pd.DataFrame:
+    """
+    Compute QoT and QoC for every player in a season, restricted to one strength situation.
+
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param scores_df: A DataFrame with WAR scores
+    :param situation: A str strength situation to restrict to one of 'ES', 'PP', 'PK'
+    :param talent_col: The score column to use as the talent proxy
+    :param position: A str representing the position ('F' or 'D'), or None
+    :return: A DataFrame with QoT/QoC scores ans samples
+    """
+
+    id_map = build_player_id_map(season, position=None)
+    teammate_toi_df = file.load_teammate_toi_csv(season)
+    competition_toi_df = file.load_competition_toi_csv(season)
+
+    if 'Situation' in teammate_toi_df.columns:
+        teammate_toi_df = teammate_toi_df[teammate_toi_df['Situation'] == situation]
+    if 'Situation' in competition_toi_df.columns:
+        competition_toi_df = competition_toi_df[competition_toi_df['Situation'] == situation]
+
+    talent_by_id = compute_score_based_talent(scores_df, id_map, talent_col=talent_col)
+
+    qot_df = weighted_quality(teammate_toi_df, talent_by_id)
+    qoc_df = weighted_quality(competition_toi_df, talent_by_id)
+
+    name_map = id_map if position is None else id_map[id_map['Position'] == position]
+    id_to_player = name_map.drop_duplicates('Player ID').set_index('Player ID')['Player']
+
+    qot_df = qot_df.rename(columns={'Quality': 'qot_score', 'Sample': 'qot_sample'})
+    qoc_df = qoc_df.rename(columns={'Quality': 'qoc_score', 'Sample': 'qoc_sample'})
+
+    quality_df = qot_df.join(qoc_df, how='outer')
+    quality_df.index = quality_df.index.map(id_to_player)
+    quality_df.index.name = 'Player'
+    quality_df = quality_df[quality_df.index.notna()]
+
+    return quality_df
+
+
+def attach_quality_to_scores(scores_df: pd.DataFrame, quality_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add qot_score/qot_sample/qoc_score/qoc_sample columns onto a scores DataFrame.
+
+    :param scores_df: A DataFrame with player scores
+    :param quality_df: A DataFrame with QoT/QoC information
+    :return: The scores DataFrame with quality information added
+    """
+    result = scores_df.copy()
+    players = result.index.get_level_values('Player')
+
+    for col in ['qot_score', 'qot_sample', 'qoc_score', 'qoc_sample']:
+        result[col] = players.map(quality_df[col])
+
+    return result
+
+
+def average_quality_metrics(quality_a: pd.DataFrame, quality_b: pd.DataFrame) -> pd.DataFrame:
+    """
+    Average two quality DataFrames' qot_score/qoc_score columns together.
+
+    :param quality_a: A quality DataFrame
+    :param quality_b: A second quality DataFrame to average against
+    :return: A DataFrame with QoT/QoC information
+    """
+    index = quality_a.index.union(quality_b.index)
+    averaged = pd.DataFrame(index=index)
+    for col in ['qot_score', 'qoc_score']:
+        a_col = quality_a[col].reindex(index) if col in quality_a.columns else pd.Series(pd.NA, index=index, dtype='float64')
+        b_col = quality_b[col].reindex(index) if col in quality_b.columns else pd.Series(pd.NA, index=index, dtype='float64')
+        averaged[col] = pd.concat([a_col, b_col], axis=1).mean(axis=1)
+    return averaged
