@@ -9,22 +9,6 @@ from player_card_project.utils import load_save as file
 from player_card_project.utils import constants
 
 
-def resolve_team(player_row: pd.Series) -> str:
-    """
-    Determines the player's last played for team in a season
-    :param player_row: A Series containing player data
-    :return: A str of the last played for team
-    """
-    # Split the player's teams
-    teams = str(player_row['Team']).split(', ')
-    # If there is only one team or no API team, the one team is the correct one
-    if len(teams) == 1 or pd.isna(player_row['Team_api']):
-        team = teams[0]
-    # Else the API team is the correct one
-    else:
-        team = player_row['Team_api']
-    return team
-
 
 def get_player_role(player_row: pd.Series) -> str:
     """
@@ -37,15 +21,15 @@ def get_player_role(player_row: pd.Series) -> str:
     if player_row['Position'] == 'G':
         games_played = player_row['GP']
         total_games = constants.SEASON_GAMES[player_row['Season']]
-        games_played_percet = games_played / total_games
+        games_played_percent = games_played / total_games
 
-        if games_played_percet >= 0.60:
+        if games_played_percent >= 0.60:
             role = 'Starter'
-        elif games_played_percet >= 0.50:
+        elif games_played_percent >= 0.50:
             role = 'Tandem (1A)'
-        elif games_played_percet >= 0.40:
+        elif games_played_percent >= 0.40:
             role = 'Tandem (1B)'
-        elif games_played_percet >= 0.10:
+        elif games_played_percent >= 0.10:
             role = 'Backup'
         else:
             role = 'Fringe'
@@ -84,7 +68,7 @@ def get_player_age(player_row: pd.Series) -> int:
     Calculates the player's age on September 1st of the first year of the given season.
 
     :param player_row: A Series containing player data
-    :return: An int of the player's age at the begining of the given season
+    :return: An int of the player's age at the beginning of the given season
     """
 
     past_season = player_row['Season']
@@ -93,13 +77,13 @@ def get_player_age(player_row: pd.Series) -> int:
     # Get the birthday into a date object
     birth_date = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
 
-    # Get the start date of the season (Sptember 1st of the first year)
+    # Get the start date of the season (September 1st of the first year)
     season_start_year = int(past_season.split("-")[0])
     season_date = date(season_start_year, 9, 1)
 
     # Calculate the player's age
     age = season_date.year - birth_date.year
-    
+
     # Adjust if birthday hasn’t occurred yet by Sept 1
     if (birth_date.month, birth_date.day) > (season_date.month, season_date.day):
         age -= 1
@@ -107,47 +91,12 @@ def get_player_age(player_row: pd.Series) -> int:
     return age
 
 
-def add_percentiles(df: pd.DataFrame, pos: str) -> pd.DataFrame:
+def load_multi_season_data(cur_season: str, position: str, seasons_num: int = 5) -> tuple:
     """
-    Add percentile rankings for key attributes based on player ranks.
+    Load yearly (unweighted) rankings data for multiple seasons.
 
-    :param df: A DataFrame containing player rankings for a given season
-    :param pos: A str of the player's position ('F', 'D', or 'G')
-    :return: A DataFrame with additional percentile columns for each attribute
-    """
-    df = df.copy()
-
-    # Select important attributes based on position
-    if pos != 'G':
-        attributes = ['evo', 'evd', 'ppl', 'pkl']
-    else:
-        attributes = ['all', 'evs', 'gpk']
-
-    for attribute in attributes:
-        rank_col = f"{attribute}_rank"
-
-        # For certain attributes, only include valid players
-        if attribute in ['ppl', 'pkl', 'fof'] and pos != 'G':
-            total_players = df[rank_col].notna().sum()
-        else:
-            total_players = len(df)
-
-        # Percentile calculation
-        pct_col = f"{attribute}_pct"
-        df[pct_col] = ((total_players - df[rank_col]) / total_players * 100).round().astype('Int64')
-
-        # Set any invalid players to NA
-        df.loc[df[rank_col].isna(), pct_col] = pd.NA
-
-    return df
-
-
-def load_multi_season_data(cur_season: str, pos: str, seasons_num: int = 5):
-    """
-    Load ranking data and compute percentiles for multiple seasons.
-
-    :param cur_season: A str of the most recent season ('YYYY-YYYY')
-    :param pos: A str of the player's position ('F', 'D', or 'G')
+    :param cur_season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
     :param seasons_num: An int of how many seasons to include (default is 5)
     :return: A tuple containing a list of seasons and a dictionary mapping season to DataFrame with percentiles
     """
@@ -162,12 +111,10 @@ def load_multi_season_data(cur_season: str, pos: str, seasons_num: int = 5):
 
     season_dfs = {}
 
-    # For each season load yearly rankings and calculate percentiles
+    # For each season load yearly rankings
     for season in seasons:
         try:
-            df = file.load_rankings_csv(season, pos, weighted=False)
-            df = add_percentiles(df, pos)
-            season_dfs[season] = df
+            season_dfs[season] = file.load_rankings_csv(season, position, weighted=False)
         # Skip missing seasons
         except FileNotFoundError:
             continue
@@ -175,171 +122,149 @@ def load_multi_season_data(cur_season: str, pos: str, seasons_num: int = 5):
     return seasons, season_dfs
 
 
-def make_history_columns(cur_df: pd.DataFrame, seasons: list, season_dfs: dict, pos: str) -> pd.DataFrame:
+def make_history_columns(cur_df: pd.DataFrame, seasons: list, season_dfs: dict, position: str) -> pd.DataFrame:
     """
     Build multi-season history columns for player attribute percentiles and teams.
 
     :param cur_df: A DataFrame containing current season player data
     :param seasons: A list of seasons (oldest to newest)
     :param season_dfs: A dictionary mapping seasons to yearly ranking DataFrames with percentile data
-    :param pos: A str of the player's position ('F', 'D', or 'G')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
     :return: A DataFrame with added attribute history and team history columns
     """
     cur_df = cur_df.copy()
 
-    if pos != 'G':
-        attributes = ['evo', 'evd', 'ppl', 'pkl']
+    # Attributes to make percentile histories for
+    if position != 'G':
+        attributes = ['ovr', 'evo', 'evd']
     else:
-        attributes = ['all', 'evs', 'gpk']
+        attributes = ['ovr', 'evs', 'pkl']
 
+    # Make empty attribute history lists
     for attribute in attributes:
         cur_df[f"{attribute}_history"] = [[] for _ in range(len(cur_df))]
 
+    # Make empty team history lists
     cur_df["team_history"] = [[] for _ in range(len(cur_df))]
 
+    # Fill history lists
     for season in seasons:
-        if season not in season_dfs:
-            continue
+        season_df = season_dfs.get(season)
 
-        season_df = season_dfs[season]
-
-        # Attribute history comes from yearly ranking data
+        # Add attribute history
         for attribute in attributes:
             pct_col = f"{attribute}_pct"
-            mapping = {
-                player: (None if pd.isna(value) else int(value))
-                for player, value in zip(season_df['Player'], season_df[pct_col])
-            }
+
+            if season_df is not None and pct_col in season_df.columns:
+                mapping = {
+                    player_id: (None if pd.isna(value) else int(value))
+                    for player_id, value in zip(season_df['Player ID'], season_df[pct_col])
+                }
+            else:
+                mapping = {}
 
             cur_df[f"{attribute}_history"] = cur_df.apply(
-                lambda row: row[f"{attribute}_history"] + [mapping.get(row['Player'], None)],
+                lambda row: row[f"{attribute}_history"] + [mapping.get(row['Player ID'], None)],
                 axis=1
             )
 
-        # Add current team
-        if season == seasons[-1]:
-            team_mapping = dict(zip(cur_df['Player'], cur_df['Team']))
         # Add team history
+        if season == seasons[-1]:
+            team_mapping = dict(zip(cur_df['Player ID'], cur_df['Team']))
         else:
             try:
-                team_df = file.load_card_data_csv(season, pos)
-                team_mapping = dict(zip(team_df['Player'], team_df['Team']))
+                team_df = file.load_card_data_csv(season, position)
+                team_mapping = dict(zip(team_df['Player ID'], team_df['Team']))
             except FileNotFoundError:
                 team_mapping = {}
 
         cur_df["team_history"] = cur_df.apply(
-            lambda row: row["team_history"] + [team_mapping.get(row['Player'], None)],
+            lambda row: row["team_history"] + [team_mapping.get(row['Player ID'], None)],
             axis=1
         )
 
     return cur_df
 
 
-def make_card_data(season, position) -> None:
+def make_card_data(season: str, position: str) -> None:
     """
-    Generate a CSV file of all the relevent player card data from other CSV files
-    
+    Generate a CSV file of all the relevant player card data from other CSV files.
+
     :param season: A str of the season to make the card data for ('YYYY-YYYY')
     :param position: A str of the player's position's first letter to make the card data for ('F', 'D', or 'G')
     :return: None
     """
 
     # Load data
-    bios_df = file.load_bios_csv(season, position)
     all_stats_df = file.load_stats_csv(season, position, 'all')
     ev_stats_df = file.load_stats_csv(season, position, '5v5')
     rankings_df = file.load_rankings_csv(season, position)
-    ids_df = file.load_ids_csv(season)
+    player_ids_df = file.load_player_ids_csv(season)
     if position == 'G':
         logs_df = file.load_goalie_logs_csv(season)
+    bios_df = file.load_player_bios_csv()
 
-    # Select important columns
-    bios_cols = bios_df[['Player', 'Team', 'Position', 'Age', 'Date of Birth', 'Birth Country', 
-                         'Nationality', 'Height (in)', 'Weight (lbs)', 
-                         'Draft Year', 'Draft Round', 'Overall Draft Position']]  
+    # Rename certain columns
+    bios_cols = bios_df[[
+        'Player ID', 'Height (in)', 'Weight (lb)', 'Birth Date', 'Birth Country',
+        'Draft Year', 'Draft Round', 'Draft Overall Pick', 'Shoots Catches',
+    ]].rename(columns={
+        'Weight (lb)': 'Weight (lbs)',
+        'Birth Date': 'Date of Birth',
+        'Draft Overall Pick': 'Overall Draft Position',
+    })
 
+    # Get stats, percentiles, ranks, and total players
     if position != 'G':
-        all_stats_cols = all_stats_df[['Player', 'Team', 'Position', 'GP', 'TOI', 'Goals', 'Total Assists', 'Total Points', 'ixG']].copy()
-        ev_stats_cols = ev_stats_df[['Player', 'Team', 'Position', 'GF%', 'xGF%',]].copy()
+        all_stats_cols = all_stats_df[['Player ID', 'GP', 'TOI', 'Goals', 'Total Assists', 'Total Points', 'ixG']].copy()
+        ev_stats_cols = ev_stats_df[['Player ID', 'GF%', 'xGF%']].copy()
 
-        rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
-                                     'evo_rank', 'evd_rank', 'ppl_rank', 'pkl_rank', 
-                                     'oio_rank', 'oid_rank', 'sht_rank', 'scr_rank', 'plm_rank',
-                                     'zon_rank','pen_rank', 'phy_rank', 'fof_rank', 'fan_rank']]
-        
+        attrs = ['ovr', 'evo', 'evd', 'ppl', 'pkl', 'fin', 'gol', 'xgl', 'ast', 'pen', 'hit', 'ozs', 'pdo', 'tmt', 'cmp']
+        pct_cols = [f'{attr}_pct' for attr in attrs]
+        rank_cols = [f'{attr}_rank' for attr in attrs]
+        players_cols = ['all_players', 'ppl_players', 'pkl_players']
+
+        rankings_cols = rankings_df[['Season', 'Player ID', 'Player', 'Team', 'Position'] + pct_cols + rank_cols + players_cols]
+
     else:
-        all_stats_cols = all_stats_df[['Player', 'Team', 'GP', 'TOI', 'SV%', 'GAA', 'xG Against', 'Goals Against']].copy()
-        ev_stats_cols = ev_stats_df[['Player', 'Team']].copy()
-        all_stats_cols['Position'] = 'G'
-        ev_stats_cols['Position'] = 'G'
+        all_stats_cols = all_stats_df[['Player ID', 'GP', 'TOI', 'SV%', 'GAA', 'xG Against', 'Goals Against']].copy()
 
-        rankings_cols = rankings_df[['Season', 'Player', 'Team', 'Position', 
-                                     'all_rank', 'evs_rank', 'gpk_rank', 
-                                     'ldg_rank', 'mdg_rank', 'hdg_rank', 'rbd_rank', 'tmd_rank',
-                                    'gre_rank', 'qal_rank', 'bad_rank', 'awf_rank', 'fan_rank']]
+        attrs = ['ovr', 'evs', 'pkl', 'ldg', 'mdg', 'hdg', 'rbd', 'tmd', 'gre', 'qal', 'bad', 'awf', 'wrk']
+        pct_cols = [f'{attr}_pct' for attr in attrs]
+        rank_cols = [f'{attr}_rank' for attr in attrs]
+        players_cols = ['all_players']
+
+        rankings_cols = rankings_df[['Season', 'Player ID', 'Player', 'Team', 'Position'] + pct_cols + rank_cols + players_cols]
 
     # Merge all data
-    card_info_df = rankings_cols.merge(
-        all_stats_cols, on=['Player', 'Team', 'Position'], how='left'
-    ).merge(
-        ev_stats_cols, on=['Player', 'Team', 'Position'], how='left'
-    ).merge(
-        bios_cols, on=['Player', 'Team', 'Position'], how='left'
-    ).merge(
-        ids_df[['Player', 'Position', 'Player ID', 'Team']],
-        on=['Player', 'Position'],
-        how='left',
-        suffixes=('', '_api')
-    )
+    card_info_df = rankings_cols.merge(all_stats_cols, on='Player ID', how='left')
+    if position != 'G':
+        card_info_df = card_info_df.merge(ev_stats_cols, on='Player ID', how='left')
 
-    # For goalies get their record stats
+    # Add specific position column
+    specific_position = player_ids_df[['Player ID', 'Specific Position']].drop_duplicates(subset='Player ID')
+    card_info_df = card_info_df.merge(specific_position, on='Player ID', how='left')
+
+    card_info_df = card_info_df.merge(bios_cols, on='Player ID', how='left')
+
+    # For goalies add their record stats from goalie logs
     if position == 'G':
         logs_df = logs_df.copy()
         logs_df['Result'] = logs_df['Result'].fillna('')
 
-        # Get game results ('W', 'L', 'O')
-        record_df = (logs_df
-            .groupby('Player')['Result']
-            .value_counts()
-            .unstack(fill_value=0)
-        )
+        # Get game results ('W', 'L', 'O') and shutouts
+        record_df = (logs_df.groupby('Player ID')['Result'].value_counts().unstack(fill_value=0))
+        shutout_df = (logs_df.groupby('Player ID')['Shutouts'].sum().reset_index())
 
-        # Get shutouts
-        shutout_df = (logs_df
-            .groupby('Player')['Shutouts']
-            .sum()
-            .reset_index()
-        )
-
-        # Rename 'O' (OT/SO loss) to 'OT/SO'
-        record_df = (record_df
-            .rename(columns={'O': 'OT/SO'})
-            .reset_index()
-        )
+        # Rename 'O' to 'OT/SO'
+        record_df = (record_df.rename(columns={'O': 'OT/SO'}).reset_index())
 
         # Merge the record stats into the main card data DataFrame
-        card_info_df = card_info_df.merge(
-            record_df[['Player', 'W', 'L', 'OT/SO']],
-            on='Player',
-            how='left'
-        )
-
-        card_info_df = card_info_df.merge(
-            shutout_df[['Player', 'Shutouts']],
-            on='Player',
-            how='left'
-        )
+        card_info_df = card_info_df.merge(record_df[['Player ID', 'W', 'L', 'OT/SO']], on='Player ID', how='left')
+        card_info_df = card_info_df.merge(shutout_df[['Player ID', 'Shutouts']], on='Player ID', how='left')
 
         # Fill any NaN values with 0
-        card_info_df[['W', 'L', 'OT/SO', 'Shutouts']] = (
-            card_info_df[['W', 'L', 'OT/SO', 'Shutouts']]
-            .fillna(0)
-            .astype(int)
-        )
-
-    # Fallback for missing team values
-    card_info_df['Team'] = card_info_df.apply(resolve_team, axis=1)
-    card_info_df.drop(columns=['Team_api'], inplace=True, errors='ignore')
+        card_info_df[['W', 'L', 'OT/SO', 'Shutouts']] = (card_info_df[['W', 'L', 'OT/SO', 'Shutouts']].fillna(0).astype(int))
 
     # Replace Age column with season-specific age
     card_info_df['Age'] = card_info_df.apply(get_player_age, axis=1)
@@ -347,7 +272,7 @@ def make_card_data(season, position) -> None:
     # Add player role
     card_info_df['Role'] = card_info_df.apply(get_player_role, axis=1)
     cols = list(card_info_df.columns)
-    cols.remove("Role")
+    cols.remove('Role')
     stats_start = cols.index("GP")
     cols = cols[:stats_start] + ["Role"] + cols[stats_start:]
     card_info_df = card_info_df[cols]
@@ -360,13 +285,7 @@ def make_card_data(season, position) -> None:
     card_info_df = card_info_df.sort_values('Player').reset_index(drop=True)
 
     # Save CSV file
-    if position == 'F':
-        pos_folder = 'forwards'
-    elif position == 'D':
-        pos_folder = 'defensemen'
-    elif position == 'G':
-        pos_folder = 'goalies'
-
+    pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_card_data.csv'
     file.save_csv(card_info_df, 'card_data', pos_folder, filename)
 
