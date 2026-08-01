@@ -38,21 +38,16 @@ class SkaterScorer:
 
     def build_war_lookup(self, position: str, season: str) -> pd.DataFrame:
         """
-        Build a player to WAR row lookup table for the position and season.
+        Build a Player ID to WAR row lookup table for the position and season.
 
         :param position: A str representing the position ('F' or 'D')
         :param season: A str representing the season ('YYYY-YYYY')
-        :return: A DataFrame indexed by Player name with WAR columns, restricted to this position
+        :return: A DataFrame with WAR columns, restricted to this position
         """
-
         war_df = file.load_skater_war_scores_csv(season)
-        player_ids_df = file.load_player_ids_csv(season)
-
         war_df = war_df[war_df['Position'] == position]
-        id_map = player_ids_df[['Player', 'Player ID']].drop_duplicates(subset='Player ID')
-        war_with_names = war_df.merge(id_map, on='Player ID', how='inner')
 
-        war_lookup = war_with_names.drop_duplicates(subset='Player').set_index('Player')
+        war_lookup = war_df.drop_duplicates(subset='Player ID').set_index('Player ID')
         return war_lookup
 
 
@@ -60,13 +55,11 @@ class SkaterScorer:
         """
         Look up war column for each player in df.
 
-        :param df: A DataFrame indexed by a 'Player' level
+        :param df: A DataFrame with Player IDs
         :param war_col: The war column to get the score for
         :return: An array of WAR values
         """
-        players = df.index.get_level_values('Player')
-
-        war_values = players.map(self.war_by_player[war_col]).to_numpy(dtype=float)
+        war_values = df.index.map(self.war_by_player[war_col]).to_numpy(dtype=float)
         return war_values
 
 
@@ -181,17 +174,13 @@ class GoalieScorer:
 
     def build_goalie_war_lookup(self, season: str):
         """
-        Build a player to WAR row lookup table for the season.
+        Build a Player ID to WAR row lookup table for the season.
 
         :param season: A str representing the season ('YYYY-YYYY')
         :return: A DataFrame with WAR values
         """
         war_df = file.load_goalie_war_scores_csv(season)
-        player_ids_df = file.load_player_ids_csv(season)
-
-        id_map = (player_ids_df[player_ids_df['Position'] == 'G'][['Player', 'Team', 'Player ID']].drop_duplicates(subset='Player ID'))
-        war_with_names = war_df.merge(id_map, on='Player ID', how='inner')
-        goalie_war_lookup = war_with_names.drop_duplicates(subset=['Player', 'Team']).set_index(['Player', 'Team'])
+        goalie_war_lookup = war_df.drop_duplicates(subset='Player ID').set_index('Player ID')
         return goalie_war_lookup
 
 
@@ -277,9 +266,6 @@ class GoalieScorer:
         :return: An array of qualifying-start rates
         """
 
-        if 'Player' not in logs_df.columns:
-            logs_df = logs_df.reset_index()
-
         merged = logs_df.merge(self.game_gsax[['Player ID', 'Game ID', 'GSAx']],
                                 on=['Player ID', 'Game ID'], how='left')
 
@@ -294,7 +280,7 @@ class GoalieScorer:
 
         merged.loc[merged['GSAx'].isna(), 'flag'] = np.nan
 
-        score = merged.groupby(['Player', 'Team'])['flag'].sum()
+        score = merged.groupby('Player ID')['flag'].sum()
         score = score.reindex(all_df.index)
         games_played = all_df['GP'].reindex(all_df.index)
 
@@ -347,44 +333,17 @@ class GoalieScorer:
 
 # Quality of teammates/competition scoring
 
-def build_player_id_map(season: str, position: str) -> pd.DataFrame:
-    """
-    Build a Player to Player ID lookup for a season.
-
-    :param season: A str representing the season ('YYYY-YYYY')
-    :param position: A str representing the position ('F' or 'D')
-    :return: A DataFrame with player information
-    """
-    player_ids_df = file.load_player_ids_csv(season)
-
-    if position is not None:
-        player_ids_df = player_ids_df[player_ids_df['Position'] == position]
-        dedup_subset = ['Player']
-    else:
-        dedup_subset = ['Player', 'Position']
-
-    player_id_map = player_ids_df[['Player', 'Position', 'Player ID']].drop_duplicates(subset=dedup_subset)
-    return player_id_map
-
-
-def compute_score_based_talent(scores_df: pd.DataFrame, id_map: pd.DataFrame, talent_col: str) -> pd.Series:
+def compute_score_based_talent(scores_df: pd.DataFrame, talent_col: str) -> pd.Series:
     """
     Build a talent proxy per Player ID from a player's own raw WAR score, used to weight QoT/QoC.
 
     :param scores_df: A DataFrame with WAR scores
-    :param id_map: A DataFrame with player information
     :param talent_col: The WAR score column to use as the talent proxy
     :return: A Series of talent values
     """
-    flat = scores_df[[talent_col, 'Position']].rename(columns={talent_col: 'Talent'}).reset_index()[['Player', 'Position', 'Talent']].copy()
-
-    # Collapse a player with multiple team rows (ex. traded) to one talent value
-    flat = flat.groupby(['Player', 'Position'], as_index=False)['Talent'].mean()
-
-    merged = flat.merge(id_map, on=['Player', 'Position'], how='inner')
-    talent_by_id = merged.set_index('Player ID')['Talent']
-    talent_by_id = talent_by_id[~talent_by_id.index.duplicated(keep='first')]
-
+    # Collapse a player with multiple rows (ex. traded) to one talent value
+    talent_by_id = scores_df.groupby(level=0)[talent_col].mean()
+    talent_by_id = talent_by_id.rename('Talent')
     return talent_by_id
 
 
@@ -410,7 +369,7 @@ def weighted_quality(toi_df: pd.DataFrame, talent_by_id: pd.Series) -> pd.DataFr
     return result
 
 
-def compute_quality_metrics(season: str, scores_df: pd.DataFrame, situation: str, talent_col: str, position: str = None) -> pd.DataFrame:
+def compute_quality_metrics(season: str, scores_df: pd.DataFrame, situation: str, talent_col: str) -> pd.DataFrame:
     """
     Compute QoT and QoC for every player in a season, restricted to one strength situation.
 
@@ -418,11 +377,8 @@ def compute_quality_metrics(season: str, scores_df: pd.DataFrame, situation: str
     :param scores_df: A DataFrame with WAR scores
     :param situation: A str strength situation to restrict to one of 'ES', 'PP', 'PK'
     :param talent_col: The score column to use as the talent proxy
-    :param position: A str representing the position ('F' or 'D'), or None
-    :return: A DataFrame with QoT/QoC scores ans samples
+    :return: A DataFrame with QoT/QoC scores and samples
     """
-
-    id_map = build_player_id_map(season, position=None)
     teammate_toi_df = file.load_teammate_toi_csv(season)
     competition_toi_df = file.load_competition_toi_csv(season)
 
@@ -431,21 +387,16 @@ def compute_quality_metrics(season: str, scores_df: pd.DataFrame, situation: str
     if 'Situation' in competition_toi_df.columns:
         competition_toi_df = competition_toi_df[competition_toi_df['Situation'] == situation]
 
-    talent_by_id = compute_score_based_talent(scores_df, id_map, talent_col=talent_col)
+    talent_by_id = compute_score_based_talent(scores_df, talent_col=talent_col)
 
     qot_df = weighted_quality(teammate_toi_df, talent_by_id)
     qoc_df = weighted_quality(competition_toi_df, talent_by_id)
-
-    name_map = id_map if position is None else id_map[id_map['Position'] == position]
-    id_to_player = name_map.drop_duplicates('Player ID').set_index('Player ID')['Player']
 
     qot_df = qot_df.rename(columns={'Quality': 'qot_score', 'Sample': 'qot_sample'})
     qoc_df = qoc_df.rename(columns={'Quality': 'qoc_score', 'Sample': 'qoc_sample'})
 
     quality_df = qot_df.join(qoc_df, how='outer')
-    quality_df.index = quality_df.index.map(id_to_player)
-    quality_df.index.name = 'Player'
-    quality_df = quality_df[quality_df.index.notna()]
+    quality_df.index.name = 'Player ID'
 
     return quality_df
 
@@ -459,10 +410,9 @@ def attach_quality_to_scores(scores_df: pd.DataFrame, quality_df: pd.DataFrame) 
     :return: The scores DataFrame with quality information added
     """
     result = scores_df.copy()
-    players = result.index.get_level_values('Player')
 
     for col in ['qot_score', 'qot_sample', 'qoc_score', 'qoc_sample']:
-        result[col] = players.map(quality_df[col])
+        result[col] = result.index.map(quality_df[col])
 
     return result
 
