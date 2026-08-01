@@ -102,10 +102,10 @@ def make_skater_scores(season: str, position: str) -> pd.DataFrame:
     ppl_data = file.load_stats_csv(season, position, '5v4')
     pkl_data = file.load_stats_csv(season, position, '4v5')
 
-    all_data = all_data.set_index(['Player', 'Team'])
-    evs_data = evs_data.set_index(['Player', 'Team'])
-    ppl_data = ppl_data.set_index(['Player', 'Team'])
-    pkl_data = pkl_data.set_index(['Player', 'Team'])
+    all_data = all_data.set_index('Player ID')
+    evs_data = evs_data.set_index('Player ID')
+    ppl_data = ppl_data.set_index('Player ID')
+    pkl_data = pkl_data.set_index('Player ID')
 
     # Filter skaters who do not meet the minimum games played requirement
     min_toi = constants.SEASON_GAMES[season] * constants.SKATER_MIN_TOI
@@ -135,6 +135,9 @@ def make_skater_scores(season: str, position: str) -> pd.DataFrame:
     scores_df.loc[invalid_ppl, 'ppl_score'] = pd.NA
     scores_df.loc[invalid_pkl, 'pkl_score'] = pd.NA
 
+    # Carry Player/Team through for display -- calculate_scores only returns score columns
+    scores_df = all_data[['Player', 'Team']].join(scores_df)
+
     return scores_df
 
 
@@ -152,11 +155,10 @@ def make_goalie_scores(season: str) -> pd.DataFrame:
     pkl_data = file.load_stats_csv(season, 'G', '4v5')
     logs_data = file.load_goalie_logs_csv(season)
 
-    # Indexed by ['Player', 'Team']
-    all_data = all_data.set_index(['Player', 'Team'])
-    evs_data = evs_data.set_index(['Player', 'Team'])
-    pkl_data = pkl_data.set_index(['Player', 'Team'])
-    logs_data = logs_data.set_index(['Player', 'Team'])
+    # Indexed by Player ID
+    all_data = all_data.set_index('Player ID')
+    evs_data = evs_data.set_index('Player ID')
+    pkl_data = pkl_data.set_index('Player ID')
 
     # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
     min_games = constants.SEASON_GAMES[season] * constants.GOALIE_MIN_GP
@@ -166,9 +168,13 @@ def make_goalie_scores(season: str) -> pd.DataFrame:
     evs_data = evs_data.loc[valid_players]
     pkl_data = pkl_data.loc[valid_players]
 
-    # Calculate goalie scores
+    # Calculate goalie scores -- logs_data is left keyed by its own 'Player ID' column
+    # (GoalieScorer.start_score merges on it directly)
     scores_df = calculate_scores(season, 'G', all_data, evs_data, pkl_data, goalie_logs_df=logs_data)
-    
+
+    # Carry Player/Team through for display -- calculate_scores only returns score columns
+    scores_df = all_data[['Player', 'Team']].join(scores_df)
+
     return scores_df
 
 
@@ -192,14 +198,11 @@ def make_player_rankings(season: str, position: str) -> None:
         else:
             other_position = 'F'
         other_scores_df = make_skater_scores(season, other_position)
-        combined_scores = pd.concat([
-            scores_df.assign(Position=position),
-            other_scores_df.assign(Position=other_position),
-        ])
+        combined_scores = pd.concat([scores_df, other_scores_df])
 
         # Get offense quality and defense quality
-        es_offense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evo_score', position=position)
-        es_defense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evd_score', position=position)
+        es_offense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evo_score')
+        es_defense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evd_score')
 
         # Get teammates and competition scores
         general_es_quality = scoring.average_quality_metrics(es_offense_quality, es_defense_quality)
@@ -209,7 +212,7 @@ def make_player_rankings(season: str, position: str) -> None:
 
         # Put together scores DataFrame
         rankings = scores_df.reset_index()
-        rankings.insert(2, 'Position', position)
+        rankings.insert(3, 'Position', position)
         rankings.insert(0, 'Season', season)
 
     # Make goalie scores
@@ -219,7 +222,7 @@ def make_player_rankings(season: str, position: str) -> None:
 
         # Put together scores DataFrame
         rankings = scores_df.reset_index()
-        rankings.insert(2, 'Position', position)
+        rankings.insert(3, 'Position', position)
         rankings.insert(0, 'Season', season)
 
     # Convert every raw score into a percentile and ranking
@@ -268,7 +271,7 @@ def make_player_weighted_rankings(season: str, position: str) -> None:
         prev_prev_rankings = pd.DataFrame()
 
     # Determine players to rank (those in the current season)
-    rankings_players = cur_rankings[['Season', 'Player', 'Position', 'Team']].copy()
+    rankings_players = cur_rankings[['Season', 'Player ID', 'Player', 'Position', 'Team']].copy()
 
     # Determine the score columns
     score_cols = []
@@ -281,36 +284,23 @@ def make_player_weighted_rankings(season: str, position: str) -> None:
 
     # For each player calculate their weighted scores
     for _, row in rankings_players.iterrows():
-        name = row['Player']
-        team = row['Team']
+        player_id = row['Player ID']
         scores = {}
 
-        # Get the scores from each season
+        # Get the scores from each season, matched by Player ID
         if not prev_prev_rankings.empty:
-            row_prev_prev = prev_prev_rankings[prev_prev_rankings['Player'] == name]
-            if len(row_prev_prev) > 1:
-                team_matches = row_prev_prev[row_prev_prev['Team'] == team]
-                if not team_matches.empty:
-                    row_prev_prev = team_matches
+            row_prev_prev = prev_prev_rankings[prev_prev_rankings['Player ID'] == player_id]
         else:
             row_prev_prev = pd.DataFrame()
 
         if not prev_rankings.empty:
-            row_prev = prev_rankings[prev_rankings['Player'] == name]
-            if len(row_prev) > 1:
-                team_matches = row_prev[row_prev['Team'] == team]
-                if not team_matches.empty:
-                    row_prev = team_matches
+            row_prev = prev_rankings[prev_rankings['Player ID'] == player_id]
         else:
             row_prev = pd.DataFrame()
             row_prev_prev = pd.DataFrame()
 
         if not cur_rankings.empty:
-            row_cur = cur_rankings[cur_rankings['Player'] == name]
-            if len(row_cur) > 1:
-                team_matches = row_cur[row_cur['Team'] == team]
-                if not team_matches.empty:
-                    row_cur = team_matches
+            row_cur = cur_rankings[cur_rankings['Player ID'] == player_id]
         else:
             row_cur = pd.DataFrame()
             row_prev = pd.DataFrame()
