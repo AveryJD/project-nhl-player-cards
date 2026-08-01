@@ -1,91 +1,78 @@
 # ====================================================================================================
-# FUNCTIONS FOR RANKING NHL PLAYERS BASED ON ATTRIBUTE SCORES
+# FUNCTIONS FOR RANKING PLAYER ATTRIBUTE SCORES
 # ====================================================================================================
 
 # Imports
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 from player_card_project.utils import scoring
 from player_card_project.utils import constants
 from player_card_project.utils import load_save as file
 
 
-def shrink_scores_to_average(scores: pd.Series, sample: pd.Series, k: float) -> pd.Series:
+
+def attach_percentiles(rankings: pd.DataFrame, score_columns: list) -> None:
     """
-    Shrink only above-average player scores toward the league average based on sample size.
+    Attach a percentile and rank column per score column, plus total qualifying player counts for different strength situations.
 
-    Low-sample players with strong scores are pulled toward the average, reducing small-sample
-    overrating. Players at or below league average are left unchanged, so poor low-sample
-    players are not artificially improved.
-
-    :param scores: A Series containing player scores.
-    :param sample: A Series containing the sample size for each player, such as TOI or GP.
-    :param k: Stabilization constant. Higher values create stronger shrinkage.
-    :return: A Series of adjusted scores with the same index as scores.
+    :param rankings: The rankings DataFrame to add columns to
+    :param score_columns: The score columns to convert
+    :return: None
     """
+    for col in score_columns:
+        attr = col[:-len('_score')]
+        pct_col = f'{attr}_pct'
+        rank_col = f'{attr}_rank'
+        rankings[pct_col] = (rankings[col].rank(pct=True, na_option='keep') * 100).round(1).astype('Float64')
+        rankings[rank_col] = rankings[col].rank(method='dense', ascending=False, na_option='keep').astype('Int64')
 
-    valid = scores.notna() & sample.notna() & (sample > 0)
-
-    sample_sum = sample.loc[valid].sum()
-
-    if sample_sum <= 0 or pd.isna(sample_sum):
-        return scores.copy()
-
-    league_average = (scores.loc[valid] * sample.loc[valid]).sum() / sample.loc[valid].sum()
-
-    shrunk_scores = scores.copy()
-
-    above_average = valid & (scores > league_average)
-
-    shrunk_scores.loc[above_average] = (
-        (scores.loc[above_average] * sample.loc[above_average] + league_average * k)
-        / (sample.loc[above_average] + k)
-    )
-
-    return shrunk_scores
+    rankings['all_players'] = len(rankings)
+    if 'ppl_score' in rankings.columns:
+        rankings['ppl_players'] = int(rankings['ppl_score'].notna().sum())
+    if 'pkl_score' in rankings.columns:
+        rankings['pkl_players'] = int(rankings['pkl_score'].notna().sum())
 
 
-def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None, goalie_logs_df=None) -> pd.DataFrame:
+def calculate_scores(season: str, position: str, all_df: pd.DataFrame, evs_df: pd.DataFrame, pkl_df: pd.DataFrame, ppl_df: pd.DataFrame = None, goalie_logs_df=None) -> pd.DataFrame:
     """
     Calculate player scores for all attributes.
 
+    :param season: A str representing the season ('YYYY-YYYY')
     :param position: A str representing the player's position ('F', 'D', or 'G')
     :param all_df: A DataFrame containing the players stats from all situations
     :param evs_df: A DataFrame containing the players 5v5 stats
     :param pkl_df: A DataFrame containing the players 4v5 stats
     :param ppl_df: A DataFrame containing the players 5v4 stats (default is None to account for goalies)
     :param goalie_logs_df: A DataFrame containing the goalies game logs (default is None to account for skaters)
-    :return: None
+    :return: A DataFrame of scores
     """
 
-    skater_scorer = scoring.SkaterScorer()
-    goalie_scorer = scoring.GoalieScorer()
+    skater_scorer = scoring.SkaterScorer(position, season) if position != 'G' else None
+    goalie_scorer = scoring.GoalieScorer(season) if position == 'G' else None
 
     # Calculate skater scores
     if position != 'G':
         scores = pd.DataFrame({
-            'evo_score': skater_scorer.offensive_score(evs_df),
-            'evd_score': skater_scorer.defensive_score(evs_df),
-            'ppl_score': skater_scorer.offensive_score(ppl_df, is_ppl=True),
-            'pkl_score': skater_scorer.defensive_score(pkl_df, is_pkl=True),
-            'oio_score': skater_scorer.oniceoffense_score(evs_df),
-            'oid_score': skater_scorer.onicedefense_score(evs_df),
-            'sht_score': skater_scorer.shooting_score(evs_df),
-            'scr_score': skater_scorer.scoring_score(evs_df),
-            'plm_score': skater_scorer.playmaking_score(evs_df),
-            'zon_score': skater_scorer.ozonestarts_score(evs_df),
-            'pen_score': skater_scorer.penalties_score(evs_df),
-            'phy_score': skater_scorer.physicality_score(evs_df),
-            'fof_score': skater_scorer.faceoff_score(evs_df),
-            'fan_score': skater_scorer.fantasy_score(all_df, ppl_df, pkl_df),
+            'ovr_score': skater_scorer.total_war_score(all_df),
+            'evo_score': skater_scorer.offensive_war_score(evs_df),
+            'evd_score': skater_scorer.defensive_war_score(evs_df),
+            'ppl_score': skater_scorer.offensive_war_score(ppl_df, is_ppl=True),
+            'pkl_score': skater_scorer.defensive_war_score(pkl_df, is_pkl=True),
+            'fin_score': skater_scorer.finishing_war_score(all_df),
+            'pen_score': skater_scorer.penalty_war_score(all_df),
+            'xgl_score': skater_scorer.secondary_score(evs_df, 'ixG'),
+            'gol_score': skater_scorer.secondary_score(evs_df, 'Goals'),
+            'ast_score': skater_scorer.secondary_score(evs_df, 'Assists'),
+            'hit_score': skater_scorer.secondary_score(evs_df, 'Physicality'),
+            'ozs_score': skater_scorer.secondary_score(evs_df, 'O-Zone Starts', total=True),
+            'pdo_score': skater_scorer.secondary_score(evs_df, 'PDO', total=True),
         }, index=all_df.index)
 
     # Calculate goalie scores
     else:
         scores = pd.DataFrame({
-            'all_score': goalie_scorer.total_score(all_df),
-            'evs_score': goalie_scorer.total_score(evs_df),
-            'gpk_score': goalie_scorer.total_score(pkl_df),
+            'ovr_score': goalie_scorer.total_war_score(all_df),
+            'evs_score': goalie_scorer.evs_war_score(evs_df),
+            'pkl_score': goalie_scorer.pkl_war_score(pkl_df),
             'ldg_score': goalie_scorer.zone_score(evs_df, 'LD'),
             'mdg_score': goalie_scorer.zone_score(evs_df, 'MD'),
             'hdg_score': goalie_scorer.zone_score(evs_df, 'HD'),
@@ -95,10 +82,94 @@ def calculate_player_scores(position: str, all_df: pd.DataFrame, evs_df: pd.Data
             'qal_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Quality'),
             'bad_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Bad'),
             'awf_score': goalie_scorer.start_score(all_df, goalie_logs_df, 'Awful'),
-            'fan_score': goalie_scorer.goalie_fantasy_score(all_df, goalie_logs_df),
+            'wrk_score': goalie_scorer.workload_score(all_df),
         }, index=all_df.index)
 
     return scores
+
+
+def make_skater_scores(season: str, position: str) -> pd.DataFrame:
+    """
+    Load stats and compute raw skater scores for a single season/position.
+
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F' or 'D')
+    :return: A DataFrame with raw scores
+    """
+    # Load all skater data
+    all_data = file.load_stats_csv(season, position, 'all')
+    evs_data = file.load_stats_csv(season, position, '5v5')
+    ppl_data = file.load_stats_csv(season, position, '5v4')
+    pkl_data = file.load_stats_csv(season, position, '4v5')
+
+    all_data = all_data.set_index(['Player', 'Team'])
+    evs_data = evs_data.set_index(['Player', 'Team'])
+    ppl_data = ppl_data.set_index(['Player', 'Team'])
+    pkl_data = pkl_data.set_index(['Player', 'Team'])
+
+    # Filter skaters who do not meet the minimum games played requirement
+    min_toi = constants.SEASON_GAMES[season] * constants.SKATER_MIN_TOI
+    valid_players = all_data.loc[all_data['TOI'] >= min_toi].index
+    all_data = all_data.loc[valid_players]
+
+    # Ensure all DataFrames share the same index
+    common_index = all_data.index
+    evs_data = evs_data.reindex(common_index).fillna(0)
+    ppl_data = ppl_data.reindex(common_index).fillna(0)
+    pkl_data = pkl_data.reindex(common_index).fillna(0)
+
+    # Filter skaters who meet the minimum special teams TOI requirement
+    min_power_play = constants.SKATER_MIN_PP
+    min_penalty_kill = constants.SKATER_MIN_PK
+    valid_ppl_players = ppl_data.loc[ppl_data['TOI'] >= all_data['GP'] * min_power_play].index
+    valid_pkl_players = pkl_data.loc[pkl_data['TOI'] >= all_data['GP'] * min_penalty_kill].index
+
+    # Boolean masks of invalid player scores
+    invalid_ppl = ~ppl_data.index.isin(valid_ppl_players)
+    invalid_pkl = ~pkl_data.index.isin(valid_pkl_players)
+
+    # Calculate skater scores
+    scores_df = calculate_scores(season, position, all_data, evs_data, pkl_data, ppl_df=ppl_data)
+
+    # Mask invalid PP/PK players' scores
+    scores_df.loc[invalid_ppl, 'ppl_score'] = pd.NA
+    scores_df.loc[invalid_pkl, 'pkl_score'] = pd.NA
+
+    return scores_df
+
+
+def make_goalie_scores(season: str) -> pd.DataFrame:
+    """
+    Load stats and compute raw skater scores for a single season/position.
+
+    :param season: A str representing the season ('YYYY-YYYY')
+    :return: A DataFrame with raw scores
+    """
+
+    # Load all goalie data
+    all_data = file.load_stats_csv(season, 'G', 'all')
+    evs_data = file.load_stats_csv(season, 'G', '5v5')
+    pkl_data = file.load_stats_csv(season, 'G', '4v5')
+    logs_data = file.load_goalie_logs_csv(season)
+
+    # Indexed by ['Player', 'Team']
+    all_data = all_data.set_index(['Player', 'Team'])
+    evs_data = evs_data.set_index(['Player', 'Team'])
+    pkl_data = pkl_data.set_index(['Player', 'Team'])
+    logs_data = logs_data.set_index(['Player', 'Team'])
+
+    # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
+    min_games = constants.SEASON_GAMES[season] * constants.GOALIE_MIN_GP
+    valid_players = all_data.loc[all_data['GP'] >= min_games].index
+
+    all_data = all_data.loc[valid_players]
+    evs_data = evs_data.loc[valid_players]
+    pkl_data = pkl_data.loc[valid_players]
+
+    # Calculate goalie scores
+    scores_df = calculate_scores(season, 'G', all_data, evs_data, pkl_data, goalie_logs_df=logs_data)
+    
+    return scores_df
 
 
 def make_player_rankings(season: str, position: str) -> None:
@@ -110,180 +181,58 @@ def make_player_rankings(season: str, position: str) -> None:
     :return: None
     """
 
-    # For skaters
+    # Make skater scores
     if position != 'G':
-        # Load all skater data
-        all_data = file.load_stats_csv(season, position, 'all')
-        evs_data = file.load_stats_csv(season, position, '5v5')
-        ppl_data = file.load_stats_csv(season, position, '5v4')
-        pkl_data = file.load_stats_csv(season, position, '4v5')
+        # Get skater scores
+        scores_df = make_skater_scores(season, position)
 
-        all_data = all_data.set_index(['Player', 'Team'])
-        evs_data = evs_data.set_index(['Player', 'Team'])
-        ppl_data = ppl_data.set_index(['Player', 'Team'])
-        pkl_data = pkl_data.set_index(['Player', 'Team'])
+        # Calculate a combined forward and defenseman score pool for quality of teammates and competition
+        if position == 'F':
+            other_position = 'D'
+        else:
+            other_position = 'F'
+        other_scores_df = make_skater_scores(season, other_position)
+        combined_scores = pd.concat([
+            scores_df.assign(Position=position),
+            other_scores_df.assign(Position=other_position),
+        ])
 
-        # Filter skaters who do not meet the minimum games played requirement
-        min_toi = constants.SEASON_GAMES[season] * constants.SKATER_MIN_TOI
-        valid_players = all_data.loc[all_data['TOI'] >= min_toi].index
+        # Get offense quality and defense quality
+        es_offense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evo_score', position=position)
+        es_defense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evd_score', position=position)
 
-        all_data = all_data.loc[valid_players]
-
-        # Ensure all DataFrames share the same index
-        common_index = all_data.index
-        evs_data = evs_data.reindex(common_index).fillna(0)
-        ppl_data = ppl_data.reindex(common_index).fillna(0)
-        pkl_data = pkl_data.reindex(common_index).fillna(0)
-
-        # Filter skaters who meet the minimum special teams TOI requirement and faceoffs taken requirement
-        min_power_play = constants.SKATER_MIN_PP
-        min_penalty_kill = constants.SKATER_MIN_PK
-        valid_ppl_players = ppl_data.loc[ppl_data['TOI'] >= all_data['GP'] * min_power_play].index
-        valid_pkl_players = pkl_data.loc[pkl_data['TOI'] >= all_data['GP'] * min_penalty_kill].index
-
-        min_faceoffs = constants.SKATER_MIN_FO
-        total_fo = all_data['Faceoffs Won'] + all_data['Faceoffs Lost']
-        valid_fof_players = all_data.loc[total_fo >= all_data['GP'] * min_faceoffs].index
-
-        # Boolean masks of invalid player scores
-        invalid_ppl = ~ppl_data.index.isin(valid_ppl_players)
-        invalid_pkl = ~pkl_data.index.isin(valid_pkl_players)
-        invalid_fof = ~all_data.index.isin(valid_fof_players)
-
-        # Calculate skater scores
-        scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, ppl_df=ppl_data)
-
-        # Mask invalid PP/PK players' scores
-        scores_df.loc[invalid_ppl, 'ppl_score'] = pd.NA
-        scores_df.loc[invalid_pkl, 'pkl_score'] = pd.NA
-        scores_df.loc[invalid_fof, 'fof_score'] = pd.NA
-
-        # Apply shrinkage towards the average of low time on ice skater scores
-        all_toi = all_data['TOI']
-        evs_toi = evs_data['TOI']
-        ppl_toi = ppl_data['TOI']
-        pkl_toi = pkl_data['TOI']
-
-        all_k = all_toi.quantile(0.25)
-        evs_k = evs_toi.quantile(0.25)
-        ppl_k = ppl_toi[ppl_toi > 0].quantile(0.25)
-        pkl_k = pkl_toi[pkl_toi > 0].quantile(0.25)
-
-        toi_k_map = {
-            'evo_score': (evs_toi, evs_k),
-            'evd_score': (evs_toi, evs_k),
-            'ppl_score': (ppl_toi, ppl_k),
-            'pkl_score': (pkl_toi, pkl_k),
-            'oio_score': (evs_toi, evs_k),
-            'oid_score': (evs_toi, evs_k),
-            'sht_score': (evs_toi, evs_k),
-            'scr_score': (evs_toi, evs_k),
-            'plm_score': (evs_toi, evs_k),
-            'zon_score': (evs_toi, evs_k),
-            'pen_score': (evs_toi, evs_k),
-            'phy_score': (evs_toi, evs_k),
-            'fof_score': (evs_toi, evs_k),
-            'fan_score': (all_toi, all_k)
-        }
-
-        for col in scores_df.columns:
-            toi_series = toi_k_map[col][0]
-            k = toi_k_map[col][1]
-
-            scores_df[col] = shrink_scores_to_average(scores_df[col], toi_series, k)
+        # Get teammates and competition scores
+        general_es_quality = scoring.average_quality_metrics(es_offense_quality, es_defense_quality)
+        scores_with_es_display = scoring.attach_quality_to_scores(scores_df, general_es_quality)
+        scores_df['tmt_score'] = scores_with_es_display['qot_score']
+        scores_df['cmp_score'] = scores_with_es_display['qoc_score']
 
         # Put together scores DataFrame
-        rankings = all_data.reset_index()[['Player', 'Team', 'Position']].copy()
-        rankings = rankings.set_index(['Player', 'Team'])
-        rankings = pd.concat([rankings, scores_df], axis=1)
-        rankings = rankings.reset_index()
+        rankings = scores_df.reset_index()
+        rankings.insert(2, 'Position', position)
         rankings.insert(0, 'Season', season)
 
-    # For goalies
+    # Make goalie scores
     else:
-        # Load all goalie data
-        all_data = file.load_stats_csv(season, 'G', 'all')
-        evs_data = file.load_stats_csv(season, 'G', '5v5')
-        pkl_data = file.load_stats_csv(season, 'G', '4v5')
-        logs_data = file.load_goalie_logs_csv(season)
-
-        all_data = all_data.set_index(['Player'])
-        evs_data = evs_data.set_index(['Player'])
-        pkl_data = pkl_data.set_index(['Player'])
-        logs_data = logs_data.set_index(['Player'])
-
-        # Filter goalies who do not meet the minimum games played requirement (15% of games played over the season)
-        min_games = constants.SEASON_GAMES[season] * constants.GOALIE_MIN_GP
-        valid_players = all_data.loc[all_data['GP'] >= min_games].index
-
-        all_data = all_data.loc[valid_players]
-        evs_data = evs_data.loc[valid_players]
-        pkl_data = pkl_data.loc[valid_players]
-
-        valid_log_players = all_data.index.get_level_values('Player')
-        logs_data = logs_data.loc[valid_log_players]
-
-        # Calculate goalie scores
-        scores_df = calculate_player_scores(position, all_data, evs_data, pkl_data, goalie_logs_df=logs_data)
-
-        # Apply shrinkage towards the average of low games played goalie scores
-        all_gp = all_data['GP']
-        all_gp_k = all_gp.quantile(0.25)
-
-        gp_k_map = {
-            'all_score': (all_gp, all_gp_k),
-            'evs_score': (all_gp, all_gp_k),
-            'gpk_score': (all_gp, all_gp_k),
-
-            'ldg_score': (all_gp, all_gp_k),
-            'mdg_score': (all_gp, all_gp_k),
-            'hdg_score': (all_gp, all_gp_k),
-            'rbd_score': (all_gp, all_gp_k),
-            'tmd_score': (all_gp, all_gp_k),
-
-            'gre_score': (all_gp, all_gp_k),
-            'qal_score': (all_gp, all_gp_k),
-            'bad_score': (all_gp, all_gp_k),
-            'awf_score': (all_gp, all_gp_k),
-
-            'fan_score': (all_gp, all_gp_k)
-        }
-
-        for col in scores_df.columns:
-            gp_series = gp_k_map[col][0]
-            k = gp_k_map[col][1]
-
-            scores_df[col] = shrink_scores_to_average(scores_df[col], gp_series, k)
+        # Get goalie scores
+        scores_df = make_goalie_scores(season)
 
         # Put together scores DataFrame
-        rankings = all_data.reset_index()[['Player', 'Team']].copy()
-        rankings['Position'] = 'G'
-        rankings = pd.concat([rankings, scores_df.reset_index(drop=True)], axis=1)
+        rankings = scores_df.reset_index()
+        rankings.insert(2, 'Position', position)
         rankings.insert(0, 'Season', season)
 
-    # Rank player scores
+    # Convert every raw score into a percentile and ranking
     score_columns = [col for col in scores_df.columns if col.endswith('_score')]
-    for col in score_columns:
-        attr = col.split('_')[0]
-        rankings[f'{attr}_rank'] = rankings[col].rank(
-            ascending=False,
-            method='dense',
-            na_option='keep'
-        )
+    attach_percentiles(rankings, score_columns)
 
     # Save rankings CSV file
-    if position == 'F':
-        pos_folder = 'forwards' 
-    elif position == 'D':
-        pos_folder = 'defensemen'
-    elif position == 'G':
-        pos_folder = 'goalies'
-
+    pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_yearly_ranking.csv'
     file.save_csv(rankings, 'ranking_data', f'yearly_{pos_folder}', filename)
 
 
-def make_player_weighted_rankings(season: str, position: str):
+def make_player_weighted_rankings(season: str, position: str) -> None:
     """
     Generate weighted player rankings for a specific season.
 
@@ -295,14 +244,14 @@ def make_player_weighted_rankings(season: str, position: str):
     # Load current season rankings
     cur_rankings = file.load_rankings_csv(season, position, weighted=False)
 
-    # Check if previous seasons are avalible
+    # Check if previous seasons are available
     prev_season = file.get_prev_season(season)
-    if prev_season not in constants.ALL_SEASONS:
+    if prev_season not in constants.DATA_SEASONS:
         prev_season = None
 
     if prev_season is not None:
         prev_prev_season = file.get_prev_season(prev_season)
-        if prev_prev_season not in constants.ALL_SEASONS:
+        if prev_prev_season not in constants.DATA_SEASONS:
             prev_prev_season = None
     else:
         prev_prev_season = None
@@ -333,35 +282,46 @@ def make_player_weighted_rankings(season: str, position: str):
     # For each player calculate their weighted scores
     for _, row in rankings_players.iterrows():
         name = row['Player']
+        team = row['Team']
         scores = {}
 
-        # Extract season rows (use empty DataFrame if missing)
+        # Get the scores from each season
         if not prev_prev_rankings.empty:
             row_prev_prev = prev_prev_rankings[prev_prev_rankings['Player'] == name]
+            if len(row_prev_prev) > 1:
+                team_matches = row_prev_prev[row_prev_prev['Team'] == team]
+                if not team_matches.empty:
+                    row_prev_prev = team_matches
         else:
             row_prev_prev = pd.DataFrame()
 
         if not prev_rankings.empty:
             row_prev = prev_rankings[prev_rankings['Player'] == name]
+            if len(row_prev) > 1:
+                team_matches = row_prev[row_prev['Team'] == team]
+                if not team_matches.empty:
+                    row_prev = team_matches
         else:
             row_prev = pd.DataFrame()
             row_prev_prev = pd.DataFrame()
 
-        
         if not cur_rankings.empty:
             row_cur = cur_rankings[cur_rankings['Player'] == name]
+            if len(row_cur) > 1:
+                team_matches = row_cur[row_cur['Team'] == team]
+                if not team_matches.empty:
+                    row_cur = team_matches
         else:
             row_cur = pd.DataFrame()
             row_prev = pd.DataFrame()
             row_prev_prev = pd.DataFrame()
 
-        # Maintain season order
         season_rows = [row_cur, row_prev, row_prev_prev]
 
         # Calculate weighted scores for each score column
         for col in score_cols:
 
-            # Gather score values (keep None for missing)
+            # Get score values
             values = []
             for df in season_rows:
                 if not df.empty:
@@ -379,25 +339,32 @@ def make_player_weighted_rankings(season: str, position: str):
             num_valid = sum(value is not None for value in values)
 
             # Select the proper weight vectors
-            # All three seasons are present
-            if num_valid == 3:
-                weight_vector = constants.THREE_SEASONS_WEIGHTS
-            elif num_valid == 2:
-            # The current and previous seasons are present
-                if values[1] is not None:
-                    weight_vector = constants.TWO_SEASONS_WEIGHTS
-            # The current and previous-previous seasons are present
-                else:
-                    weight_vector = constants.TWO_SEASONS_WEIGHTS_GAP
-            # Only the current season is present
-            elif num_valid == 1:
-                weight_vector = constants.ONE_SEASON_WEIGHTS
+            if position != 'G':
+                if num_valid == 3:
+                    weight_vector = constants.SKATER_THREE_SEASONS_WEIGHTS
+                elif num_valid == 2:
+                    if values[1] is not None:
+                        weight_vector = constants.SKATER_TWO_SEASONS_WEIGHTS
+                    else:
+                        weight_vector = constants.SKATER_TWO_SEASONS_WEIGHTS_GAP
+                elif num_valid == 1:
+                    weight_vector = constants.SKATER_ONE_SEASON_WEIGHTS
 
-            # Apply weights
+            else:
+                if num_valid == 3:
+                    weight_vector = constants.GOALIE_THREE_SEASONS_WEIGHTS
+                elif num_valid == 2:
+                    if values[1] is not None:
+                        weight_vector = constants.GOALIE_TWO_SEASONS_WEIGHTS
+                    else:
+                        weight_vector = constants.GOALIE_TWO_SEASONS_WEIGHTS_GAP
+                elif num_valid == 1:
+                    weight_vector = constants.GOALIE_ONE_SEASON_WEIGHTS
+
+            # Calculate weighted score
             weighted_sum = 0
 
             for season_idx, current_value in enumerate(values):
-                # If the player's current season value is None, skip them
                 if current_value is None:
                     continue
 
@@ -409,36 +376,14 @@ def make_player_weighted_rankings(season: str, position: str):
 
         weighted_scores.append(scores)
 
-    # Create the scores and rankings data frame
+    # Put together weighted rankings DataFrame
     scores_df = pd.DataFrame(weighted_scores)
     rankings_df = pd.concat([rankings_players.reset_index(drop=True), scores_df], axis=1)
 
-    # Scale weighted scores per column
-    scaled_scores_df = scores_df.copy()
-    for col in score_cols:
-        mask_valid = scores_df[col].notna()
-        if mask_valid.any():
-            scaler = MinMaxScaler()
-            scaled_vals = scaler.fit_transform(scores_df.loc[mask_valid, [col]])
-            scaled_scores_df.loc[mask_valid, col] = scaled_vals.flatten()
-        scaled_scores_df.loc[~mask_valid, col] = pd.NA
-
-    # Add scaled scores to rankings_df
-    for col in score_cols:
-        rankings_df[col] = scaled_scores_df[col]
-
-    # Rank player scores based on scaled values
-    for col in score_cols:
-        attr = col.split('_')[0]
-        rankings_df[f'{attr}_rank'] = rankings_df[col].rank(ascending=False, method='dense', na_option='keep')
+    # Convert every weighted score into a percentile against this season's qualifying pool
+    attach_percentiles(rankings_df, score_cols)
 
     # Save rankings CSV file
-    if position == 'F':
-        pos_folder = 'forwards'
-    elif position == 'D':
-        pos_folder = 'defensemen'
-    elif position == 'G':
-        pos_folder = 'goalies'
-
+    pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_weighted_ranking.csv'
     file.save_csv(rankings_df, 'ranking_data', f'weighted_{pos_folder}', filename)
