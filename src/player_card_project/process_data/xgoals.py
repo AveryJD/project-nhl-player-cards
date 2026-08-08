@@ -375,7 +375,7 @@ def prep_categoricals(df: pd.DataFrame, categories: dict, cat_features: list = N
 
     :param df: A feature table DataFrame
     :param categories: A dict mapping column name to the fixed list of category values seen at train time
-    :param cat_features: An optional list of categorical column names; defaults to CATEGORICAL_FEATURES
+    :param cat_features: An optional list of categorical column names
     :return: The DataFrame with each categorical column coerced to the shared dtype
     """
     if cat_features is None:
@@ -435,7 +435,7 @@ def fit_one_xg_candidate_fold(
     # Cap this fit to one thread
     with threadpoolctl.threadpool_limits(limits=1):
         model = HistGradientBoostingClassifier(
-            CATEGORICAL_FEATURES=cat_features, random_state=0, **params,
+            categorical_features=cat_features, random_state=0, **params,
         )
         model.fit(X.iloc[train_idx], y[train_idx])
         pred = model.predict_proba(X.iloc[test_idx])[:, 1]
@@ -522,7 +522,7 @@ def train_single_xg_model(
           f'({len(table)} rows)...')
     refit_start = time.time()
     final_model = HistGradientBoostingClassifier(
-        CATEGORICAL_FEATURES=cat_features, random_state=0, **best_params,
+        categorical_features=cat_features, random_state=0, **best_params,
     )
     final_model.fit(X, y)
     print(f'{label}: final refit done - {time.time() - refit_start:.1f}s')
@@ -531,7 +531,7 @@ def train_single_xg_model(
         'model': final_model,
         'categories': categories,
         'feature_columns': feature_columns,
-        'CATEGORICAL_FEATURES': cat_features,
+        'categorical_features': cat_features,
         'best_params': best_params,
         'cv_auc': float(best_auc) if best_auc != -np.inf else None,
         'cv_calibration': calibration,
@@ -559,8 +559,8 @@ def train_xg_model(
     """
     # Per-strength-state models drop 'Strength' as a feature (constant within each state); trained for every distinct
     # strength value with enough pooled volume, not just 5v5/5v4/4v5
-    CATEGORICAL_FEATURES_per_strength = ['Shot Type', 'Prior Event Type', 'Shooter Shoots', 'Goalie Catches']
-    feature_columns_per_strength = NUMERICAL_FEATURES + CATEGORICAL_FEATURES_per_strength
+    categorical_features_per_strength = ['Shot Type', 'Prior Event Type', 'Shooter Shoots', 'Goalie Catches']
+    feature_columns_per_strength = NUMERICAL_FEATURES + categorical_features_per_strength
 
     table = build_training_table(seasons)
 
@@ -578,7 +578,7 @@ def train_xg_model(
         print(f'xG {strength}: starting ({len(sub)} rows, '
               f'{"high-volume" if strength in high_volume_strengths else "default"} grid)...')
         result = train_single_xg_model(sub, feature_columns_per_strength,
-                                         CATEGORICAL_FEATURES_per_strength, strength_param_grid, n_splits,
+                                         categorical_features_per_strength, strength_param_grid, n_splits,
                                          label=f'xG {strength}')
         by_strength[strength] = result
         print(f'xG {strength}: done - {result["n_rows"]} rows, CV AUC={result["cv_auc"]}')
@@ -612,7 +612,7 @@ def save_xg_model(result: dict) -> None:
             'model': sub_result['model'],
             'categories': sub_result['categories'],
             'feature_columns': sub_result['feature_columns'],
-            'CATEGORICAL_FEATURES': sub_result['CATEGORICAL_FEATURES'],
+            'categorical_features': sub_result['categorical_features'],
         }
 
     bundle = {'by_strength': sub_bundles}
@@ -668,7 +668,7 @@ def predict_xg_by_strength(df: pd.DataFrame, bundle: dict) -> np.ndarray:
             continue
         sub = df[mask].copy()
         sub = prep_categoricals(sub, sub_bundle['categories'],
-                                  cat_features=sub_bundle['CATEGORICAL_FEATURES'])
+                                  cat_features=sub_bundle['categorical_features'])
         X = sub[sub_bundle['feature_columns']]
         result[mask] = sub_bundle['model'].predict_proba(X)[:, 1]
 
