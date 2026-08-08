@@ -83,7 +83,7 @@ def scrape_player_ids(season: str) -> None:
             print(f'{season}: processed {i + 1}/{len(game_ids)} games, {len(seen_ids)} player IDs found so far')
 
         # Brief delay to avoid hammering the NHL API
-        time.sleep(0.10)
+        time.sleep(0.50)
 
     player_ids_df = pd.DataFrame(all_players)
     player_ids_df = player_ids_df.sort_values(['Player', 'Position']).reset_index(drop=True)
