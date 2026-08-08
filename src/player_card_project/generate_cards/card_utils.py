@@ -1,5 +1,5 @@
 # ====================================================================================================
-# CARD CREATION HELPER FUNCTIONS
+# CARD GENERATION HELPER FUNCTIONS
 # ====================================================================================================
 
 # Imports
@@ -10,8 +10,8 @@ import io
 import requests
 import numpy as np
 from datetime import datetime
-from player_card_project.utils import constants
-from player_card_project.utils import load_save as file
+from player_card_project import constants
+from player_card_project import data_io
 
 DATA_DIR = constants.DATA_DIR
 
@@ -104,9 +104,9 @@ def get_player_headshot(season: str, team: str, player_id: float) -> Image.Image
     """
     Fetch a player's headshot image based on the season, team, and player ID.
     
-    :param season: A str of the season to get the headshot for ('YYYY-YYYY')
-    :param season: A str of the team abreviation to get the headshot for ('ABC')
-    :param season: A float of the player ID to get the headshot for ('#######')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param team: A str of the team abbreviation to get the headshot for ('ABC')
+    :param player_id: A float of the player ID to get the headshot for ('#######')
     :return: PIL Image object
     """
 
@@ -205,23 +205,23 @@ def get_percentile_color(percentile: int) -> tuple[int, int, int]:
     return (r, g, b)
 
 
-def get_player_single_season(player_name: str, cur_season: str, pos: str) -> pd.DataFrame:
+def get_player_single_season(player_name: str, season: str, position: str) -> pd.DataFrame:
     """
     Return a Series of a player's card data for a single season.
 
     :param player_name: A str of the full name of the player to return the multiple seasons for ('First Last')
-    :param cur_season: A str of the most recent season ('YYYY-YYYY')
-    :param pos: A str of the player's position's first letter ('F', 'D', or 'G')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
     :return: A Series containing player stats for the given season
     """
 
     # Load the current season's card data
-    season_data = file.load_card_data_csv(cur_season, pos)
+    season_data = data_io.load_card_data_csv(season, position)
 
     # Get player row
     player_season = season_data.loc[season_data['Player'] == player_name].copy()
     if player_season.empty:
-        raise ValueError(f"{player_name} not found in {cur_season} {pos} card data.")
+        raise ValueError(f"{player_name} not found in {season} {position} card data.")
     player_season = player_season.iloc[0]
 
     return player_season
