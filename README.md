@@ -87,9 +87,9 @@ This script will:
 * Scrape boxscore GP/TOI data and goalie game logs from the NHL API
 * Save all raw data locally for downstream processing
 
-Note: Depending on the number of seasons, collecting data could take hours due to the implemented request delays to respect the NHL API's servers.
-
 All scraped data CSV files will be saved to various folders in 'data/player_card_data/raw_data', and team logo SVGs will be saved to the 'data/assets/team_logos' folder.
+
+Note: Depending on the number of seasons, collecting data could take hours due to the implemented request delays to respect the NHL API's servers.
 
 
 ### Step 2: Generate Rankings and Card Data
@@ -110,6 +110,8 @@ This script will:
 * Assemble all player data required for card generation
 
 Generated data will be saved to various folders in 'data/player_card_data/processed_data', and card data CSV files will be saved to the 'data/player_card_data/card_data' folder.
+
+Note: Depending on the number of seasons, processing data could take hours due to how computationally heavy the player scoring is.
 
 
 ### Step 3: Generate Cards
