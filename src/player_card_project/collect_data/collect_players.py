@@ -33,44 +33,47 @@ def scrape_player_ids(season: str) -> None:
         url = f"https://api-web.nhle.com/v1/gamecenter/{game_id}/boxscore"
         response = requests.get(url, timeout=30)
 
-        boxscore = response.json()
-        player_stats = boxscore.get('playerByGameStats', {})
+        if response.status_code != 200:
+            print(f'{season}: skipping game {game_id}, boxscore request returned {response.status_code}')
+        else:
+            boxscore = response.json()
+            player_stats = boxscore.get('playerByGameStats', {})
 
-        for side in ['awayTeam', 'homeTeam']:
-            team_abbrev = boxscore.get(side, {}).get('abbrev')
-            if team_abbrev is None:
-                continue
+            for side in ['awayTeam', 'homeTeam']:
+                team_abbrev = boxscore.get(side, {}).get('abbrev')
+                if team_abbrev is None:
+                    continue
 
-            side_stats = player_stats.get(side, {})
+                side_stats = player_stats.get(side, {})
 
-            for group, position_code in position_group_map.items():
-                for player in side_stats.get(group, []):
-                    pid = player['playerId']
+                for group, position_code in position_group_map.items():
+                    for player in side_stats.get(group, []):
+                        pid = player['playerId']
 
-                    # Skip IDs that have already been found
-                    if pid in seen_ids:
-                        continue
-                    seen_ids.add(pid)
+                        # Skip IDs that have already been found
+                        if pid in seen_ids:
+                            continue
+                        seen_ids.add(pid)
 
-                    # Get player full name
-                    name_url = f"https://api-web.nhle.com/v1/player/{pid}/landing"
-                    name_response = requests.get(name_url, timeout=30)
-                    name_data = name_response.json() if name_response.status_code == 200 else {}
+                        # Get player full name
+                        name_url = f"https://api-web.nhle.com/v1/player/{pid}/landing"
+                        name_response = requests.get(name_url, timeout=30)
+                        name_data = name_response.json() if name_response.status_code == 200 else {}
 
-                    first = name_data.get('firstName', {}).get('default', '')
-                    last = name_data.get('lastName', {}).get('default', '')
-                    full_name = f"{first} {last}".strip() or str(pid)
+                        first = name_data.get('firstName', {}).get('default', '')
+                        last = name_data.get('lastName', {}).get('default', '')
+                        full_name = f"{first} {last}".strip() or str(pid)
 
-                    # Get player specific position
-                    specific_position = player.get('position', position_code)
+                        # Get player specific position
+                        specific_position = player.get('position', position_code)
 
-                    all_players.append({
-                        'Player': full_name,
-                        'Player ID': pid,
-                        'Team': team_abbrev,
-                        'Position': position_code,
-                        'Specific Position': specific_position,
-                    })
+                        all_players.append({
+                            'Player': full_name,
+                            'Player ID': pid,
+                            'Team': team_abbrev,
+                            'Position': position_code,
+                            'Specific Position': specific_position,
+                        })
 
         # Progress print statement
         if (i + 1) % 100 == 0 or i == len(game_ids) - 1:
@@ -110,6 +113,11 @@ def scrape_bios(seasons: list) -> None:
     for i, player_id in enumerate(to_scrape):
         url = f'https://api-web.nhle.com/v1/player/{player_id}/landing'
         response = requests.get(url, timeout=30)
+
+        if response.status_code != 200:
+            print(f'Skipping player {player_id}, bio request returned {response.status_code}')
+            time.sleep(0.10)
+            continue
 
         data = response.json()
 
