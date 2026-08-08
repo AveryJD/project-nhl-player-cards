@@ -7,6 +7,7 @@ import requests
 import pandas as pd
 import time
 import os
+import warnings
 from player_card_project import constants
 from player_card_project import data_io
 
@@ -124,7 +125,9 @@ def scrape_generic(
             for idx, (folder, file_name) in enumerate(outputs):
                 if new_chunks[idx]:
                     to_concat = [df for df in [existing_dfs[idx]] + new_chunks[idx] if not df.empty]
-                    combined_df = pd.concat(to_concat, ignore_index=True)
+                    with warnings.catch_warnings():
+                        warnings.simplefilter('ignore', FutureWarning)
+                        combined_df = pd.concat(to_concat, ignore_index=True)
                     data_io.save_csv(combined_df, 'raw_data', folder, file_name)
                     existing_dfs[idx] = combined_df
                     new_chunks[idx] = []
