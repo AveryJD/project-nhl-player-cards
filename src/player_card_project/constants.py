@@ -3,6 +3,7 @@
 # ====================================================================================================
 
 import os
+import numpy as np
 
 def find_project_dir(start_dir: str) -> str:
     """
@@ -38,7 +39,7 @@ DATA_DIR = os.path.join(PROJECT_DIR, "data")
 
 
 # ====================================================================================================
-# DATA CONSTANTS
+# DATA COLLECTION CONSTANTS
 # ====================================================================================================
 
 # Date card data was updated on
@@ -63,13 +64,118 @@ DATA_SEASONS = ['2009-2010', '2010-2011', '2011-2012', '2012-2013', '2013-2014',
 
 
 # ====================================================================================================
-# MODEL CONSTANTS
+# DATA PROCESSING CONSTANTS
 # ====================================================================================================
 
+# === XGOALS ===
+# Hyperparameter grid for low-volume strength states
+PARAM_GRID = [
+    {'max_depth': 3, 'learning_rate': 0.05, 'max_iter': 300},
+    {'max_depth': 4, 'learning_rate': 0.05, 'max_iter': 300},
+    {'max_depth': 3, 'learning_rate': 0.10, 'max_iter': 200},
+    {'max_depth': 5, 'learning_rate': 0.05, 'max_iter': 300},
+]
+
+# A deeper/slower grid for the high-volume strength states, which have the sample size to support real extra capacity
+PARAM_GRID_HIGH_VOLUME = [
+    {'max_depth': 5, 'learning_rate': 0.05, 'max_iter': 300},
+    {'max_depth': 6, 'learning_rate': 0.05, 'max_iter': 300},
+    {'max_depth': 7, 'learning_rate': 0.05, 'max_iter': 300},
+    {'max_depth': 6, 'learning_rate': 0.03, 'max_iter': 500},
+    {'max_depth': 8, 'learning_rate': 0.03, 'max_iter': 500},
+]
+
+# The strength states PARAM_GRID_HIGH_VOLUME applies to
+HIGH_VOLUME_STRENGTHS = ('5v5', '5v4', '4v5')
+
+# Number of GroupKFold-by-season CV splits used to select xG model hyperparameters
+XG_CV_SPLITS = 5
+
+# Score state: goal differential at the moment of each shot, capped at +/-SHOT_SCORE_STATE_CAP so blowout scores don't dominate the model
+SHOT_SCORE_STATE_CAP = 3
+
+# Minimum pooled-across-seasons row count for a strength state to get its own trained model; below this it falls through to the no-fallback NaN path
+STRENGTH_MIN_ROWS = 500
+
+# The subset of shot-attempt event types trusted enough to train on (blocked-shot excluded)
+UNBLOCKED_EVENT_TYPES = ('goal', 'shot-on-goal', 'missed-shot')
+
+# Window after a shot for another shot to count as a rebound
+REBOUND_WINDOW_SECONDS = 3.0
+# Time threshold between prior event and potetntial rush chance
+RUSH_WINDOW_SECONDS = 5.0
+# Feet covered within RUSH_WINDOW_SECONDS to count as a rush
+RUSH_DISTANCE_THRESHOLD = 40.0
+
+# === PLAYER STATS ===
+# xG-based danger-zone thresholds for goalie HD/MD/LD splits (hand picked)
+HIGH_DANGER_XG_THRESHOLD = 0.08
+MEDIUM_DANGER_XG_THRESHOLD = 0.02
+
+# === RAPM ===
+# Cross-season RAPM prior stabilization TOI, per situation (hand picked)
+PRIOR_STABILIZATION_TOI = {
+    '5v5': 200.0,
+    '5v4': 50.0,
+    '4v5': 50.0
+}
+
+# Ceiling on a single stint's implied goals/60 rate
+RATE_CAP = 40.0
+
+# Ridge penalty strengths searched via cross-validation in fit_rapm
+ALPHA_GRID = np.logspace(0.0, 4.5, 20)
+
+# PP/PK's own (wider, lower-floored) alpha grid
+ALPHA_GRID_PP = np.logspace(-1.5, 4.5, 24)
+
+# Number of GroupKFold (grouped by Game ID) splits used to pick alpha
+RAPM_CV_SPLITS = 5
+
+# A stint starting within this many seconds of a PP/PK ending on the same ice counts as PP expiry for attach_pp_expiry (a well-documented above-average shot-share window)
+PP_EXPIRY_WINDOW_SECONDS = 20.0
+
+# Score-state differential is capped at +/- this value in attach_score_state, same rationale as RATE_CAP
+SCORE_STATE_CAP = 3
+
+# Ridge penalty for context covariates
+CONTEXT_ALPHA_FIXED = 1.0
+
+# How many of a player's most recent prior seasons feed build_rapm_prior's cross-season prior
+PRIOR_LOOKBACK_SEASONS = 2
+
+# === WAR ===
+# Penalty xG per minute, per pre-penalty strength bucket (found with fit_penalty_xg_per_minute.py)
+PENALTY_XG_PER_MINUTE = {
+    '5v5': 0.09624,
+    '5v4': 0.09624,
+    '4v5': 0.24575
+}
+
+# Team-relative TOI rank cutoff defining replacement level (hand picked)
+TEAM_TOI_RANK_THRESHOLDS = {
+    '5v5': {'F': 13, 'D': 7},
+    '5v4': {'F': 9, 'D': 4},
+    '4v5': {'F': 8, 'D': 6},
+}
+
+# Goals to wins pythagorean exponent (found with fit_pythagorean_exponent.py)
+PYTHAGOREAN_EXPONENT = 2.109
+
+# Replacement-level TOI percentile for WAR (hand picked)
+REPLACEMENT_TOI_PERCENTILE = 0.25
+
+# === PLAYER SCORING ===
+# GSAx thresholds for Great/Quality/Bad/Awful classification
+GREAT_START_GSAX = 1.5
+QUALITY_START_GSAX = 0.0
+AWFUL_START_GSAX = -1.5
+
+# === PLAYER RANKING ===
 # Number of games per season
 SEASON_GAMES = {
     '2026-2027': 0,     # Current season (max games any team has played)
-    '2025-2026': 82,    
+    '2025-2026': 82,
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,
@@ -110,49 +216,12 @@ GOALIE_TWO_SEASONS_WEIGHTS = [0.60, 0.40, 0.00]
 GOALIE_TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
 GOALIE_ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
-# Goals to wins pythagorean exponent (found with fit_pythagorean_exponent.py)
-PYTHAGOREAN_EXPONENT = 2.109
-
-# Replacement-level TOI percentile for WAR (hand picked)
-REPLACEMENT_TOI_PERCENTILE = 0.25
-
-# Team-relative TOI rank cutoff defining replacement level (hand picked)
-TEAM_TOI_RANK_THRESHOLDS = {
-    '5v5': {'F': 13, 'D': 7},
-    '5v4': {'F': 9, 'D': 4},
-    '4v5': {'F': 8, 'D': 6},
-}
-
-# Cross-season RAPM prior stabilization TOI, per situation (hand picked)
-PRIOR_STABILIZATION_TOI = {
-    '5v5': 200.0,
-    '5v4': 50.0,
-    '4v5': 50.0
-}
-
-# Penalty xG per minute, per pre-penalty strength bucket (found with fit_penalty_xg_per_minute.py)
-PENALTY_XG_PER_MINUTE = {
-    '5v5': 0.09624,
-    '5v4': 0.09624,
-    '4v5': 0.24575
-}
-
-# GSAx thresholds for Great/Quality/Bad/Awful classification
-GREAT_START_GSAX = 1.5
-QUALITY_START_GSAX = 0.0
-AWFUL_START_GSAX = -1.5
-
-
 
 # ====================================================================================================
-# NAMING CONSTANTS
+# CARD GENERATION CONSTANTS
 # ====================================================================================================
 
-# Position full names
-POSITION_NAMES = {
-    'F': 'Forward', 'D': 'Defense', 'G': 'Goalie'
-}
-
+# === NAMING ===
 # Specific position full names
 SPECIFIC_POSITION_NAMES = {
     'C': 'Center', 'L': 'Left Wing', 'R': 'Right Wing', 'D': 'Defense', 'G': 'Goalie'
@@ -248,12 +317,11 @@ SYMBOLS_TO_REPLACE = {
     'ý': 'y',
 }
 
+# === FONTS ===
+BASIC_FONT_PATH = f'{DATA_DIR}/assets/fonts/basic.ttf'
+HEADING_FONT_PATH = f'{DATA_DIR}/assets/fonts/header.ttf'
 
-
-# ====================================================================================================
-# COLOR CONSTANTS
-# ====================================================================================================
-
+# === COLORS ===
 # Card color RGB values
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
