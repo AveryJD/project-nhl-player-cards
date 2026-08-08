@@ -33,14 +33,22 @@ git clone https://github.com/AveryJD/project-nhl-player-cards.git
 cd project-nhl-player-cards
 ```
 
-2. **Create a virtual environment:**
+2. **Create a `data` folder in the project root:**
+
+```bash
+mkdir data
+```
+
+This folder is where all scraped/processed data and assets get saved, and constants.py locates the project root by searching upward for it.
+
+3. **Create a virtual environment:**
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\\Scripts\\activate
 ```
 
-3. **Install the package (and its dependencies):**
+4. **Install the package (and its dependencies):**
 
 ```bash
 pip install -e .
