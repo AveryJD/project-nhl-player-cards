@@ -5,9 +5,9 @@
 # Imports
 import numpy as np
 import pandas as pd
-from player_card_project.utils import player_stats
-from player_card_project.utils import constants
-from player_card_project.utils import load_save as file
+from player_card_project.process_data import player_stats
+from player_card_project import constants
+from player_card_project import data_io
 
 
 
@@ -44,8 +44,7 @@ class SkaterScorer:
         :param season: A str representing the season ('YYYY-YYYY')
         :return: A DataFrame with WAR columns, restricted to this position
         """
-        war_df = file.load_skater_war_scores_csv(season)
-        war_df = war_df[war_df['Position'] == position]
+        war_df = data_io.load_skater_war_scores_csv(season, position)
 
         war_lookup = war_df.drop_duplicates(subset='Player ID').set_index('Player ID')
         return war_lookup
@@ -179,7 +178,7 @@ class GoalieScorer:
         :param season: A str representing the season ('YYYY-YYYY')
         :return: A DataFrame with WAR values
         """
-        war_df = file.load_goalie_war_scores_csv(season)
+        war_df = data_io.load_goalie_war_scores_csv(season)
         goalie_war_lookup = war_df.drop_duplicates(subset='Player ID').set_index('Player ID')
         return goalie_war_lookup
 
@@ -248,8 +247,7 @@ class GoalieScorer:
 
         :param df: A DataFrame containing the goalie's stats
         :param zone: One of 'HD', 'MD', 'LD'
-        :param total: If True, return the raw season total instead of the per-60 rate
-        :return: An array of zone GSAx scores (per-60 unless total=True); NaN for zero TOI
+        :return: An array of per-60 zone GSAx scores; NaN for zero TOI
         """
         score = df[f'{zone} xG Against'].to_numpy() - df[f'{zone} Goals Against'].to_numpy()
         adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
@@ -269,6 +267,7 @@ class GoalieScorer:
         merged = logs_df.merge(self.game_gsax[['Player ID', 'Game ID', 'GSAx']],
                                 on=['Player ID', 'Game ID'], how='left')
 
+        # Flag each game as qualifying (1.0) or not (0.0) for the requested start level
         if level == 'Great':
             merged['flag'] = (merged['GSAx'] >= constants.GREAT_START_GSAX).astype(float)
         elif level == 'Quality':
@@ -278,13 +277,16 @@ class GoalieScorer:
         elif level == 'Awful':
             merged['flag'] = (merged['GSAx'] <= constants.AWFUL_START_GSAX).astype(float)
 
+        # Games with no GSAx (missing data) don't count toward the rate either way
         merged.loc[merged['GSAx'].isna(), 'flag'] = np.nan
 
+        # Rate = qualifying games / total games played
         score = merged.groupby('Player ID')['flag'].sum()
         score = score.reindex(all_df.index)
         games_played = all_df['GP'].reindex(all_df.index)
 
         adjusted_score = score / games_played
+        # Negate Bad/Awful so higher is still better, consistent with every other score
         if level in ('Bad', 'Awful'):
             adjusted_score = -adjusted_score
         start_rate = adjusted_score.to_numpy()
@@ -359,6 +361,7 @@ def weighted_quality(toi_df: pd.DataFrame, talent_by_id: pd.Series) -> pd.DataFr
     work['Talent'] = work['Other Player ID'].map(talent_by_id)
     work = work.dropna(subset=['Talent'])
 
+    # Shared-TOI-weighted average talent per player
     work['Weighted'] = work['Shared TOI'] * work['Talent']
     grouped = work.groupby('Player ID').agg(Weighted=('Weighted', 'sum'), Sample=('Shared TOI', 'sum'))
 
@@ -379,9 +382,10 @@ def compute_quality_metrics(season: str, scores_df: pd.DataFrame, situation: str
     :param talent_col: The score column to use as the talent proxy
     :return: A DataFrame with QoT/QoC scores and samples
     """
-    teammate_toi_df = file.load_teammate_toi_csv(season)
-    competition_toi_df = file.load_competition_toi_csv(season)
+    teammate_toi_df = data_io.load_teammate_toi_csv(season)
+    competition_toi_df = data_io.load_competition_toi_csv(season)
 
+    # Restrict to the requested strength situation
     if 'Situation' in teammate_toi_df.columns:
         teammate_toi_df = teammate_toi_df[teammate_toi_df['Situation'] == situation]
     if 'Situation' in competition_toi_df.columns:
@@ -419,15 +423,15 @@ def attach_quality_to_scores(scores_df: pd.DataFrame, quality_df: pd.DataFrame) 
 
 def average_quality_metrics(quality_a: pd.DataFrame, quality_b: pd.DataFrame) -> pd.DataFrame:
     """
-    Average two quality DataFrames' qot_score/qoc_score columns together.
+    Average two quality DataFrames' qot_score/qot_sample/qoc_score/qoc_sample columns together.
 
     :param quality_a: A quality DataFrame
     :param quality_b: A second quality DataFrame to average against
-    :return: A DataFrame with QoT/QoC information
+    :return: A DataFrame with QoT/QoC score and sample information
     """
     index = quality_a.index.union(quality_b.index)
     averaged = pd.DataFrame(index=index)
-    for col in ['qot_score', 'qoc_score']:
+    for col in ['qot_score', 'qot_sample', 'qoc_score', 'qoc_sample']:
         a_col = quality_a[col].reindex(index) if col in quality_a.columns else pd.Series(pd.NA, index=index, dtype='float64')
         b_col = quality_b[col].reindex(index) if col in quality_b.columns else pd.Series(pd.NA, index=index, dtype='float64')
         averaged[col] = pd.concat([a_col, b_col], axis=1).mean(axis=1)

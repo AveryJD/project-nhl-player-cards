@@ -4,9 +4,9 @@
 
 # Imports
 import pandas as pd
-from player_card_project.utils import scoring
-from player_card_project.utils import constants
-from player_card_project.utils import load_save as file
+from player_card_project.process_data import player_scoring
+from player_card_project import constants
+from player_card_project import data_io
 
 
 
@@ -46,8 +46,8 @@ def calculate_scores(season: str, position: str, all_df: pd.DataFrame, evs_df: p
     :return: A DataFrame of scores
     """
 
-    skater_scorer = scoring.SkaterScorer(position, season) if position != 'G' else None
-    goalie_scorer = scoring.GoalieScorer(season) if position == 'G' else None
+    skater_scorer = player_scoring.SkaterScorer(position, season) if position != 'G' else None
+    goalie_scorer = player_scoring.GoalieScorer(season) if position == 'G' else None
 
     # Calculate skater scores
     if position != 'G':
@@ -97,10 +97,10 @@ def make_skater_scores(season: str, position: str) -> pd.DataFrame:
     :return: A DataFrame with raw scores
     """
     # Load all skater data
-    all_data = file.load_stats_csv(season, position, 'all')
-    evs_data = file.load_stats_csv(season, position, '5v5')
-    ppl_data = file.load_stats_csv(season, position, '5v4')
-    pkl_data = file.load_stats_csv(season, position, '4v5')
+    all_data = data_io.load_stats_csv(season, position, 'all')
+    evs_data = data_io.load_stats_csv(season, position, '5v5')
+    ppl_data = data_io.load_stats_csv(season, position, '5v4')
+    pkl_data = data_io.load_stats_csv(season, position, '4v5')
 
     all_data = all_data.set_index('Player ID')
     evs_data = evs_data.set_index('Player ID')
@@ -150,10 +150,10 @@ def make_goalie_scores(season: str) -> pd.DataFrame:
     """
 
     # Load all goalie data
-    all_data = file.load_stats_csv(season, 'G', 'all')
-    evs_data = file.load_stats_csv(season, 'G', '5v5')
-    pkl_data = file.load_stats_csv(season, 'G', '4v5')
-    logs_data = file.load_goalie_logs_csv(season)
+    all_data = data_io.load_stats_csv(season, 'G', 'all')
+    evs_data = data_io.load_stats_csv(season, 'G', '5v5')
+    pkl_data = data_io.load_stats_csv(season, 'G', '4v5')
+    logs_data = data_io.load_goalie_logs_csv(season)
 
     # Indexed by Player ID
     all_data = all_data.set_index('Player ID')
@@ -201,12 +201,12 @@ def make_player_rankings(season: str, position: str) -> None:
         combined_scores = pd.concat([scores_df, other_scores_df])
 
         # Get offense quality and defense quality
-        es_offense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evo_score')
-        es_defense_quality = scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evd_score')
+        es_offense_quality = player_scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evo_score')
+        es_defense_quality = player_scoring.compute_quality_metrics(season, combined_scores, situation='ES', talent_col='evd_score')
 
         # Get teammates and competition scores
-        general_es_quality = scoring.average_quality_metrics(es_offense_quality, es_defense_quality)
-        scores_with_es_display = scoring.attach_quality_to_scores(scores_df, general_es_quality)
+        general_es_quality = player_scoring.average_quality_metrics(es_offense_quality, es_defense_quality)
+        scores_with_es_display = player_scoring.attach_quality_to_scores(scores_df, general_es_quality)
         scores_df['tmt_score'] = scores_with_es_display['qot_score']
         scores_df['cmp_score'] = scores_with_es_display['qoc_score']
 
@@ -232,7 +232,7 @@ def make_player_rankings(season: str, position: str) -> None:
     # Save rankings CSV file
     pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_yearly_ranking.csv'
-    file.save_csv(rankings, 'ranking_data', f'yearly_{pos_folder}', filename)
+    data_io.save_csv(rankings, 'processed_data', f'yearly_{pos_folder}', filename)
 
 
 def make_player_weighted_rankings(season: str, position: str) -> None:
@@ -245,15 +245,15 @@ def make_player_weighted_rankings(season: str, position: str) -> None:
     """
 
     # Load current season rankings
-    cur_rankings = file.load_rankings_csv(season, position, weighted=False)
+    cur_rankings = data_io.load_rankings_csv(season, position, weighted=False)
 
     # Check if previous seasons are available
-    prev_season = file.get_prev_season(season)
+    prev_season = data_io.get_prev_season(season)
     if prev_season not in constants.DATA_SEASONS:
         prev_season = None
 
     if prev_season is not None:
-        prev_prev_season = file.get_prev_season(prev_season)
+        prev_prev_season = data_io.get_prev_season(prev_season)
         if prev_prev_season not in constants.DATA_SEASONS:
             prev_prev_season = None
     else:
@@ -261,12 +261,12 @@ def make_player_weighted_rankings(season: str, position: str) -> None:
 
     # Load previous rankings if available
     if prev_season is not None:
-        prev_rankings = file.load_rankings_csv(prev_season, position, weighted=False)
+        prev_rankings = data_io.load_rankings_csv(prev_season, position, weighted=False)
     else:
         prev_rankings = pd.DataFrame()
 
     if prev_prev_season is not None:
-        prev_prev_rankings = file.load_rankings_csv(prev_prev_season, position, weighted=False)
+        prev_prev_rankings = data_io.load_rankings_csv(prev_prev_season, position, weighted=False)
     else:
         prev_prev_rankings = pd.DataFrame()
 
@@ -376,4 +376,4 @@ def make_player_weighted_rankings(season: str, position: str) -> None:
     # Save rankings CSV file
     pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_weighted_ranking.csv'
-    file.save_csv(rankings_df, 'ranking_data', f'weighted_{pos_folder}', filename)
+    data_io.save_csv(rankings_df, 'processed_data', f'weighted_{pos_folder}', filename)

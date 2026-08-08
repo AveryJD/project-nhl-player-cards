@@ -5,8 +5,8 @@
 # Imports
 import pandas as pd
 from datetime import datetime, date
-from player_card_project.utils import load_save as file
-from player_card_project.utils import constants
+from player_card_project import data_io
+from player_card_project import constants
 
 
 
@@ -104,7 +104,7 @@ def load_multi_season_data(cur_season: str, position: str, seasons_num: int = 5)
     # Build list of seasons (newest to oldest)
     seasons = [cur_season]
     for _ in range(seasons_num - 1):
-        seasons.append(file.get_prev_season(seasons[-1]))
+        seasons.append(data_io.get_prev_season(seasons[-1]))
 
     # Reverse the order is (oldest to newest for graphing)
     seasons.reverse()
@@ -114,7 +114,7 @@ def load_multi_season_data(cur_season: str, position: str, seasons_num: int = 5)
     # For each season load yearly rankings
     for season in seasons:
         try:
-            season_dfs[season] = file.load_rankings_csv(season, position, weighted=False)
+            season_dfs[season] = data_io.load_rankings_csv(season, position, weighted=False)
         # Skip missing seasons
         except FileNotFoundError:
             continue
@@ -173,7 +173,7 @@ def make_history_columns(cur_df: pd.DataFrame, seasons: list, season_dfs: dict, 
             team_mapping = dict(zip(cur_df['Player ID'], cur_df['Team']))
         else:
             try:
-                team_df = file.load_card_data_csv(season, position)
+                team_df = data_io.load_card_data_csv(season, position)
                 team_mapping = dict(zip(team_df['Player ID'], team_df['Team']))
             except FileNotFoundError:
                 team_mapping = {}
@@ -190,19 +190,19 @@ def make_card_data(season: str, position: str) -> None:
     """
     Generate a CSV file of all the relevant player card data from other CSV files.
 
-    :param season: A str of the season to make the card data for ('YYYY-YYYY')
-    :param position: A str of the player's position's first letter to make the card data for ('F', 'D', or 'G')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
     :return: None
     """
 
     # Load data
-    all_stats_df = file.load_stats_csv(season, position, 'all')
-    ev_stats_df = file.load_stats_csv(season, position, '5v5')
-    rankings_df = file.load_rankings_csv(season, position)
-    player_ids_df = file.load_player_ids_csv(season)
+    all_stats_df = data_io.load_stats_csv(season, position, 'all')
+    ev_stats_df = data_io.load_stats_csv(season, position, '5v5')
+    rankings_df = data_io.load_rankings_csv(season, position)
+    player_ids_df = data_io.load_player_ids_csv(season)
     if position == 'G':
-        logs_df = file.load_goalie_logs_csv(season)
-    bios_df = file.load_player_bios_csv()
+        logs_df = data_io.load_goalie_logs_csv(season)
+    bios_df = data_io.load_player_bios_csv()
 
     # Rename certain columns
     bios_cols = bios_df[[
@@ -287,5 +287,5 @@ def make_card_data(season: str, position: str) -> None:
     # Save CSV file
     pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_card_data.csv'
-    file.save_csv(card_info_df, 'card_data', pos_folder, filename)
+    data_io.save_csv(card_info_df, 'card_data', pos_folder, filename)
 
