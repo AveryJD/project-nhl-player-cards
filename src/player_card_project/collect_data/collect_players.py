@@ -6,8 +6,12 @@
 import requests
 import pandas as pd
 import time
+import os
+from player_card_project import constants
 from player_card_project import data_io
 from player_card_project.collect_data import collect_utils
+
+DATA_DIR = constants.DATA_DIR
 
 
 def scrape_player_ids(season: str) -> None:
@@ -19,7 +23,7 @@ def scrape_player_ids(season: str) -> None:
     :return: None
     """
 
-    # Get all game IDs sorted with the most recently played game first
+    # Get all game IDs sorted with the most recently played game first (to preserve correct team player was on at the end of the season)
     game_ids = collect_utils.get_season_game_ids(season)
     game_ids = sorted(game_ids, reverse=True)
 
@@ -28,7 +32,6 @@ def scrape_player_ids(season: str) -> None:
     seen_ids = set()
     all_players = []
 
-    # Collect IDs from games in referse order (to preserve correct team player was on at the end of the season)
     for i, game_id in enumerate(game_ids):
         url = f"https://api-web.nhle.com/v1/gamecenter/{game_id}/boxscore"
         response = requests.get(url, timeout=30)
@@ -101,12 +104,24 @@ def scrape_bios(seasons: list) -> None:
     # Get all player IDs to get bios for
     all_ids = set()
     for season in seasons:
-
         player_ids_df = data_io.load_player_ids_csv(season)
-
         all_ids.update(int(pid) for pid in player_ids_df['Player ID'].dropna().unique())
 
-    to_scrape = sorted(all_ids)
+    bios_columns = [
+        'Player ID', 'Player', 'Specific Position', 'Shoots Catches', 'Height (in)', 'Height (cm)',
+        'Weight (lb)', 'Weight (kg)', 'Birth Date', 'Birth City', 'Birth State Province',
+        'Birth Country', 'Draft Year', 'Draft Round', 'Draft Overall Pick', 'Draft Team',
+    ]
+
+    # Check for already scraped bios and only scrape bios that have not been scraped
+    bios_path = os.path.join(DATA_DIR, 'player_card_data', 'raw_data', 'player_bios', 'player_bios.csv')
+    existing_df = pd.read_csv(bios_path) if os.path.exists(bios_path) else pd.DataFrame(columns=bios_columns)
+    done_ids = set(existing_df['Player ID'].dropna().astype(int)) if not existing_df.empty else set()
+
+    to_scrape = sorted(all_ids - done_ids)
+    if not to_scrape:
+        print('No new player IDs to fetch bios for')
+        return
 
     new_rows = []
     # Collect player bios
@@ -115,51 +130,51 @@ def scrape_bios(seasons: list) -> None:
         response = requests.get(url, timeout=30)
 
         if response.status_code != 200:
-            print(f'Skipping player {player_id}, bio request returned {response.status_code}')
-            time.sleep(0.10)
-            continue
+            print(f'Skipping player {player_id} this run, bio request returned {response.status_code}')
+        else:
+            data = response.json()
 
-        data = response.json()
+            first_name = data.get('firstName')
+            first = (first_name.get('default') if isinstance(first_name, dict) else first_name) or ''
+            last_name = data.get('lastName')
+            last = (last_name.get('default') if isinstance(last_name, dict) else last_name) or ''
+            birth_city = data.get('birthCity')
+            birth_city = birth_city.get('default') if isinstance(birth_city, dict) else birth_city
+            birth_state_province = data.get('birthStateProvince')
+            birth_state_province = birth_state_province.get('default') if isinstance(birth_state_province, dict) else birth_state_province
 
-        first_name = data.get('firstName')
-        first = (first_name.get('default') if isinstance(first_name, dict) else first_name) or ''
-        last_name = data.get('lastName')
-        last = (last_name.get('default') if isinstance(last_name, dict) else last_name) or ''
-        birth_city = data.get('birthCity')
-        birth_city = birth_city.get('default') if isinstance(birth_city, dict) else birth_city
-        birth_state_province = data.get('birthStateProvince')
-        birth_state_province = birth_state_province.get('default') if isinstance(birth_state_province, dict) else birth_state_province
+            draft = data.get('draftDetails') or {}
 
-        draft = data.get('draftDetails') or {}
+            new_rows.append({
+                'Player ID': player_id,
+                'Player': f'{first} {last}'.strip(),
+                'Specific Position': data.get('position'),
+                'Shoots Catches': data.get('shootsCatches'),
+                'Height (in)': data.get('heightInInches'),
+                'Height (cm)': data.get('heightInCentimeters'),
+                'Weight (lb)': data.get('weightInPounds'),
+                'Weight (kg)': data.get('weightInKilograms'),
+                'Birth Date': data.get('birthDate'),
+                'Birth City': birth_city,
+                'Birth State Province': birth_state_province,
+                'Birth Country': data.get('birthCountry'),
+                'Draft Year': draft.get('year'),
+                'Draft Round': draft.get('round'),
+                'Draft Overall Pick': draft.get('overallPick'),
+                'Draft Team': draft.get('teamAbbrev'),
+            })
 
-        new_rows.append({
-            'Player ID': player_id,
-            'Player': f'{first} {last}'.strip(),
-            'Specific Position': data.get('position'),
-            'Shoots Catches': data.get('shootsCatches'),
-            'Height (in)': data.get('heightInInches'),
-            'Height (cm)': data.get('heightInCentimeters'),
-            'Weight (lb)': data.get('weightInPounds'),
-            'Weight (kg)': data.get('weightInKilograms'),
-            'Birth Date': data.get('birthDate'),
-            'Birth City': birth_city,
-            'Birth State Province': birth_state_province,
-            'Birth Country': data.get('birthCountry'),
-            'Draft Year': draft.get('year'),
-            'Draft Round': draft.get('round'),
-            'Draft Overall Pick': draft.get('overallPick'),
-            'Draft Team': draft.get('teamAbbrev'),
-        })
-
-        # Progress print statement
+        # Save progress periodically so an interrupted scrape can resume instead of restarting
         if (i + 1) % 100 == 0 or i == len(to_scrape) - 1:
+            if new_rows:
+                combined_df = pd.concat([existing_df, pd.DataFrame(new_rows, columns=bios_columns)], ignore_index=True)
+                combined_df = combined_df.sort_values('Player ID').reset_index(drop=True)
+                data_io.save_csv(combined_df, 'raw_data', 'player_bios', 'player_bios.csv')
+                existing_df = combined_df
+                new_rows = []
+
+            # Progress print statement
             print(f'Processed {i + 1}/{len(to_scrape)} player bios')
 
         # Brief delay to avoid hammering the NHL API
         time.sleep(0.10)
-
-    bios_df = pd.DataFrame(new_rows)
-    bios_df = bios_df.sort_values('Player ID').reset_index(drop=True)
-
-    # Save bios CSV -- full overwrite, no merge with whatever was already saved
-    data_io.save_csv(bios_df, 'raw_data', 'player_bios', 'player_bios.csv')
