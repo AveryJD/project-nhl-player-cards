@@ -38,47 +38,43 @@ DATA_DIR = os.path.join(PROJECT_DIR, "data")
 
 
 # ====================================================================================================
-# DATA/MODEL CONSTANTS
+# DATA CONSTANTS
 # ====================================================================================================
+
+# Date card data was updated on
+UPDATE_DATE = 'July 1, 2026'
 
 # Positions to scrape stats for
 POSITIONS = ['F', 'D', 'G']
+
+# Position to data folder name
+POSITION_FOLDERS = {'F': 'forwards', 'D': 'defensemen', 'G': 'goalies'}
 
 # Situations to scrape stats for
 SKATER_SITUATIONS = ['all', '5v5', '5v4', '4v5']
 GOALIE_SITUATIONS = ['all', '5v5', '4v5']
 
-# Seasons to scrape data for
-DATA_SEASONS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-               '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-               '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
+# Seasons for to scraping data, building models, and making cards for
+DATA_SEASONS = ['2009-2010', '2010-2011', '2011-2012', '2012-2013', '2013-2014',
+                '2014-2015', '2015-2016', '2016-2017', '2017-2018', '2018-2019',
+                '2019-2020', '2020-2021', '2021-2022', '2022-2023', '2023-2024',
+                '2024-2025', '2025-2026']
 
-# Seasons to put together card data for
-CARD_SEASONS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-                '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-                '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
-
-# All seasons of avalible data
-ALL_SEASONS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023', '2021-2022', '2020-2021', '2019-2020',
-               '2018-2019', '2017-2018', '2016-2017', '2015-2016', '2014-2015', '2013-2014',
-               '2012-2013', '2011-2012', '2010-2011', '2009-2010', '2008-2009', '2007-2008']
-
-# Earliest season the NHL API has shift data for
-EARLIEST_MODEL_SEASON = '2010-2011'
 
 
 # ====================================================================================================
-# RANKING CONSTANTS
+# MODEL CONSTANTS
 # ====================================================================================================
 
 # Number of games per season
 SEASON_GAMES = {
-    '2025-2026': 82,    # Current season (max games any team has played)
+    '2026-2027': 0,     # Current season (max games any team has played)
+    '2025-2026': 82,    
     '2024-2025': 82,
     '2023-2024': 82,
     '2022-2023': 82,
     '2021-2022': 82,
-    '2020-2021': 56,    # Shortened due to COVID
+    '2020-2021': 56,    # Season shortened due to COVID
     '2019-2020': 71,    # Season paused due to COVID
     '2018-2019': 82,
     '2017-2018': 82,
@@ -86,121 +82,71 @@ SEASON_GAMES = {
     '2015-2016': 82,
     '2014-2015': 82,
     '2013-2014': 82,
-    '2012-2013': 48,    # Shortened due to lockout
+    '2012-2013': 48,    # Season shortened due to lockout
     '2011-2012': 82,
     '2010-2011': 82,
     '2009-2010': 82,
-    '2008-2009': 82,
-    '2007-2008': 82
 }
 
-# The minimum TOI per total games in the season that a player has to play to qualify for rankings
+# The minimum TOI per total games in the season that a player has to play to qualify for rankings (300 min / 82 games)
 SKATER_MIN_TOI = 3.6585
 
-# The minimum percentage of total games in the season that a player has to play to qualify for rankings
+# The minimum percentage of total games in the season that a player has to play to qualify for rankings (13 games / 82 total games)
 GOALIE_MIN_GP = 0.15
 
 # The minimum percentage of special teams time per game played that a player has to play to qualify for special teams rankings
 SKATER_MIN_PP = 0.75
 SKATER_MIN_PK = 0.75
 
-# Weighting values for per weighted season rankings
-THREE_SEASONS_WEIGHTS = [0.60, 0.30, 0.10]
-TWO_SEASONS_WEIGHTS = [0.70, 0.30, 0.00]
-TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
-ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
+# Weighting values for per weighted season skater rankings (found with fit_season_weights.py)
+SKATER_THREE_SEASONS_WEIGHTS = [0.54, 0.34, 0.12]
+SKATER_TWO_SEASONS_WEIGHTS = [0.56, 0.44, 0.00]
+SKATER_TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
+SKATER_ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
-# All weight values
-S_WEIGHTS = {
-    # Shooting and Scoring Weights
-    'goals':            0.750,
-    'x_goals':          0.250,
-    'shots_on_net' :    0.100,
-    'shots_missed':     0.020,
-    'shots_blocked':    0.010,
-    'rush_attempts':    0.050,
+# Weighting values for per weighted season goalie rankings (too variable, hand picked)
+GOALIE_THREE_SEASONS_WEIGHTS = [0.50, 0.30, 0.20]
+GOALIE_TWO_SEASONS_WEIGHTS = [0.60, 0.40, 0.00]
+GOALIE_TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
+GOALIE_ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
-    # Playmaking Weights
-    'p_assists':        0.780,
-    's_assists':        0.050,
-    'rebounds_created': 0.190,
+# Goals to wins pythagorean exponent (found with fit_pythagorean_exponent.py)
+PYTHAGOREAN_EXPONENT = 2.109
 
-    # On Ice Offensive Weights
-    'oi_ldsf':          0.050,
-    'oi_mdsf':          0.120,
-    'oi_hdsf':          0.190,
-    'oi_gf':            1.000,
-    'oi_xgf':           1.000,
+# Replacement-level TOI percentile for WAR (hand picked)
+REPLACEMENT_TOI_PERCENTILE = 0.25
 
-    # Defensive Weights
-    'blocks':           0.050,
-    'takeaways':        0.100,
-    'giveaways':       -0.100,
-
-    # On Ice Defensive Weights
-    'oi_ldsa':          -0.050,
-    'oi_mdsa':          -0.120,
-    'oi_hdsa':          -0.190,
-    'oi_ga':            -1.000,
-    'oi_xga':           -1.000,
-
-    # Zone Start Weights
-    'o_zone_starts':    1.000,
-    'n_zone_starts':    0.000,
-    'd_zone_starts':   -1.000,
-
-    # Penalty Differential Weights
-    'penalties_drawn':  1.000,
-    'penalties_taken': -1.000,
-
-    # Physicality Weights
-    'hits':             0.200,
-    'majors':           1.000,
-
-    # Faceoff Weights
-    'faceoff_wins':     1.000,
-    'faceoff_losses':  -1.000,
-
-    # Fantasy Weights
-    'fan_goals':        3.000,
-    'fan_assists':      2.000,
-    'fan_shots':        0.500,
-    'fan_blocks':       0.500,
-    'fan_pp_points':    0.500,
-    'fan_pk_points':    0.500
+# Team-relative TOI rank cutoff defining replacement level (hand picked)
+TEAM_TOI_RANK_THRESHOLDS = {
+    '5v5': {'F': 13, 'D': 7},
+    '5v4': {'F': 9, 'D': 4},
+    '4v5': {'F': 8, 'D': 6},
 }
 
-G_WEIGHTS = {
-    # Goalie Weights
-    'gsax':             1.000,
-    'ld_shots':        -0.050,
-    'md_shots':        -0.120,
-    'hd_shots':        -0.190,
-    'ld_saves':         0.050,
-    'md_saves':         0.120,
-    'hd_saves':         0.190,
-    'ld_ga':           -1.000,
-    'md_ga':           -1.000,
-    'hd_ga':           -1.000,
-    'rebounds_given':  -0.010,
-
-    # Fantasy Weights
-    'fan_wins':             4.000,
-    'fan_otl':              1.000,
-    'fan_losses':           0.000,
-    'fan_shutouts':         3.000,
-    'fan_saves':            0.200,
-    'fan_goals_against':   -2.000,
+# Cross-season RAPM prior stabilization TOI, per situation (hand picked)
+PRIOR_STABILIZATION_TOI = {
+    '5v5': 200.0,
+    '5v4': 50.0,
+    '4v5': 50.0
 }
+
+# Penalty xG per minute, per pre-penalty strength bucket (found with fit_penalty_xg_per_minute.py)
+PENALTY_XG_PER_MINUTE = {
+    '5v5': 0.09624,
+    '5v4': 0.09624,
+    '4v5': 0.24575
+}
+
+# GSAx thresholds for Great/Quality/Bad/Awful classification
+GREAT_START_GSAX = 1.5
+QUALITY_START_GSAX = 0.0
+AWFUL_START_GSAX = -1.5
 
 
 
 # ====================================================================================================
 # NAMING CONSTANTS
 # ====================================================================================================
-
-# Date card data was updated on
-UPDATE_DATE = 'July 1, 2026'
 
 # Position full names
 POSITION_NAMES = {
@@ -230,7 +176,7 @@ TEAM_NAMES = {
     'SEA': 'Seattle Kraken',        'STL': 'St. Louis Blues',       'TBL': 'Tampa Bay Lightning',
     'TOR': 'Toronto Maple Leafs',   'VAN': 'Vancouver Canucks',     'UTA': 'Utah Mammoth',
     'VGK': 'Vegas Golden Knights',  'WSH': 'Washington Capitals',   'WPG': 'Winnipeg Jets',
-    'ATL': 'Atlanta Thrashers',     'PHX': 'Phoenix Coyotes'
+    'ATL': 'Atlanta Thrashers',     'PHX': 'Phoenix Coyotes',
 }
 
 # Country abreviations with nationality names
@@ -263,9 +209,8 @@ ATTRIBUTE_NAMES = {
     'ozs' : 'O-Zone Starts',
     'cmp' : 'Competition',
     'tmt' : 'Teammates',
-    # Goalies
+    # Goalies (also uses 'pkl' and 'ovr)
     'evs' : 'Even Strength',
-    # Also use 'pkl' : 'Penalty Kill',
     'ldg' : 'Low Danger',
     'mdg' : 'Med. Danger',
     'hdg' : 'High Danger',
@@ -276,60 +221,6 @@ ATTRIBUTE_NAMES = {
     'bad' : 'Bad Starts',
     'awf' : 'Awful Starts',
     'wrk' : 'Workload',
-}
-
-# Player names to be fixed for consitency
-FIX_NAMES = {
-    'Aatu Raty': 'Aatu Räty',
-    'Alex Barre-Boulet': 'Alex Barré-Boulet',
-    'Alex Kerfoot': 'Alexander Kerfoot',
-    'Alexander Nylander': 'Alex Nylander',
-    'Alex Petrovic': 'Alexander Petrovic',
-    'Alex Wennberg': 'Alexander Wennberg',
-    'Alexei Toropchenko': 'Alexey Toropchenko',
-    'Anthony DeAngelo': 'Tony DeAngelo',
-    'Cameron Atkinson': 'Cam Atkinson',
-    'Casey Desmith': 'Casey DeSmith',
-    'Christopher Tanev': 'Chris Tanev',
-    'Daniel Briere': 'Daniel Brière',
-    'Evgeny Dadonov': 'Evgenii Dadonov',
-    'Frederic Gaudreau': 'Frederick Gaudreau',
-    'Isac Lundestrom': 'Isac Lundeström',
-    'Jacob De La Rose': 'Jacob de la Rose',
-    'Jacob Lucchini': 'Jake Lucchini',
-    'Jacob Middleton': 'Jake Middleton',
-    'Jani Hakanpaa': 'Jani Hakanpää',
-    'Janis Moser': 'J.J. Moser',
-    'Jean-Francois Berube': 'J-F Berube',
-    'Jesse Ylönen': 'Jesse Ylonen',
-    'Jonathan Lekkerimaki': 'Jonathan Lekkerimäki',
-    'Josh Brown': 'Joshua Brown',
-    'Josh Mahura': 'Joshua Mahura',
-    'J.T. Brown': 'JT Brown',
-    'Juraj Slafkovsky': 'Juraj Slafkovský',
-    'Juuso Valimaki': 'Juuso Välimäki',
-    'Martin Fehervary': 'Martin Fehérváry',
-    'Matt Dumba': 'Mathew Dumba',
-    'Matthew Benning': 'Matt Benning',
-    'Max Comtois': 'Maxime Comtois',
-    'Michael Matheson': 'Mike Matheson',
-    'Michael Zigomanis': 'Mike Zigomanis',
-    'Mike Cammalleri': 'Michael Cammalleri',
-    'Mitchell Marner': 'Mitch Marner',
-    'Nicholas Baptiste': 'Nick Baptiste',
-    'Nicholas Merkley': 'Nick Merkley',
-    'Nicholas Paul': 'Nick Paul',
-    'Nick Shore': 'Nicholas Shore',
-    'Olli Määttä': 'Olli Maatta',
-    'Oskar Back': 'Oskar Bäck',
-    'P.O Joseph': 'Pierre-Olivier Joseph',
-    'Pat Maroon': 'Patrick Maroon',
-    'Sam Montembeault': 'Samuel Montembeault',
-    'Thomas Novak': 'Tommy Novak',
-    'Yegor Chinakhov': 'Egor Chinakhov',
-    'Zach Aston-Reese': 'Zachary Aston-Reese',
-    'Zach Sanford': 'Zachary Sanford',
-    'Zack Bolduc': 'Zachary Bolduc',
 }
 
 # Symbols to be replaced in player names for the header
@@ -386,7 +277,7 @@ PRIMARY_COLORS = {
     'SEA': (153, 217, 217), 'STL': (0, 47, 135),    'TBL': (0, 40, 104),
     'TOR': (0, 32, 91),     'VAN': (0, 32, 91),     'UTA': (105, 179, 231),
     'VGK': (185, 151, 91),  'WSH': (4, 30, 66),     'WPG': (4, 30, 66),
-    'ATL': (4, 30, 66),     'PHX': (140, 38, 51)
+    'ATL': (4, 30, 66),     'PHX': (140, 38, 51),
 }
 
 # Team secondary color RGB values
@@ -402,7 +293,7 @@ SECONDARY_COLORS = {
     'SEA': (0, 22, 40),     'STL': (252, 181, 20),  'TBL': (0, 0, 0),
     'TOR': (0, 0, 0),       'VAN': (0, 132, 61),    'UTA': (0, 0, 0),
     'VGK': (51,63,72),      'WSH': (200, 16, 46),   'WPG': (172,22,44),
-    'ATL': (184, 97, 37),   'PHX': (21,71,52)
+    'ATL': (184, 97, 37),   'PHX': (21,71,52),
 }
 
 # Rank components RBG values
@@ -419,7 +310,6 @@ PLOT_ATTRIBUTE_COLORS = {
     'ovr_plot': (210/255, 110/255, 210/255),
     'evo_plot': (255/255, 70/255, 70/255),
     'evd_plot': (70/255, 70/255, 255/255),
-    'all_plot': (210/255, 110/255, 210/255),
     'evs_plot': (255/255, 70/255, 70/255),
     'pkl_plot': (70/255, 70/255, 255/255),
 }
