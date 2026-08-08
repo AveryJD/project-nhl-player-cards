@@ -1,5 +1,5 @@
 # ====================================================================================================
-# FUNCTIONS FOR PLAYER CARD CREATION
+# FUNCTIONS FOR PLAYER CARD GENERATION
 # ====================================================================================================
 
 # Imports
@@ -18,8 +18,8 @@ from player_card_project import data_io
 DATA_DIR = constants.DATA_DIR
 
 # Load and cache fonts
-BASIC_FONT_PATH = f'{DATA_DIR}/assets/fonts/basic.ttf'
-HEADING_FONT_PATH = f'{DATA_DIR}/assets/fonts/header.ttf'
+BASIC_FONT_PATH = constants.BASIC_FONT_PATH
+HEADING_FONT_PATH = constants.HEADING_FONT_PATH
 
 FONT_CACHE = {
     'basic_40': ImageFont.truetype(BASIC_FONT_PATH, 40),
@@ -646,3 +646,4 @@ def make_player_card(player_name: str, season: str, position: str, mode: str='li
     print(f'========== {team} {position} {player_name} ({mode}) card created for the {season} season! ==========')
 
     return player_card
+
