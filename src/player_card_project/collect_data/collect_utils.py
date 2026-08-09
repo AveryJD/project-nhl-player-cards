@@ -14,6 +14,37 @@ from player_card_project import data_io
 DATA_DIR = constants.DATA_DIR
 
 
+def request_with_retry(url: str, max_retries: int = 5, backoff_base: float = 1.0, **kwargs) -> requests.Response:
+    """
+    GET a URL, retrying with backoff if the NHL API rate-limits the request (HTTP 429), so a burst of
+    requests doesn't just fail outright once the API starts throttling.
+
+    :param url: The URL to GET
+    :param max_retries: The int max number of retry attempts before giving up and returning the last response
+    :param backoff_base: The float base delay in seconds for exponential backoff between retries (1.0 -> 1s, 2s, 4s, 8s, 16s)
+    :param kwargs: Additional keyword arguments passed through to requests.get (timeout, headers, stream, etc.)
+    :return: The final requests.Response; may still be a non-200/429 status if every retry was exhausted
+    """
+    response = requests.get(url, **kwargs)
+
+    attempt = 0
+    while response.status_code == 429 and attempt < max_retries:
+        retry_after = response.headers.get('Retry-After')
+        try:
+            wait = float(retry_after) if retry_after is not None else backoff_base * (2 ** attempt)
+        # A non-numeric Retry-After header falls back to the standard backoff schedule
+        except ValueError:
+            wait = backoff_base * (2 ** attempt)
+
+        print(f'Rate limited (429) on {url}, waiting {wait:.1f}s before retry {attempt + 1}/{max_retries}...')
+        time.sleep(wait)
+
+        response = requests.get(url, **kwargs)
+        attempt += 1
+
+    return response
+
+
 def get_season_game_ids(season: str) -> list:
     """
     Get every unique game ID played in a season.
@@ -27,7 +58,7 @@ def get_season_game_ids(season: str) -> list:
     # Get every game from every team
     for team in constants.TEAM_NAMES:
         url = f'https://api-web.nhle.com/v1/club-schedule-season/{team}/{season_clean}'
-        response = requests.get(url, timeout=30)
+        response = request_with_retry(url, timeout=30)
 
         games = response.json().get('games', [])
         regular_season_gametype = 2
@@ -50,7 +81,7 @@ def get_game_play_by_play(game_id: int) -> dict:
     :return: The play-by-play JSON as a dict
     """
     url = f'https://api-web.nhle.com/v1/gamecenter/{game_id}/play-by-play'
-    response = requests.get(url, timeout=30)
+    response = request_with_retry(url, timeout=30)
     pbp_data = response.json()
     return pbp_data
 

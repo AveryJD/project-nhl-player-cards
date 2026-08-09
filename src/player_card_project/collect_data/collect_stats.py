@@ -368,7 +368,7 @@ def get_shift_chart(game_id: int) -> pd.DataFrame:
     :return: A DataFrame of individual player shifts for the game
     """
     url = f'https://api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId={game_id}'
-    response = requests.get(url, timeout=30)
+    response = collect_utils.request_with_retry(url, timeout=30)
 
     rows = response.json().get('data', [])
     if not rows:
@@ -445,7 +445,7 @@ def get_shift_chart_html(game_id: int) -> pd.DataFrame:
     pieces = []
     for report_code, team_abbrev in [('TV', away_abbrev), ('TH', home_abbrev)]:
         url = f'https://www.nhl.com/scores/htmlreports/{season_clean}/{report_code}{report_number}.HTM'
-        response = requests.get(url, timeout=30)
+        response = collect_utils.request_with_retry(url, timeout=30)
 
         soup = BeautifulSoup(response.text, 'html.parser')
         report_rows = []
@@ -609,7 +609,7 @@ def get_game_boxscore_stats(game_id: int) -> tuple:
     :return: A tuple of boxscore DataFrames
     """
     url = f'https://api-web.nhle.com/v1/gamecenter/{game_id}/boxscore'
-    response = requests.get(url, timeout=30)
+    response = collect_utils.request_with_retry(url, timeout=30)
 
     data = response.json()
     player_stats = data.get('playerByGameStats')
@@ -756,7 +756,7 @@ def get_goalie_game_log(goalie_id: int, season: str, player_name: str) -> pd.Dat
     """
     season_clean = season.replace('-', '')
     url = f'https://api-web.nhle.com/v1/player/{goalie_id}/game-log/{season_clean}/2'
-    response = requests.get(url, timeout=30)
+    response = collect_utils.request_with_retry(url, timeout=30)
 
     rows = []
     if response.status_code == 200:

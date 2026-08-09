@@ -34,7 +34,7 @@ def scrape_player_ids(season: str) -> None:
 
     for i, game_id in enumerate(game_ids):
         url = f"https://api-web.nhle.com/v1/gamecenter/{game_id}/boxscore"
-        response = requests.get(url, timeout=30)
+        response = collect_utils.request_with_retry(url, timeout=30)
 
         if response.status_code != 200:
             print(f'{season}: skipping game {game_id}, boxscore request returned {response.status_code}')
@@ -60,12 +60,15 @@ def scrape_player_ids(season: str) -> None:
 
                         # Get player full name
                         name_url = f"https://api-web.nhle.com/v1/player/{pid}/landing"
-                        name_response = requests.get(name_url, timeout=30)
+                        name_response = collect_utils.request_with_retry(name_url, timeout=30)
                         name_data = name_response.json() if name_response.status_code == 200 else {}
 
                         first = name_data.get('firstName', {}).get('default', '')
                         last = name_data.get('lastName', {}).get('default', '')
                         full_name = f"{first} {last}".strip() or str(pid)
+
+                        # Brief delay between per-player lookups to avoid hammering the NHL API
+                        time.sleep(0.10)
 
                         # Get player specific position
                         specific_position = player.get('position', position_code)
@@ -127,7 +130,7 @@ def scrape_bios(seasons: list) -> None:
     # Collect player bios
     for i, player_id in enumerate(to_scrape):
         url = f'https://api-web.nhle.com/v1/player/{player_id}/landing'
-        response = requests.get(url, timeout=30)
+        response = collect_utils.request_with_retry(url, timeout=30)
 
         if response.status_code != 200:
             print(f'Skipping player {player_id} this run, bio request returned {response.status_code}')

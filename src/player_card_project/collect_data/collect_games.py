@@ -8,6 +8,7 @@ import pandas as pd
 import time
 from player_card_project import constants
 from player_card_project import data_io
+from player_card_project.collect_data import collect_utils
 
 
 
@@ -23,7 +24,7 @@ def scrape_schedule(season: str) -> None:
 
     for team in constants.TEAM_NAMES:
         url = f'https://api-web.nhle.com/v1/club-schedule-season/{team}/{season_clean}'
-        response = requests.get(url, timeout=30)
+        response = collect_utils.request_with_retry(url, timeout=30)
 
         games = response.json().get('games', [])
         for game in games:
@@ -63,7 +64,7 @@ def scrape_team_standings(season: str) -> None:
 
     url = f"https://api.nhle.com/stats/rest/en/team/summary?isAggregate=false&isGame=false&start=0&limit=50&cayenneExp=seasonId={season_clean}%20and%20gameTypeId=2"
 
-    response = requests.get(url)
+    response = collect_utils.request_with_retry(url, timeout=30)
     response.raise_for_status()
     teams = response.json().get('data', [])
 
