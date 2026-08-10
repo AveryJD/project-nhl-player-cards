@@ -97,9 +97,6 @@ SHOT_SCORE_STATE_CAP = 3
 # Minimum pooled-across-seasons row count for a strength state to get its own trained model; below this it falls through to the no-fallback NaN path
 STRENGTH_MIN_ROWS = 500
 
-# The subset of shot-attempt event types trusted enough to train on (blocked-shot excluded)
-UNBLOCKED_EVENT_TYPES = ('goal', 'shot-on-goal', 'missed-shot')
-
 # Window after a shot for another shot to count as a rebound
 REBOUND_WINDOW_SECONDS = 3.0
 # Time threshold between prior event and potetntial rush chance
@@ -120,8 +117,8 @@ PRIOR_STABILIZATION_TOI = {
     '4v5': 50.0
 }
 
-# Ceiling on a single stint's implied goals/60 rate
-RATE_CAP = 40.0
+# Ceiling on a single stint's implied goals/60 rate (hand picked)
+RATE_CAP = 50.0
 
 # Ridge penalty strengths searched via cross-validation in fit_rapm
 ALPHA_GRID = np.logspace(0.0, 4.5, 20)
@@ -132,16 +129,16 @@ ALPHA_GRID_PP = np.logspace(-1.5, 4.5, 24)
 # Number of GroupKFold (grouped by Game ID) splits used to pick alpha
 RAPM_CV_SPLITS = 5
 
-# A stint starting within this many seconds of a PP/PK ending on the same ice counts as PP expiry for attach_pp_expiry (a well-documented above-average shot-share window)
+# A stint starting within this many seconds of a PP/PK ending on the same ice counts as PP expiry
 PP_EXPIRY_WINDOW_SECONDS = 20.0
 
-# Score-state differential is capped at +/- this value in attach_score_state, same rationale as RATE_CAP
+# Score-state differential is capped at +/- this value
 SCORE_STATE_CAP = 3
 
-# Ridge penalty for context covariates
-CONTEXT_ALPHA_FIXED = 1.0
+# Ridge penalty for context covariates (found with fit_context_alpha.py)
+CONTEXT_ALPHA = 3.0
 
-# How many of a player's most recent prior seasons feed build_rapm_prior's cross-season prior
+# How many of a player's most recent prior seasons feed build_rapm_prior's cross-season prior (hand picked)
 PRIOR_LOOKBACK_SEASONS = 2
 
 # === WAR ===
@@ -155,15 +152,15 @@ PENALTY_XG_PER_MINUTE = {
 # Team-relative TOI rank cutoff defining replacement level (hand picked)
 TEAM_TOI_RANK_THRESHOLDS = {
     '5v5': {'F': 13, 'D': 7},
-    '5v4': {'F': 9, 'D': 4},
-    '4v5': {'F': 8, 'D': 6},
+    '5v4': {'F': 9, 'D': 3},
+    '4v5': {'F': 7, 'D': 5},
 }
+
+# Team-relative TOI rank cutoff defining goalie replacement level (hand picked)
+GOALIE_TEAM_RANK_THRESHOLD = 1
 
 # Goals to wins pythagorean exponent (found with fit_pythagorean_exponent.py)
 PYTHAGOREAN_EXPONENT = 2.109
-
-# Replacement-level TOI percentile for WAR (hand picked)
-REPLACEMENT_TOI_PERCENTILE = 0.25
 
 # === PLAYER SCORING ===
 # GSAx thresholds for Great/Quality/Bad/Awful classification
@@ -205,15 +202,15 @@ SKATER_MIN_PP = 0.75
 SKATER_MIN_PK = 0.75
 
 # Weighting values for per weighted season skater rankings (found with fit_season_weights.py)
-SKATER_THREE_SEASONS_WEIGHTS = [0.54, 0.34, 0.12]
-SKATER_TWO_SEASONS_WEIGHTS = [0.56, 0.44, 0.00]
-SKATER_TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
+SKATER_THREE_SEASONS_WEIGHTS = [0.436, 0.328, 0.236]
+SKATER_TWO_SEASONS_WEIGHTS = [0.535, 0.465, 0.00]
+SKATER_TWO_SEASONS_WEIGHTS_GAP = [0.591, 0.00, 0.409]
 SKATER_ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
-# Weighting values for per weighted season goalie rankings (too variable, hand picked)
-GOALIE_THREE_SEASONS_WEIGHTS = [0.50, 0.30, 0.20]
-GOALIE_TWO_SEASONS_WEIGHTS = [0.60, 0.40, 0.00]
-GOALIE_TWO_SEASONS_WEIGHTS_GAP = [0.80, 0.00, 0.20]
+# Weighting values for per weighted season goalie rankings (found with fit_season_weights.py)
+GOALIE_THREE_SEASONS_WEIGHTS = [0.366, 0.365, 0.269]
+GOALIE_TWO_SEASONS_WEIGHTS = [0.526, 0.474, 0.00]
+GOALIE_TWO_SEASONS_WEIGHTS_GAP = [0.553, 0.00, 0.447]
 GOALIE_ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
 
@@ -223,7 +220,7 @@ GOALIE_ONE_SEASON_WEIGHTS = [1.00, 0.00, 0.00]
 
 # === NAMING ===
 # Specific position full names
-SPECIFIC_POSITION_NAMES = {
+POSITION_NAMES = {
     'C': 'Center', 'L': 'Left Wing', 'R': 'Right Wing', 'D': 'Defense', 'G': 'Goalie'
 }
 

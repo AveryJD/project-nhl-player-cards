@@ -67,7 +67,7 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
     player_id = player_row['Player ID']
     position = player_row['Position']
     specific_position = player_row.get('Specific Position')
-    position_name = constants.SPECIFIC_POSITION_NAMES.get(specific_position)
+    position_name = constants.POSITION_NAMES.get(specific_position)
     shoots_catches = player_row.get('Shoots Catches')
     handedness = constants.HANDEDNESS_NAMES.get(shoots_catches)
     if position != 'G':
@@ -647,3 +647,315 @@ def make_player_card(player_name: str, season: str, position: str, mode: str='li
 
     return player_card
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def make_mini_player_card(player_name: str, season: str, position: str, mode: str='light', save: bool=True, special_teams: str=None) -> Image:
+    """
+    Generate and save a mini player card image for a given player and season.
+
+    The player card includes a header section and a ranking section, and a branding section.
+    The card is saved as a PNG image in a directory specific to the season.
+
+    :param player_name: A str of the full name of the player (e.g. 'Auston Matthews')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param position: A str representing the player's position ('F', 'D', or 'G')
+    :param mode: A str determining the style of card ('light' or 'dark')
+    :param special_teams: An optional str ('PP' or 'PK') to show a special-teams focused card.
+                          'PP' shows 5v5 Offense + Power Play. 'PK' shows 5v5 Defense + Penalty Kill.
+                          Default is None (shows all four skater rank sections as normal).
+    :return: None
+    """
+
+    # Get the player's current season data
+    player_row = ch.get_player_single_season(player_name, season, position)
+
+    # Get the player's team
+    team = player_row['Team']
+
+    # Load fonts
+    heading_font = FONT_CACHE['heading_70']
+
+    # Get color variables
+    if mode == 'light':
+        background_color = constants.WHITE
+        text_color = constants.DARK
+        secondary_team_color = constants.SECONDARY_COLORS.get(team)
+    else:
+        background_color = constants.DARK
+        text_color = constants.WHITE
+        secondary_team_color = constants.WHITE
+    primary_team_color = constants.PRIMARY_COLORS.get(team)
+    header_text_color = constants.WHITE
+    header_shadow_color = constants.SECONDARY_COLORS.get(team)
+
+    # Create player card
+    card_width = 1000
+    card_height = 1100
+    mini_player_card = Image.new('RGB', (card_width, card_height), color=background_color)
+
+    draw = ImageDraw.Draw(mini_player_card)
+
+    # Get banner variables
+    header_name = player_name
+    for symbol, replacement in constants.SYMBOLS_TO_REPLACE.items():
+        header_name = header_name.replace(symbol, replacement)
+    season = player_row['Season']
+
+    # Get profile variables
+    player_id = player_row['Player ID']
+    position = player_row['Position']
+    
+    # Get team logo
+    with open(f'{DATA_DIR}/assets/team_logos/{team}_{mode}.svg', 'rb') as f:
+        svg_bytes = f.read()
+    team_logo = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg_bytes))).convert("RGBA")
+
+    # Calculate proportional height, resize and paste
+    logo_width = 600
+    w_percent = logo_width / team_logo.width
+    logo_height = int(team_logo.height * w_percent)
+    team_logo = team_logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+    mini_player_card.paste(team_logo, (-30, 100), team_logo)
+
+    # Get player image and paste
+    headshot_img = ch.get_player_headshot(season, team, player_id)
+    headshot_img = headshot_img.resize((400, 400))
+    mini_player_card.paste(headshot_img, (80, 100), headshot_img)
+
+    # Draw Overall rank component scaled and centred in the right section (x=500–1000, y=100–500).
+    # make_rank_component's native size is 300x240 (5:4) -- same ratio as this 500x400 budget, so
+    # 450x360 (90% scale) fits with a clean margin and no distortion.
+    overall_rank_name = 'ovr_rank'
+    overall_section = make_rank_component(player_row, overall_rank_name, mode)
+    overall_w, overall_h = 450, 360
+    overall_section = overall_section.resize((overall_w, overall_h), Image.Resampling.LANCZOS)
+    overall_x = 500 + (500 - overall_w) // 2   # centred in right half
+    overall_y = 100 + (400 - overall_h) // 2   # centred between banner and bottom bar
+    mini_player_card.paste(overall_section, (overall_x, overall_y))
+
+    # Draw banner
+    draw.polygon([(20, 20), (980, 20), (940, 100), (60, 100)], fill=primary_team_color)
+
+    # Draw name drop shadow then name text
+    draw.text(xy=(76, 28), text=header_name, font=heading_font, fill=header_shadow_color)
+    draw.text(xy=(80, 24), text=header_name, font=heading_font, fill=header_text_color)
+
+    # Draw bottom rectangle
+    draw.rectangle([(60, 500), (940, 540)], fill=primary_team_color)
+
+    # Every rank section below is pasted at ROW_SIZE (312x250, same 5:4 aspect ratio as
+    # make_rank_component's actual native size of 300x240) instead of native size, so two rows fit
+    # between the bottom rectangle (y=540) and the card's bottom border without distortion.
+    ROW_SIZE = (312, 250)
+    # Column x-positions center each column on the same x's the full card's columns are centered on.
+    LEFT_COL_X = 300 - ROW_SIZE[0] // 2
+    RIGHT_COL_X = 700 - ROW_SIZE[0] // 2
+    GOALIE_LEFT_COL_X = 200 - ROW_SIZE[0] // 2
+
+    def _paste_row(attribute_key, xy):
+        section = make_rank_component(player_row, attribute_key, mode)
+        section = section.resize(ROW_SIZE, Image.Resampling.LANCZOS)
+        mini_player_card.paste(section, xy)
+
+    # Second grid row sits ROW_SIZE[1] + a 30px gap below the first
+    ROW2_Y = 550 + ROW_SIZE[1] + 30
+
+    # For skater cards
+    if position != 'G':
+        if special_teams == 'PP':
+            # 5v5 Offense + Power Play side by side, vertically centred in ranking area
+            y_st = 540 + (card_height - 540 - ROW_SIZE[1]) // 2
+            _paste_row('evo_rank', (LEFT_COL_X, y_st))
+            _paste_row('ppl_rank', (RIGHT_COL_X, y_st))
+        elif special_teams == 'PK':
+            # 5v5 Defense + Penalty Kill side by side, vertically centred in ranking area
+            y_st = 540 + (card_height - 540 - ROW_SIZE[1]) // 2
+            _paste_row('evd_rank', (LEFT_COL_X, y_st))
+            _paste_row('pkl_rank', (RIGHT_COL_X, y_st))
+        else:
+            # Default: all four rankings in two rows
+            _paste_row('evo_rank', (LEFT_COL_X, 550))
+            _paste_row('evd_rank', (RIGHT_COL_X, 550))
+            _paste_row('ppl_rank', (LEFT_COL_X, ROW2_Y))
+            _paste_row('pkl_rank', (RIGHT_COL_X, ROW2_Y))
+
+    # For goalie cards
+    else:
+        # Overall rank centered on the same x the full card centers its Overall badge on
+        _paste_row('ovr_rank', (500 - ROW_SIZE[0] // 2, 550))
+        _paste_row('evs_rank', (GOALIE_LEFT_COL_X, ROW2_Y))
+        _paste_row('pkl_rank', (RIGHT_COL_X, ROW2_Y))
+
+    pos_file = constants.POSITION_FOLDERS[position]
+
+    mini_player_card = mini_player_card.convert('RGB')
+
+    # Draw mode-aware border
+    border_color = constants.WHITE if mode == 'dark' else constants.DARK
+    draw_border = ImageDraw.Draw(mini_player_card)
+    draw_border.rectangle([(0, 0), (card_width - 1, card_height - 1)], outline=border_color, width=8)
+
+    file_name = f"{season}_mini_{team}_{position}_{player_name.replace(' ', '_')}_{mode}.png"
+
+    if save:
+        data_io.save_card(mini_player_card, season, team, pos_file, file_name)
+        print(f'========== {team} {position} {player_name} ({mode}) mini card created for the {season} season! ==========')
+
+    return mini_player_card
+
+
+
+def make_lineup_card(team: str, season: str, players: dict, mode: str = 'light', save: bool = True) -> Image.Image:
+    """
+    Generate a lineup card for a team by arranging mini player cards on a single image.
+
+    Sections (top to bottom): forwards (4 lines × 3 cols), defensemen (3 pairs × 2 cols),
+    goalies (1 row × 2 cols), extras (1 row, centred), injured (1 row, centred).
+
+    :param team: A str of the team abbreviation (e.g. 'TOR')
+    :param season: A str representing the season ('YYYY-YYYY')
+    :param players: A dict mapping player names to a (position, slot) tuple, where position is 'F', 'D', or 'G'
+                    and slot is e.g. '1LW', '2LD', '1G', 'Extra', or 'Injured'
+                    e.g. {'Sidney Crosby': ('F', '1C'), 'Kris Letang': ('D', '1LD'),
+                          'Tristan Jarry': ('G', '1G'), 'Evgeni Malkin': ('F', 'Injured')}
+    :param mode: A str determining the style of card ('light' or 'dark')
+    :param save: A bool determining whether to save the card
+    :return: A PIL Image of the lineup card
+    """
+
+    # ── Layout constants ────────────────────────────────────────────────────────
+    card_w, card_h = 1000, 1200
+    padding     = 60   # left/right canvas margin
+    h_gap       = 40   # horizontal gap between cards
+    row_gap     = 30   # vertical gap between rows within a section
+    col_gap     = 200  # horizontal gap between forward column and defense/goalie column
+    def_gol_gap = 30   # vertical gap between defense rows and goalie row (same as row_gap)
+    big_gap     = 150  # gap before extras and between extras and injured
+    banner_h    = 160  # height reserved for top polygon banner
+    branding_h  = 120  # height reserved for bottom polygon branding
+
+    # Canonical slot order
+    FORWARD_SLOTS = ['1LW', '1C', '1RW', '2LW', '2C', '2RW', '3LW', '3C', '3RW', '4LW', '4C', '4RW']
+    DEFENSE_SLOTS = ['1LD', '1RD', '2LD', '2RD', '3LD', '3RD']
+    GOALIE_SLOTS  = ['1G', '2G']
+
+    # ── Group players by section ─────────────────────────────────────────────────
+    forwards = {}  # slot -> (name, position)
+    defense  = {}  # slot -> (name, position)
+    goalies  = {}  # slot -> (name, position)
+    extras   = []  # [(name, position)]
+    injured  = []  # [(name, position)]
+
+    for name, (position, slot) in players.items():
+        if slot == 'Extra':
+            extras.append((name, position))
+        elif slot == 'Injured':
+            injured.append((name, position))
+        elif position == 'F':
+            forwards[slot] = (name, position)
+        elif position == 'D':
+            defense[slot] = (name, position)
+        elif position == 'G':
+            goalies[slot] = (name, position)
+
+    # ── Generate mini cards ──────────────────────────────────────────────────────
+    def gen(name, position):
+        return make_mini_player_card(name, season, position, mode=mode, save=False)
+
+    fwd_cards  = {slot: gen(name, position) for slot, (name, position) in forwards.items()}
+    def_cards  = {slot: gen(name, position) for slot, (name, position) in defense.items()}
+    gol_cards  = {slot: gen(name, position) for slot, (name, position) in goalies.items()}
+    ext_cards  = [gen(name, position) for name, position in extras]
+    inj_cards  = [gen(name, position) for name, position in injured]
+
+    # ── Canvas dimensions ────────────────────────────────────────────────────────
+    # Layout: forwards (left) | defense + goalies + injured (right)
+    #         extras sit below the forwards on the left
+    left_w  = 3 * card_w + 2 * h_gap   # 3-column forward section
+    right_w = 2 * card_w + h_gap        # 2-column defense/goalie section
+    canvas_w = padding + left_w + col_gap + right_w + padding
+
+    fwd_h = 4 * card_h + 3 * row_gap
+    def_h = 3 * card_h + 2 * row_gap
+
+    left_content_h  = fwd_h + ((big_gap + card_h) if ext_cards  else 0)
+    right_content_h = def_h + def_gol_gap + card_h + ((big_gap + card_h) if inj_cards else 0)
+    content_h = max(left_content_h, right_content_h)
+
+    canvas_h = banner_h + content_h + big_gap + branding_h
+
+    # ── Colors ───────────────────────────────────────────────────────────────────
+    background_color  = constants.WHITE if mode == 'light' else constants.DARK
+    primary_color     = constants.PRIMARY_COLORS.get(team)
+    shadow_color      = constants.SECONDARY_COLORS.get(team)
+    header_text_color = constants.WHITE
+
+    # ── Create canvas ────────────────────────────────────────────────────────────
+    lineup_card = Image.new('RGB', (canvas_w, canvas_h), color=background_color)
+    draw = ImageDraw.Draw(lineup_card)
+
+    heading_font = FONT_CACHE['heading_70']
+
+    # ── Column x positions ───────────────────────────────────────────────────────
+    fwd_xs       = [padding + i * (card_w + h_gap) for i in range(3)]
+    right_x      = padding + left_w + col_gap   # x where right section starts
+    def_xs       = [right_x + i * (card_w + h_gap) for i in range(2)]
+    gol_xs       = def_xs  # goalies share the same 2-column x positions
+
+    y_content = banner_h  # top of content area (same for both sides)
+
+    # ── Paste forward cards (4 rows × 3 cols, left) ─────────────────────────────
+    for idx, slot in enumerate(FORWARD_SLOTS):
+        row, col = divmod(idx, 3)
+        if slot in fwd_cards:
+            lineup_card.paste(fwd_cards[slot], (fwd_xs[col], y_content + row * (card_h + row_gap)))
+
+    # ── Paste extra cards below forwards (1 row, left, centred) ─────────────────
+    if ext_cards:
+        y_ext = y_content + fwd_h + big_gap
+        ext_total_w = len(ext_cards) * card_w + (len(ext_cards) - 1) * h_gap
+        ext_x_start = padding + (left_w - ext_total_w) // 2
+        for i, card in enumerate(ext_cards):
+            lineup_card.paste(card, (ext_x_start + i * (card_w + h_gap), y_ext))
+
+    # ── Paste defense cards (3 rows × 2 cols, right) ────────────────────────────
+    for idx, slot in enumerate(DEFENSE_SLOTS):
+        row, col = divmod(idx, 2)
+        if slot in def_cards:
+            lineup_card.paste(def_cards[slot], (def_xs[col], y_content + row * (card_h + row_gap)))
+
+    # ── Paste goalie cards below defense (1 row × 2 cols, right) ────────────────
+    y_gol = y_content + def_h + def_gol_gap
+    for idx, slot in enumerate(GOALIE_SLOTS):
+        if slot in gol_cards:
+            lineup_card.paste(gol_cards[slot], (gol_xs[idx], y_gol))
+
+    # ── Paste injured cards below goalies (1 row, right, centred) ────────────────
+    if inj_cards:
+        y_inj = y_gol + card_h + big_gap
+        inj_total_w = len(inj_cards) * card_w + (len(inj_cards) - 1) * h_gap
+        inj_x_start = right_x + (right_w - inj_total_w) // 2
+        for i, card in enumerate(inj_cards):
+            lineup_card.paste(card, (inj_x_start + i * (card_w + h_gap), y_inj))
+
+    # ── Save and return ──────────────────────────────────────────────────────────
+    lineup_card = lineup_card.convert('RGB')
+    file_name = f"{season}_lineup_{team}_{mode}.png"
+    if save:
+        data_io.save_card(lineup_card, season, team, 'lineup', file_name)
+
+    print(f'========== {team} lineup card created for the {season} season! ==========')
+
+    return lineup_card
