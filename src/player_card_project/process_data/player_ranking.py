@@ -230,9 +230,8 @@ def make_player_rankings(season: str, position: str) -> None:
     attach_percentiles(rankings, score_columns)
 
     # Save rankings CSV file
-    pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_yearly_ranking.csv'
-    data_io.save_csv(rankings, 'processed_data', f'yearly_{pos_folder}', filename)
+    data_io.save_csv(rankings, 'processed_data', 'yearly_rankings', filename)
 
 
 def make_player_weighted_rankings(season: str, position: str) -> None:
@@ -374,6 +373,5 @@ def make_player_weighted_rankings(season: str, position: str) -> None:
     attach_percentiles(rankings_df, score_cols)
 
     # Save rankings CSV file
-    pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_weighted_ranking.csv'
-    data_io.save_csv(rankings_df, 'processed_data', f'weighted_{pos_folder}', filename)
+    data_io.save_csv(rankings_df, 'processed_data', 'weighted_rankings', filename)

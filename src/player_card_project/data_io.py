@@ -68,10 +68,8 @@ def load_rankings_csv(season: str, position: str, weighted: bool=True) -> pd.Dat
     else:
         ranking_str = 'yearly'
 
-    pos_folder = constants.POSITION_FOLDERS[position]
-
     file_name = f'{season}_{position}_{ranking_str}_ranking.csv'
-    file_path = os.path.join(DATA_DIR, 'player_card_data', 'processed_data', f'{ranking_str}_{pos_folder}', file_name)
+    file_path = os.path.join(DATA_DIR, 'player_card_data', 'processed_data', f'{ranking_str}_rankings', file_name)
 
     ranking_df = pd.read_csv(file_path)
     return ranking_df
