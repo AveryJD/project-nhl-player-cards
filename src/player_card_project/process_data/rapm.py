@@ -50,7 +50,7 @@ def goalie_id_set(season: str) -> set:
 @functools.lru_cache(maxsize=None)
 def build_season_stints(season: str) -> pd.DataFrame:
     """
-    Reconstruct every on-ice lineup stint for a season (a maximal time interval within one game/period where both teams' on-ice skaters are unchanged), with each team's goals scored during it. Memoized (functools.lru_cache) since this is the most expensive, most-often-independently-re-run computation in the pipeline; call build_season_stints.cache_clear() if shift data is ever re-scraped mid-process.
+    Reconstruct every on-ice lineup stint for a season (a maximal interval within one game/period where both teams' on-ice skaters are unchanged), with each team's goals scored during it. Memoized since this is the most expensive step in the pipeline -- call build_season_stints.cache_clear() if shift data is re-scraped mid-process.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :return: A DataFrame of reconstructed on-ice stints, one row per stint
@@ -217,7 +217,7 @@ def attach_xg_to_stints(stints_df: pd.DataFrame, season: str, bundle: dict = Non
         out['Team B xG'] = pd.Series(dtype=float)
     else:
         shots_df = data_io.load_shot_events_csv(season)
-        shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+        shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
 
         time_pattern = r'^\d{1,2}:\d{2}$'
         valid_time = shots_df['Time'].astype(str).str.match(time_pattern, na=False)
@@ -291,16 +291,20 @@ def attach_xg_to_stints(stints_df: pd.DataFrame, season: str, bundle: dict = Non
 
 def attach_score_state(stints_df: pd.DataFrame, season: str) -> pd.DataFrame:
     """
-    Attach each stint's score differential as of the moment it started (not counting a goal scored during the stint), capped at +/-constants.SCORE_STATE_CAP, as 'Team A Score State'/'Team B Score State'.
+    Attach each stint's score differential as of the moment it started, both as a raw signed value (capped at +/-constants.SCORE_STATE_CAP, kept for the Score×Zone interactions) and as six up/down dummy buckets per team (tied is the implicit reference). The buckets, not the raw value, feed the regression -- this avoids assuming the score-state effect is linear in the goal differential.
 
     :param stints_df: A season's stints DataFrame
     :param season: A str representing the season ('YYYY-YYYY')
-    :return: The stints DataFrame with 'Team A Score State'/'Team B Score State' columns added
+    :return: The stints DataFrame with 'Team A/B Score State' and the six 'Score Up/Down' bucket columns per team added
     """
+    bucket_suffixes = ['Score Up 1', 'Score Up 2', 'Score Up 3Plus', 'Score Down 1', 'Score Down 2', 'Score Down 3Plus']
     out = stints_df.copy()
     if out.empty:
         out['Team A Score State'] = pd.Series(dtype=int)
         out['Team B Score State'] = pd.Series(dtype=int)
+        for team in ('Team A', 'Team B'):
+            for suffix in bucket_suffixes:
+                out[f'{team} {suffix}'] = pd.Series(dtype=int)
     else:
         goals_df = data_io.load_goals_csv(season).copy()
 
@@ -333,27 +337,38 @@ def attach_score_state(stints_df: pd.DataFrame, season: str) -> pd.DataFrame:
                 team_a_state[idx] = team_a_goals - team_b_goals
                 team_b_state[idx] = team_b_goals - team_a_goals
 
-        out['Team A Score State'] = np.clip(team_a_state, -constants.SCORE_STATE_CAP, constants.SCORE_STATE_CAP)
-        out['Team B Score State'] = np.clip(team_b_state, -constants.SCORE_STATE_CAP, constants.SCORE_STATE_CAP)
+        team_a_state = np.clip(team_a_state, -constants.SCORE_STATE_CAP, constants.SCORE_STATE_CAP)
+        team_b_state = np.clip(team_b_state, -constants.SCORE_STATE_CAP, constants.SCORE_STATE_CAP)
+        out['Team A Score State'] = team_a_state
+        out['Team B Score State'] = team_b_state
+
+        for team, state in (('Team A', team_a_state), ('Team B', team_b_state)):
+            out[f'{team} Score Up 1'] = (state == 1).astype(int)
+            out[f'{team} Score Up 2'] = (state == 2).astype(int)
+            out[f'{team} Score Up 3Plus'] = (state >= 3).astype(int)
+            out[f'{team} Score Down 1'] = (state == -1).astype(int)
+            out[f'{team} Score Down 2'] = (state == -2).astype(int)
+            out[f'{team} Score Down 3Plus'] = (state <= -3).astype(int)
+
         out = out.drop(columns=['Abs Start'])
     return out
 
 
 def attach_pp_expiry(stints_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Flag stints beginning within constants.PP_EXPIRY_WINDOW_SECONDS of a same-ice PP/PK just ending, as 'Team A PP Expiry'/'Team B PP Expiry' (1/0).
+    Flag stints beginning within constants.PP_EXPIRY_WINDOW_SECONDS of a PP/PK just ending, split into the team that had the advantage ('PPx') versus the team that was shorthanded ('PKx') -- distinct effects, so exactly one is 1 per team-side, never both.
 
     :param stints_df: A season's stints DataFrame
-    :return: The stints DataFrame with 'Team A PP Expiry'/'Team B PP Expiry' columns added
+    :return: The stints DataFrame with 'Team A PPx'/'Team B PPx'/'Team A PKx'/'Team B PKx' columns added (1/0)
     """
+    cols = ['Team A PPx', 'Team B PPx', 'Team A PKx', 'Team B PKx']
     out = stints_df.copy()
     if out.empty:
-        out['Team A PP Expiry'] = pd.Series(dtype=int)
-        out['Team B PP Expiry'] = pd.Series(dtype=int)
+        for col in cols:
+            out[col] = pd.Series(dtype=int)
     else:
         out = out.reset_index(drop=True)
-        team_a_expiry = np.zeros(len(out), dtype=int)
-        team_b_expiry = np.zeros(len(out), dtype=int)
+        arrs = {col: np.zeros(len(out), dtype=int) for col in cols}
 
         for (game_id, period), period_df in out.groupby(['Game ID', 'Period']):
             period_df = period_df.sort_values('Start')
@@ -365,14 +380,19 @@ def attach_pp_expiry(stints_df: pd.DataFrame) -> pd.DataFrame:
                 cur_is_es = len(row['Team A Skaters']) == len(row['Team B Skaters'])
 
                 if was_special_teams and just_ended and cur_is_es:
-                    team_a_expiry[idx] = 1
-                    team_b_expiry[idx] = 1
+                    # Whichever side had more skaters in the preceding stint was the one on the power play
+                    if prev_a_n > prev_b_n:
+                        arrs['Team A PPx'][idx] = 1
+                        arrs['Team B PKx'][idx] = 1
+                    else:
+                        arrs['Team B PPx'][idx] = 1
+                        arrs['Team A PKx'][idx] = 1
 
                 prev_a_n, prev_b_n = len(row['Team A Skaters']), len(row['Team B Skaters'])
                 prev_end = row['End']
 
-        out['Team A PP Expiry'] = team_a_expiry
-        out['Team B PP Expiry'] = team_b_expiry
+        for col in cols:
+            out[col] = arrs[col]
     return out
 
 
@@ -576,7 +596,7 @@ def attach_back_to_back(stints_df: pd.DataFrame, season: str) -> pd.DataFrame:
 
 def attach_interaction_terms(stints_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Add score-state x zone-start and PP-expiry x home-ice interaction columns; must be called after every other attach_* function.
+    Add score-state x zone-start and PPx/PKx x home-ice interaction columns; must be called after every other attach_* function.
 
     :param stints_df: A season's stints DataFrame with every other attach_* overlay already applied
     :return: The stints DataFrame with interaction columns added
@@ -587,18 +607,21 @@ def attach_interaction_terms(stints_df: pd.DataFrame) -> pd.DataFrame:
         score_col = f'{team} Score State'
         zone_o_col = f'{team} Zone O'
         zone_d_col = f'{team} Zone D'
-        expiry_col = f'{team} PP Expiry'
+        ppx_col = f'{team} PPx'
+        pkx_col = f'{team} PKx'
         home_col = f'{team} Home'
 
         score = out.get(score_col, pd.Series(0, index=out.index))
         zone_o = out.get(zone_o_col, pd.Series(0, index=out.index))
         zone_d = out.get(zone_d_col, pd.Series(0, index=out.index))
-        expiry = out.get(expiry_col, pd.Series(0, index=out.index))
+        ppx = out.get(ppx_col, pd.Series(0, index=out.index))
+        pkx = out.get(pkx_col, pd.Series(0, index=out.index))
         home = out.get(home_col, pd.Series(0, index=out.index))
 
         out[f'{team} Score×Zone O'] = score * zone_o
         out[f'{team} Score×Zone D'] = score * zone_d
-        out[f'{team} Expiry×Home'] = expiry * home
+        out[f'{team} PPx×Home'] = ppx * home
+        out[f'{team} PKx×Home'] = pkx * home
 
     return out
 
@@ -660,14 +683,23 @@ def perspective_rows(stints_df: pd.DataFrame, focal_is_a: bool) -> pd.DataFrame:
         ('xG', 'xG For', None),
         ('Zone O', 'Off Zone Start O', None),
         ('Zone D', 'Off Zone Start D', None),
+        ('Zone N', 'Off Zone Start N', None),
         ('Score State', 'Off Score State', None),
-        ('PP Expiry', 'Off PP Expiry', None),
+        ('Score Up 1', 'Off Score Up 1', None),
+        ('Score Up 2', 'Off Score Up 2', None),
+        ('Score Up 3Plus', 'Off Score Up 3Plus', None),
+        ('Score Down 1', 'Off Score Down 1', None),
+        ('Score Down 2', 'Off Score Down 2', None),
+        ('Score Down 3Plus', 'Off Score Down 3Plus', None),
+        ('PPx', 'Off PPx', None),
+        ('PKx', 'Off PKx', None),
         ('PP Start OTF', 'Off PP Start OTF', None),
         ('Home', 'Off Home', None),
         ('B2B', 'Off B2B', 'Def B2B'),
         ('Score×Zone O', 'Off Score×Zone O', None),
         ('Score×Zone D', 'Off Score×Zone D', None),
-        ('Expiry×Home', 'Off Expiry×Home', 'Def Expiry×Home'),
+        ('PPx×Home', 'Off PPx×Home', 'Def PPx×Home'),
+        ('PKx×Home', 'Off PKx×Home', 'Def PKx×Home'),
     ]
 
     # Carry through any optional context columns present, re-keyed to the focal team's perspective
@@ -703,6 +735,37 @@ def expand_es_rows(stints_df: pd.DataFrame) -> pd.DataFrame:
         )
         es = stints_df[es_mask]
         result = pd.concat([perspective_rows(es, True), perspective_rows(es, False)], ignore_index=True)
+    return result
+
+
+def expand_es_pooled_rows(stints_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Expand stints into even-strength regression rows pooling 5v5, 4v4, and 3v3 together.
+
+    :param stints_df: A season's stints DataFrame
+    :return: A DataFrame of ROW_COLUMNS regression rows (plus 'State 4v4'/'State 3v3') for qualifying 5v5/4v4/3v3 stints, one per team-perspective (two rows per qualifying stint)
+    """
+    context_cols = ['State 4v4', 'State 3v3']
+    if stints_df.empty:
+        result = pd.DataFrame(columns=ROW_COLUMNS + context_cols)
+    else:
+        team_a_n = stints_df['Team A Skaters'].apply(len)
+        team_b_n = stints_df['Team B Skaters'].apply(len)
+        es_mask = (
+            (team_a_n == team_b_n) & team_a_n.isin([3, 4, 5])
+            & stints_df['Team A Goalie On'] & stints_df['Team B Goalie On']
+        )
+        es = stints_df[es_mask].copy()
+        es['State 4v4'] = (team_a_n[es_mask] == 4).astype(int)
+        es['State 3v3'] = (team_a_n[es_mask] == 3).astype(int)
+
+        a_rows = perspective_rows(es, True)
+        b_rows = perspective_rows(es, False)
+        # State dummies don't depend on perspective -- both teams share the same skater count
+        a_rows[context_cols] = es[context_cols]
+        b_rows[context_cols] = es[context_cols]
+
+        result = pd.concat([a_rows, b_rows], ignore_index=True)
     return result
 
 
@@ -818,7 +881,7 @@ def build_rapm_prior_accumulators(
     lookback: int = constants.PRIOR_LOOKBACK_SEASONS,
 ) -> dict:
     """
-    The TOI-weighted-sum/TOI-total accumulation step of build_rapm_prior, split out (doesn't depend on PRIOR_STABILIZATION_TOI) so a candidate stabilization value can be tested against one accumulation pass without re-walking the RAPM CSVs.
+    The TOI-weighted-sum/TOI-total accumulation step of build_rapm_prior, split out so a candidate stabilization value can be tested against one accumulation pass without re-walking the RAPM CSVs.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :param off_col: See build_rapm_prior
@@ -826,9 +889,7 @@ def build_rapm_prior_accumulators(
     :param situation_off: See build_rapm_prior
     :param situation_def: See build_rapm_prior
     :param lookback: See build_rapm_prior
-    :return: A dict {'off_weighted_sum': {Player ID: float}, 'off_weight_total': {Player ID: float},
-             'def_weighted_sum': {...}, 'def_weight_total': {...}}, where both weighted sums are already
-             in fit-space (def negated, matching build_rapm_prior's docstring)
+    :return: A dict of {'off_weighted_sum'/'off_weight_total'/'def_weighted_sum'/'def_weight_total': {Player ID: float}}, both weighted sums already in fit-space (def negated)
     """
     off_weighted_sum, off_weight_total = {}, {}
     def_weighted_sum, def_weight_total = {}, {}
@@ -872,8 +933,7 @@ def apply_prior_stabilization(accumulators: dict, off_stabilization: float, def_
     :param accumulators: A dict from build_rapm_prior_accumulators
     :param off_stabilization: Stabilization TOI (minutes) for the offense side
     :param def_stabilization: Stabilization TOI (minutes) for the defense side
-    :return: A dict {'off': {Player ID: prior float}, 'def': {Player ID: prior float}}, the same shape
-             as build_rapm_prior's return value
+    :return: A dict {'off'/'def': {Player ID: prior float}}, the same shape as build_rapm_prior's return value
     """
     off_prior = {
         pid: accumulators['off_weighted_sum'][pid] / (total + off_stabilization)
@@ -892,23 +952,15 @@ def build_rapm_prior(
     lookback: int = constants.PRIOR_LOOKBACK_SEASONS,
 ) -> dict:
     """
-    Build a TOI-credibility-weighted cross-season prior for one fit_rapm call's off_coef/def_coef; see this module's header docstring's cross-season prior section.
+    Build a TOI-credibility-weighted cross-season prior for one fit_rapm call's off_coef/def_coef.
 
     :param season: A str representing the season ('YYYY-YYYY')
-    :param off_col: The saved rapm_scores column matching this fit's off_coef ('evo_rapm' for the ES
-                     fit, 'ppl_rapm' for the PP/PK fit)
-    :param def_col: The saved rapm_scores column matching this fit's def_coef ('evd_rapm' or
-                     'pkl_rapm'). Both are sign-flipped relative to fit-space by
-                     rapm_scores_to_dataframe (saved_value = -def_coef), so this function negates them
-                     back to fit-space before weighting/returning
-    :param situation_off: The load_save.load_stats_csv situation ('5v5' or '5v4') whose TOI weights
-                           off_col's history (see war.total_toi_by_id)
-    :param situation_def: The load_save.load_stats_csv situation ('5v5' or '4v5') whose TOI weights
-                           def_col's history
-    :param lookback: How many prior seasons to pool (default constants.PRIOR_LOOKBACK_SEASONS)
-    :return: A dict {'off': {Player ID: prior float}, 'def': {Player ID: prior float}}, both in
-             fit-space (matching what fit_rapm's off_coef/def_coef mean), not the saved-CSV's
-             sign-flipped def convention
+    :param off_col: The saved rapm_scores column matching this fit's off_coef ('evo_rapm' or 'ppl_rapm')
+    :param def_col: The saved rapm_scores column matching this fit's def_coef ('evd_rapm' or 'pkl_rapm'); sign-flipped in the saved CSV, negated back to fit-space here
+    :param situation_off: The stats-CSV situation whose TOI weights off_col's history
+    :param situation_def: The stats-CSV situation whose TOI weights def_col's history
+    :param lookback: How many prior seasons to pool
+    :return: A dict {'off'/'def': {Player ID: prior float}}, both in fit-space (not the saved-CSV's sign-flipped def convention)
     """
     accumulators = build_rapm_prior_accumulators(season, off_col, def_col, situation_off, situation_def, lookback)
     prior = apply_prior_stabilization(
@@ -942,13 +994,8 @@ def build_design_matrix(rows_df: pd.DataFrame, context_cols: tuple = ()) -> tupl
     Build the sparse design matrix for a set of regression rows: one-hot offense/defense player indicators followed by dense context covariate columns if requested and present.
 
     :param rows_df: A DataFrame of expanded regression rows, optionally with dense context columns attached
-    :param context_cols: Names of dense context columns to append as extra design matrix columns.
-                          A requested column missing from rows_df is filled with 0.0 (a harmless,
-                          zero-variance column) rather than raising, so callers can pass the same
-                          context_cols regardless of which contextual overlays actually ran.
-    :return: A tuple (X, off_players, def_players), where X is a sparse CSR matrix with one column per
-             offense player, one per defense player, then one per context_cols entry (in that order);
-             off_players/def_players are the sorted lists giving each block's column order
+    :param context_cols: Names of dense context columns to append as extra design matrix columns
+    :return: A tuple (X, off_players, def_players) -- X is a sparse CSR matrix (offense cols, then defense cols, then context_cols); off_players/def_players give each block's column order
     """
 
     # Every distinct player seen in each role gets its own one-hot column, in sorted order
@@ -987,48 +1034,20 @@ def build_design_matrix(rows_df: pd.DataFrame, context_cols: tuple = ()) -> tupl
 def fit_rapm(
     rows_df: pd.DataFrame, response_col: str = 'Goals For', context_cols: tuple = (),
     n_splits: int = constants.RAPM_CV_SPLITS, alphas: np.ndarray = constants.ALPHA_GRID,
-    off_prior: dict = None, def_prior: dict = None, context_alpha: float = constants.CONTEXT_ALPHA_FIXED,
+    off_prior: dict = None, def_prior: dict = None, context_alpha: float = constants.CONTEXT_ALPHA,
 ) -> dict:
     """
-    Fit a ridge-regularized adjusted plus-minus model on expanded regression rows: each row's response rate/60 (response_col / stint duration, capped at constants.RATE_CAP) is regressed on offense/defense player indicators plus dense context covariates if given, weighted by stint duration, with alpha chosen by GroupKFold-by-Game-ID CV. Context columns get their own (lighter) fixed penalty via a column-scaling trick (see separate regularization note below). off_prior/def_prior shrink each player's coefficient toward their own cross-season prior instead of 0, via the standard ridge-with-offset identity; with no prior given this is bit-for-bit identical to plain ridge-to-zero.
+    Fit a ridge-regularized adjusted plus-minus model: response rate/60 regressed on offense/defense player indicators plus optional context covariates, weighted by stint duration, with alpha chosen via GroupKFold-by-Game-ID CV.
 
-    Separate regularization for context vs. player columns: player indicator columns (~600-800,
-    one-hot and highly collinear) need heavy regularization; context covariates (a handful of dense,
-    well-observed columns) need much lighter shrinkage. Implemented via a column-scaling trick:
-    context columns are scaled by sqrt(alpha_player / constants.CONTEXT_ALPHA_FIXED) before fitting, equivalent
-    to penalising them with constants.CONTEXT_ALPHA_FIXED while penalising player columns with alpha_player
-    (if b_c' = b_c * sqrt(alpha_c / alpha_p) and X_c' = X_c * sqrt(alpha_p / alpha_c), then
-    X_c @ b_c = X_c' @ b_c' and alpha_p * ||b_c'||^2 = alpha_c * ||b_c||^2). Context coefficients are
-    unscaled back after fitting; the scale is per-candidate-alpha in the CV loop so predictions stay
-    comparable across alphas.
-
-    :param rows_df: A DataFrame of expanded regression rows, one per team-perspective stint (see
-                     expand_es_rows/expand_pp_rows), plus response_col and (if used) context_cols
-    :param response_col: Which column to regress on, either 'Goals For' (default, always present) or
-                          'xG For' (present only if the stints_df this was expanded from went
-                          through attach_xg_to_stints/build_context_features first)
-    :param context_cols: Names of dense context columns to include; a column
-                          missing from rows_df is treated as all-zero rather than raising, see
-                          build_design_matrix
-    :param n_splits: Number of GroupKFold splits used for alpha selection
+    :param rows_df: Expanded regression rows (see expand_es_rows/expand_pp_rows) with response_col and any context_cols present
+    :param response_col: Column to regress on -- 'Goals For' or 'xG For'
+    :param context_cols: Dense context columns to include, if any; missing ones are treated as all-zero
+    :param n_splits: GroupKFold splits used for alpha selection
     :param alphas: Ridge alpha grid to search
-    :param off_prior: Optional {Player ID: prior coefficient} dict (see build_rapm_prior's 'off' key).
-                       A player missing from this dict is treated as a 0.0 prior, the same as
-                       before this existed. Context coefficients have no cross-season prior concept
-                       and are always shrunk toward 0 regardless of this argument.
-    :param def_prior: Optional {Player ID: prior coefficient} dict (see build_rapm_prior's 'def' key),
-                       in fit-space (not the sign-flipped saved-CSV convention)
-    :param context_alpha: The fixed ridge penalty for context covariates (default constants.CONTEXT_ALPHA_FIXED,
-                           see separate regularization note above). Exposed as a parameter so
-                           candidate values can be compared via this function's own cv_r2 without
-                           monkeypatching this module.
-    :return: A dict with keys 'off_coef'/'def_coef' (Player ID -> coefficient dicts), 'context_coef'
-             (context column name -> coefficient dict), 'intercept', 'alpha' (the chosen ridge
-             penalty), 'cv_r2' (its mean cross-validated weighted R^2), 'cv_r2_grid' (every searched
-             alpha's mean CV R^2, for the model report), 'n_rows', 'n_off_players', 'n_def_players',
-             'n_off_prior'/'n_def_prior' (how many players off_prior/def_prior actually supplied a
-             prior for, for the model report; 0 if no prior was given). All coefficient dicts are
-             empty if rows_df is empty.
+    :param off_prior: Optional {Player ID: prior} dict shrinking offense coefficients toward instead of 0
+    :param def_prior: Optional {Player ID: prior} dict for defense coefficients (fit-space, not sign-flipped)
+    :param context_alpha: Fixed ridge penalty for context covariates
+    :return: Dict with 'off_coef'/'def_coef'/'context_coef', 'intercept', 'alpha', 'cv_r2', 'cv_r2_grid', row/player counts, and prior-coverage counts; empty/zero if rows_df is empty
     """
 
     if rows_df.empty:
@@ -1165,20 +1184,18 @@ def compute_season_rapm(season: str) -> dict:
 
 def compute_season_rapm_xg(season: str, bundle: dict = None, lookback_seasons: int = constants.PRIOR_LOOKBACK_SEASONS) -> dict:
     """
-    The real pipeline: build a season's stints, attach xG and every contextual covariate, then fit both RAPM regressions on xG rate with context covariates and a cross-season prior (if lookback_seasons > 0). Falls back to goal rate for whichever fit has no 'xG For' column.
+    The real pipeline: build a season's stints, attach xG and every contextual covariate, then fit both RAPM regressions on xG rate with context and a cross-season prior (if lookback_seasons > 0); falls back to goal rate if 'xG For' is missing.
 
     :param season: A str representing the season ('YYYY-YYYY')
-    :param bundle: A trained xG model bundle (xg_model.load_xg_model()); loaded automatically if
-                    not given
-    :param lookback_seasons: How many prior seasons' saved RAPM scores feed the cross-season prior
-                              (default constants.PRIOR_LOOKBACK_SEASONS); 0 disables the prior entirely
-    :return: A dict with keys 'season', 'es' (fit_rapm output, plus 'response_col'), 'pp' (same),
-             'n_stints', 'n_es_rows', 'n_pp_rows'
+    :param bundle: A trained xG model bundle; loaded automatically if not given
+    :param lookback_seasons: How many prior seasons feed the cross-season prior; 0 disables it
+    :return: A dict with 'season', 'es'/'pp' (fit_rapm output, plus 'response_col'), 'n_stints', 'n_es_rows', 'n_pp_rows'
     """
     stints_df = build_season_stints(season)
     stints_df = build_context_features(stints_df, season, bundle=bundle)
 
-    es_rows = expand_es_rows(stints_df)
+    # Pools 5v5/4v4/3v3 together (see expand_es_pooled_rows), unlike compute_season_rapm's 5v5-only baseline
+    es_rows = expand_es_pooled_rows(stints_df)
     pp_rows = expand_pp_rows(stints_df)
 
     es_response = 'xG For' if 'xG For' in es_rows.columns and not es_rows.empty else 'Goals For'
@@ -1194,10 +1211,14 @@ def compute_season_rapm_xg(season: str, bundle: dict = None, lookback_seasons: i
 
     # The full set of dense context covariate columns compute_season_rapm_xg's fit includes alongside the sparse player indicators, kept fixed so the design matrix's layout is stable
     context_columns = (
-        'Off Zone Start O', 'Off Zone Start D', 'Off Score State', 'Off PP Expiry', 'Off Home',
+        'Off Zone Start O', 'Off Zone Start D', 'Off Zone Start N',
+        'Off Score Up 1', 'Off Score Up 2', 'Off Score Up 3Plus',
+        'Off Score Down 1', 'Off Score Down 2', 'Off Score Down 3Plus',
+        'Off PPx', 'Off PKx', 'Off Home',
         'Off B2B', 'Def B2B', 'Off PP Start OTF',
         'Off Score×Zone O', 'Off Score×Zone D',
-        'Off Expiry×Home', 'Def Expiry×Home',
+        'Off PPx×Home', 'Def PPx×Home', 'Off PKx×Home', 'Def PKx×Home',
+        'State 4v4', 'State 3v3',
     )
 
     es_fit = fit_rapm(
@@ -1260,7 +1281,7 @@ def make_and_save_rapm_scores(season: str) -> None:
 
 def make_and_save_rapm_scores_xg(season: str, bundle: dict = None, lookback_seasons: int = constants.PRIOR_LOOKBACK_SEASONS) -> None:
     """
-    The xG + contextual-covariates counterpart to make_and_save_rapm_scores, with the same output shape/location; meant to supersede the goals-only version once a season has shot-event/faceoff/schedule data scraped.
+    The xG + contextual-covariates counterpart to make_and_save_rapm_scores, same output shape/location; supersedes the goals-only version once a season has shot-event/faceoff/schedule data scraped.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :param bundle: An optional pre-loaded xG model bundle, passed through to compute_season_rapm_xg
