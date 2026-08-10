@@ -49,6 +49,22 @@ def toi_by_id(stats_df: pd.DataFrame, id_lookup: pd.Series) -> pd.Series:
     return work
 
 
+def gp_by_id(stats_df: pd.DataFrame, id_lookup: pd.Series) -> pd.Series:
+    """
+    Collapse a position/situation stats table into total games played per Player ID, used to prorate season-total WAR to a per-game rate.
+
+    :param stats_df: A position/situation stats DataFrame
+    :param id_lookup: A Series mapping Player name to Player ID
+    :return: A Series of total games played indexed by Player ID
+    """
+    work = stats_df[['Player', 'GP']].copy()
+    work['Player ID'] = work['Player'].map(id_lookup)
+    work = work.dropna(subset=['Player ID']).copy()
+    work['Player ID'] = work['Player ID'].astype(int)
+    work = work.groupby('Player ID')['GP'].sum()
+    return work
+
+
 def total_toi_by_id(season: str, situation: str) -> pd.Series:
     """
     Total TOI (minutes) for every skater in one situation this season, forwards and defensemen pooled together.
@@ -92,28 +108,6 @@ def goals_to_wins_factor(season: str) -> float:
 # REPLACEMENT LEVEL
 # ====================================================================================================
 
-def replacement_rate(toi_by_id: pd.Series, rapm_by_id: pd.Series, percentile: float = constants.REPLACEMENT_TOI_PERCENTILE) -> float:
-    """
-    The TOI-weighted average RAPM rate among the lowest-TOI players accounting for percentile of this pool's total ice time.
-
-    :param toi_by_id: A Series of TOI minutes indexed by Player ID
-    :param rapm_by_id: A Series of RAPM rates indexed by Player ID
-    :param percentile: The float share of the pool's total TOI defining the bottom bucket
-    :return: The float TOI-weighted average RAPM rate among the bottom bucket
-    """
-    pool = pd.DataFrame({'TOI': toi_by_id}).join(rapm_by_id.rename('Rate'), how='inner')
-    pool = pool[pool['TOI'] > 0].sort_values('TOI')
-
-    # Walk up from the lowest-TOI player until the cumulative TOI share crosses `percentile`
-    total_toi = pool['TOI'].sum()
-    cum_share = pool['TOI'].cumsum() / total_toi
-    cutoff_idx = max(1, int((cum_share <= percentile).sum()))
-    bottom = pool.iloc[:cutoff_idx]
-
-    rate = float((bottom['Rate'] * bottom['TOI']).sum() / bottom['TOI'].sum())
-    return rate
-
-
 def team_rank_replacement_rate(stats_df: pd.DataFrame, id_lookup: pd.Series, rapm_by_id: pd.Series, rank_threshold: int) -> float:
     """
     The TOI-weighted average RAPM rate among rows ranked below rank_threshold in TOI on their own team's roster.
@@ -140,16 +134,13 @@ def team_rank_replacement_rate(stats_df: pd.DataFrame, id_lookup: pd.Series, rap
     return rate
 
 
-def compute_replacement_levels(season: str, rapm_df: pd.DataFrame = None, method: str = 'team_rank', 
-                               percentile: float = constants.REPLACEMENT_TOI_PERCENTILE, rank_thresholds: dict = None) -> dict:
+def compute_replacement_levels(season: str, rapm_df: pd.DataFrame = None, rank_thresholds: dict = None) -> dict:
     """
-    Compute the replacement-level RAPM rate for every (component, position) pair this season.
+    Compute the replacement-level RAPM rate for every (component, position) pair this season, via the team-relative TOI rank method (see team_rank_replacement_rate).
 
     :param season: A str representing the season ('YYYY-YYYY')
     :param rapm_df: An optional pre-loaded RAPM scores DataFrame; loaded from disk if not given
-    :param method: The str replacement-level method to use, either 'team_rank' or 'percentile'
-    :param percentile: The float TOI percentile used by the 'percentile' method
-    :param rank_thresholds: An optional dict of {situation: {position: rank_threshold}} overrides for the 'team_rank' method
+    :param rank_thresholds: An optional dict of {situation: {position: rank_threshold}} overrides (default constants.TEAM_TOI_RANK_THRESHOLDS)
     :return: A dict of {component: {position: replacement_rate}}
     """
     if rapm_df is None:
@@ -179,17 +170,10 @@ def compute_replacement_levels(season: str, rapm_df: pd.DataFrame = None, method
 
         for position in ('F', 'D'):
             stats_df = data_io.load_stats_csv(season, position, situation)
-
-            threshold = rank_thresholds.get(situation, {}).get(position) if method == 'team_rank' else None
-
-            if method == 'team_rank' and threshold is not None:
-                levels[component][position] = team_rank_replacement_rate(
-                    stats_df, id_lookup_by_position[position], rapm_by_id, threshold,
-                )
-            else:
-                # 'percentile' method, or 'team_rank' requested but no threshold configured, so fall back to the league-wide percentile definition
-                toi_series = toi_by_id(stats_df, id_lookup_by_position[position])
-                levels[component][position] = replacement_rate(toi_series, rapm_by_id, percentile=percentile)
+            threshold = rank_thresholds[situation][position]
+            levels[component][position] = team_rank_replacement_rate(
+                stats_df, id_lookup_by_position[position], rapm_by_id, threshold,
+            )
 
     return levels
 
@@ -198,14 +182,13 @@ def compute_replacement_levels(season: str, rapm_df: pd.DataFrame = None, method
 # FINISHING IMPACT
 # ====================================================================================================
 
-def compute_finishing_impact(season: str, strength: str = None, shrinkage_k: float = 550.0) -> pd.Series:
+def compute_finishing_impact(season: str, strength: str = None) -> pd.Series:
     """
-    Season-total (actual goals - sum of predicted xG) for every player's own shots, shrunk toward zero by shot volume.
+    Season-total (actual goals - sum of predicted xG) for every player's own shots.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :param strength: An optional str strength situation to restrict shots to (e.g. '5v5')
-    :param shrinkage_k: The float shot-volume shrinkage constant applied to each player's raw finishing impact
-    :return: A Series of shrunk finishing impact (goals above expected) indexed by Player ID
+    :return: A Series of finishing impact (goals above expected) indexed by Player ID
     """
     bundle = xg.load_xg_model()
 
@@ -226,14 +209,9 @@ def compute_finishing_impact(season: str, strength: str = None, shrinkage_k: flo
     work['Shooter Player ID'] = work['Shooter Player ID'].astype(int)
 
     grouped = work.groupby('Shooter Player ID').agg(
-        Goals=('Goal', 'sum'), xG=('xG', 'sum'), n_shots=('Goal', 'count'),
+        Goals=('Goal', 'sum'), xG=('xG', 'sum'),
     )
-    raw = grouped['Goals'] - grouped['xG']
-
-    # Credibility weight: n_shots / (n_shots + k), so players with few shots are shrunk more toward zero
-    credibility = grouped['n_shots'] / (grouped['n_shots'] + shrinkage_k)
-
-    fin_impact = raw * credibility
+    fin_impact = grouped['Goals'] - grouped['xG']
     return fin_impact
 
 
@@ -241,9 +219,7 @@ def compute_finishing_impact(season: str, strength: str = None, shrinkage_k: flo
 # PER-COMPONENT AND SEASON-LEVEL WAR
 # ====================================================================================================
 
-def compute_penalty_impact(
-    season: str, g2w: float = None, penalty_values: dict = None,
-) -> dict:
+def compute_penalty_impact(season: str, g2w: float = None, penalty_values: dict = None) -> dict:
     """
     Penalty drawing/taking WAR component, split into three buckets by the committing player's own pre-penalty Strength.
 
@@ -271,20 +247,14 @@ def compute_penalty_impact(
         bucket_df = attributable[attributable['Strength'] == bucket]
 
         # Drawn penalties: credited to the player who drew the power play
-        drawn = (
-            bucket_df.dropna(subset=['Drew Player ID'])
-            .assign(**{'Drew Player ID': lambda x: x['Drew Player ID'].astype(int)})
-            .groupby('Drew Player ID')['Duration'].sum()
-            .rename('drawn_min')
-        )
+        drawn = bucket_df.dropna(subset=['Drew Player ID']).assign(
+            **{'Drew Player ID': lambda x: x['Drew Player ID'].astype(int)},
+        ).groupby('Drew Player ID')['Duration'].sum().rename('drawn_min')
 
         # Taken penalties: charged to the player who committed the infraction
-        taken = (
-            bucket_df.dropna(subset=['Penalty Player ID'])
-            .assign(**{'Penalty Player ID': lambda x: x['Penalty Player ID'].astype(int)})
-            .groupby('Penalty Player ID')['Duration'].sum()
-            .rename('taken_min')
-        )
+        taken = bucket_df.dropna(subset=['Penalty Player ID']).assign(
+            **{'Penalty Player ID': lambda x: x['Penalty Player ID'].astype(int)},
+        ).groupby('Penalty Player ID')['Duration'].sum().rename('taken_min')
 
         all_ids = drawn.index.union(taken.index)
         net_minutes = drawn.reindex(all_ids).fillna(0.0) - taken.reindex(all_ids).fillna(0.0)
@@ -308,7 +278,7 @@ def compute_component_war(
     :param rapm_df: An optional pre-loaded RAPM scores DataFrame; loaded from disk if not given
     :param replacement_levels: An optional pre-computed dict of {component: {position: replacement_rate}}; computed if not given
     :param g2w: An optional pre-computed goals-to-wins factor; computed if not given
-    :return: A Series of component WAR (wins) indexed by Player ID
+    :return: A Series of component WAR, prorated to a per-game rate, indexed by Player ID
     """
     if rapm_df is None:
         rapm_df = data_io.load_rapm_scores_csv(season)
@@ -328,6 +298,7 @@ def compute_component_war(
     id_lookup = build_player_id_lookup(season, position)
     stats_df = data_io.load_stats_csv(season, position, situation)
     toi_series = toi_by_id(stats_df, id_lookup)
+    games_played = gp_by_id(stats_df, id_lookup)
 
     component_replacement_rate = replacement_levels.get(component, {}).get(position, 0.0)
 
@@ -337,15 +308,19 @@ def compute_component_war(
     toi_hours = toi_series / 60.0
     xgar = (rate - component_replacement_rate) * toi_hours
     wars = xgar * g2w
+
+    # Prorate the season-total WAR to a per-game rate
+    games_played = games_played.reindex(wars.index).replace(0, np.nan)
+    wars = wars / games_played
     return wars
 
 
 def compute_skater_war(season: str) -> pd.DataFrame:
     """
-    Compute every skater's full WAR breakdown for a season: the four RAPM-derived components plus finishing and penalty impact.
+    Compute every skater's full WAR breakdown for a season, prorated to a per-game rate: the four RAPM-derived components plus finishing and penalty impact.
 
     :param season: A str representing the season ('YYYY-YYYY')
-    :return: A DataFrame of skater WAR components, one row per Player ID
+    :return: A DataFrame of skater WAR components (per-game rates), one row per Player ID
     """
     rapm_df = data_io.load_rapm_scores_csv(season)
     replacement_levels = compute_replacement_levels(season, rapm_df=rapm_df)
@@ -362,6 +337,7 @@ def compute_skater_war(season: str) -> pd.DataFrame:
     components = ('evo', 'evd', 'ppl', 'pkl')
 
     position_frames = []
+    gp_frames = []
     for position in ('F', 'D'):
         component_wars = {}
         toi_index = None
@@ -377,13 +353,26 @@ def compute_skater_war(season: str) -> pd.DataFrame:
         pos_df.insert(0, 'Position', position)
         position_frames.append(pos_df)
 
+        # This position's games played, used below to prorate finishing/penalty impact the same way
+        id_lookup = build_player_id_lookup(season, position)
+        all_stats_df = data_io.load_stats_csv(season, position, 'all')
+        gp_frames.append(gp_by_id(all_stats_df, id_lookup))
+
     combined = pd.concat(position_frames)
     # A player showing up in both position pools shouldn't normally happen, so keep the first-seen row
     combined = combined[~combined.index.duplicated(keep='first')]
 
+    games_played = pd.concat(gp_frames)
+    games_played = games_played[~games_played.index.duplicated(keep='first')]
+    gp_aligned = games_played.reindex(combined.index).replace(0, np.nan)
+
     for bucket in ('5v5', '5v4', '4v5'):
         combined[f'fin_war_{bucket}'] = fin_war_by_bucket[bucket].reindex(combined.index).fillna(0.0)
         combined[f'pen_war_{bucket}'] = pen_war_by_bucket[bucket].reindex(combined.index).fillna(0.0)
+
+        # Prorate finishing/penalty impact to a per-game rate, matching the four RAPM-derived components
+        combined[f'fin_war_{bucket}'] = combined[f'fin_war_{bucket}'] / gp_aligned
+        combined[f'pen_war_{bucket}'] = combined[f'pen_war_{bucket}'] / gp_aligned
 
     combined['fin_war'] = combined['fin_war_5v5'] + combined['fin_war_5v4'] + combined['fin_war_4v5']
     combined['pen_war'] = combined['pen_war_5v5'] + combined['pen_war_5v4'] + combined['pen_war_4v5']
@@ -408,7 +397,7 @@ def compute_skater_war(season: str) -> pd.DataFrame:
 
 def compute_goalie_war(season: str) -> pd.DataFrame:
     """
-    Compute goalie WAR for a season, using GSAx (Goals Saved Above Expected) as the per-60 rate metric in place of RAPM.
+    Compute goalie WAR for a season, using GSAx (Goals Saved Above Expected) as the per-60 rate metric in place of RAPM, then prorated to a per-game rate.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :return: A DataFrame of goalie WAR components, one row per Player ID
@@ -418,7 +407,7 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
     g2w = goals_to_wins_factor(season)
     id_lookup = build_player_id_lookup(season, 'G')
 
-    # Custom xG Against from shot events, keyed by (component, Player ID); falls back to NST xG Against if unavailable
+    # Custom xG Against from shot events, keyed by (component, Player ID); falls back to the stats CSV's own xG Against if unavailable
     custom_gsax = {}  # component -> pd.Series(GSAx, index=Player ID)
 
     shots_df = data_io.load_shot_events_csv(season)
@@ -452,7 +441,7 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
         toi_work['Player ID'] = toi_work['Player ID'].astype(int)
         agg_toi = toi_work.groupby('Player ID')['TOI'].sum()
 
-        # GSAx: prefer custom xG model; fall back to NST xG Against
+        # GSAx: prefer custom xG model; fall back to the stats CSV's own xG Against
         if component in custom_gsax:
             gsax = custom_gsax[component].reindex(agg_toi.index).fillna(0.0)
         else:
@@ -472,11 +461,18 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
             index=agg_toi.index,
         )
 
-        # Single-pool replacement level (no starter/backup split)
-        goalie_replacement_rate = replacement_rate(agg_toi, gsax_per60)
+        # Team-rank replacement level: every goalie ranked below the starter (by TOI) on their own team defines replacement level, matching the skater methodology
+        goalie_replacement_rate = team_rank_replacement_rate(
+            stats_df, id_lookup, gsax_per60, constants.GOALIE_TEAM_RANK_THRESHOLD,
+        )
 
         toi_hours = agg_toi / 60.0
         war = (gsax_per60 - goalie_replacement_rate) * toi_hours * g2w
+
+        # Prorate the season-total WAR to a per-game rate
+        games_played = gp_by_id(stats_df, id_lookup).reindex(war.index).replace(0, np.nan)
+        war = war / games_played
+
         war.name = f'{component}_war'
         war_series_list.append(war)
 
