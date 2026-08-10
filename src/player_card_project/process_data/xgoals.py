@@ -7,6 +7,7 @@ import functools
 import json
 import os
 import pickle
+import re
 import time
 import numpy as np
 import pandas as pd
@@ -33,6 +34,10 @@ NUMERICAL_FEATURES = [
     'Same Team As Prior Event', 'Lateral Movement', 'Score State', 'Off Wing',
 ]
 CATEGORICAL_FEATURES = ['Shot Type', 'Strength', 'Prior Event Type', 'Shooter Shoots', 'Goalie Catches']
+
+# The shot event types
+ALL_SHOT_EVENTS = ('goal', 'shot-on-goal', 'missed-shot', 'blocked-shot')
+UNBLOCKED_SHOT_EVENTS = ('goal', 'shot-on-goal', 'missed-shot')
 
 
 # ====================================================================================================
@@ -114,12 +119,9 @@ def engineer_features(shots_df: pd.DataFrame) -> pd.DataFrame:
     shot_speed = travel / elapsed_safe
     df['Shot Speed'] = np.where(has_prior, shot_speed.clip(upper=50.0), np.nan)
 
-    # Rebound/rush flags, from the prior event's type/timing/distance; the full set of shot-attempt event types the
-    # scraper collects, wider than constants.UNBLOCKED_EVENT_TYPES since a prior blocked shot still counts as a rebound trigger
-    all_shot_event_types = ('goal', 'shot-on-goal', 'missed-shot', 'blocked-shot')
     prior_type = df.get('Prior Event Type', pd.Series(index=df.index, dtype=object))
     df['Is Rebound'] = (
-        has_prior & prior_type.isin(all_shot_event_types) & (elapsed <= constants.REBOUND_WINDOW_SECONDS)
+        has_prior & prior_type.isin(ALL_SHOT_EVENTS) & (elapsed <= constants.REBOUND_WINDOW_SECONDS)
     ).astype(int)
     df['Is Rush'] = (
         has_prior & (elapsed <= constants.RUSH_WINDOW_SECONDS) & (travel >= constants.RUSH_DISTANCE_THRESHOLD)
@@ -345,7 +347,7 @@ def build_training_table(seasons: list) -> pd.DataFrame:
         if shots_df.empty:
             continue
 
-        shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+        shots_df = shots_df[shots_df['Event Type'].isin(UNBLOCKED_SHOT_EVENTS)].copy()
         if shots_df.empty:
             continue
 
@@ -651,19 +653,61 @@ def load_xg_model() -> dict:
     return model_bundle
 
 
+def nearest_trained_strength(strength: str, trained_strengths: set) -> str:
+    """
+    Map a raw Strength label to the closest strength state with its own trained xG model, for shots
+    in a strength state too rare to clear constants.STRENGTH_MIN_ROWS on its own.
+
+    :param strength: The raw str Strength label for one shot
+    :param trained_strengths: The set of str strength labels with their own trained model
+    :return: The str strength label to actually predict this shot with (a key in trained_strengths), or None if trained_strengths is empty
+    """
+    if not trained_strengths:
+        return None
+    if strength in trained_strengths:
+        return strength
+
+    match = re.match(r'^(\d+)v(\d+)', str(strength))
+    if not match:
+        return '5v5' if '5v5' in trained_strengths else next(iter(trained_strengths))
+
+    own = min(max(int(match.group(1)), 3), 5)
+    opp = min(max(int(match.group(2)), 3), 5)
+    own_diff = own - opp
+
+    best_strength, best_key = None, None
+    for candidate in trained_strengths:
+        cand_match = re.match(r'^(\d+)v(\d+)$', candidate)
+        if not cand_match:
+            continue
+        cand_own, cand_opp = int(cand_match.group(1)), int(cand_match.group(2))
+        key = (abs((cand_own - cand_opp) - own_diff), abs(cand_own - own) + abs(cand_opp - opp))
+        if best_key is None or key < best_key:
+            best_key, best_strength = key, candidate
+
+    if best_strength is None:
+        best_strength = '5v5' if '5v5' in trained_strengths else next(iter(trained_strengths))
+    return best_strength
+
+
 def predict_xg_by_strength(df: pd.DataFrame, bundle: dict) -> np.ndarray:
     """
-    Route each shot to its per-strength model; a shot with no matching model is left NaN.
+    Route each shot to its per-strength model, falling back to the nearest trained strength state (see nearest_trained_strength) for a shot whose exact strength has no dedicated model, so every shot gets a real prediction.
 
     :param df: A feature-engineered, strength-tagged shot-events DataFrame
     :param bundle: The xG model bundle, with a 'by_strength' dict of per-strength sub-bundles
-    :return: An array of predicted xG probabilities, one per row
+    :return: An array of predicted xG probabilities, one per row; NaN only if bundle has no trained strengths at all
     """
     result = np.full(len(df), np.nan)
+    trained_strengths = set(bundle['by_strength'].keys())
+    if not trained_strengths:
+        return result
 
-    # Score each strength state's rows with its own dedicated model
+    # Every shot's actual Strength is mapped once to the strength model it'll be scored with, so an untrained/rare state doesn't fall through to NaN
+    routed_strength = df['Strength'].map(lambda s: nearest_trained_strength(s, trained_strengths))
+
     for strength, sub_bundle in bundle['by_strength'].items():
-        mask = (df['Strength'] == strength).to_numpy()
+        mask = (routed_strength == strength).to_numpy()
         if not mask.any():
             continue
         sub = df[mask].copy()
@@ -716,7 +760,7 @@ def compute_player_xg(season: str, bundle: dict = None, stints_df: pd.DataFrame 
     """
     shots_df = data_io.load_shot_events_csv(season)
 
-    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+    shots_df = shots_df[shots_df['Event Type'].isin(UNBLOCKED_SHOT_EVENTS)].copy()
     shots_df = shots_df.dropna(subset=['Shooter Player ID'])
     if shots_df.empty:
         result = pd.DataFrame(columns=['ixG_all', 'ixG_5v5'])
