@@ -663,7 +663,7 @@ def compute_goalie_shot_stats(season: str, situation: str, stints_df: pd.DataFra
     shots_df = data_io.load_shot_events_csv(season)
 
     # Restrict to unblocked shot attempts against a known goalie
-    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
     shots_df = shots_df.dropna(subset=['Goalie Player ID']).copy()
     if shots_df.empty:
         result = pd.DataFrame(columns=cols)
@@ -767,7 +767,7 @@ def compute_goalie_game_gsax(season: str) -> pd.DataFrame:
 
     shots_df = data_io.load_shot_events_csv(season)
 
-    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
     shots_df = shots_df.dropna(subset=['Goalie Player ID']).copy()
     if shots_df.empty:
         result = pd.DataFrame(columns=cols)

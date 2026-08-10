@@ -35,9 +35,8 @@ NUMERICAL_FEATURES = [
 ]
 CATEGORICAL_FEATURES = ['Shot Type', 'Strength', 'Prior Event Type', 'Shooter Shoots', 'Goalie Catches']
 
-# The shot event types
+# The shot event types (unblocked subset lives in constants.UNBLOCKED_SHOT_EVENTS)
 ALL_SHOT_EVENTS = ('goal', 'shot-on-goal', 'missed-shot', 'blocked-shot')
-UNBLOCKED_SHOT_EVENTS = ('goal', 'shot-on-goal', 'missed-shot')
 
 
 # ====================================================================================================
@@ -347,7 +346,7 @@ def build_training_table(seasons: list) -> pd.DataFrame:
         if shots_df.empty:
             continue
 
-        shots_df = shots_df[shots_df['Event Type'].isin(UNBLOCKED_SHOT_EVENTS)].copy()
+        shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
         if shots_df.empty:
             continue
 
@@ -760,7 +759,7 @@ def compute_player_xg(season: str, bundle: dict = None, stints_df: pd.DataFrame 
     """
     shots_df = data_io.load_shot_events_csv(season)
 
-    shots_df = shots_df[shots_df['Event Type'].isin(UNBLOCKED_SHOT_EVENTS)].copy()
+    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
     shots_df = shots_df.dropna(subset=['Shooter Player ID'])
     if shots_df.empty:
         result = pd.DataFrame(columns=['ixG_all', 'ixG_5v5'])

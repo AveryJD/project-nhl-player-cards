@@ -97,6 +97,9 @@ SHOT_SCORE_STATE_CAP = 3
 # Minimum pooled-across-seasons row count for a strength state to get its own trained model; below this it falls through to the no-fallback NaN path
 STRENGTH_MIN_ROWS = 500
 
+# The subset of shot-attempt event types trusted enough to train on (blocked-shot excluded)
+UNBLOCKED_SHOT_EVENTS = ('goal', 'shot-on-goal', 'missed-shot')
+
 # Window after a shot for another shot to count as a rebound
 REBOUND_WINDOW_SECONDS = 3.0
 # Time threshold between prior event and potetntial rush chance

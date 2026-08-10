@@ -194,7 +194,7 @@ def compute_finishing_impact(season: str, strength: str = None) -> pd.Series:
 
     # Restrict to one strength state if requested, otherwise pool across every situation
     shots_df = data_io.load_shot_events_csv(season)
-    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
     shots_df = shots_df.dropna(subset=['Shooter Player ID'])
 
     if strength is not None:
@@ -411,7 +411,7 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
     custom_gsax = {}  # component -> pd.Series(GSAx, index=Player ID)
 
     shots_df = data_io.load_shot_events_csv(season)
-    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_EVENT_TYPES)].copy()
+    shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
     shots_df = shots_df.dropna(subset=['Goalie Player ID']).copy()
     shots_df['Goalie Player ID'] = shots_df['Goalie Player ID'].astype(int)
     shots_df = xg.attach_strength_state(shots_df, season)
