@@ -23,16 +23,16 @@ class SkaterScorer:
         self.war_by_player = self.build_war_lookup(position, season)
 
 
-    def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
+    def adjust_score(self, score: np.ndarray, games_played: np.ndarray) -> np.ndarray:
         """
-        Convert a raw score to a per-60-minute rate.
+        Convert a raw season total to a per-game rate.
 
         :param score: The score to be rate adjusted
-        :param toi: the time on ice
-        :return: An array of per-60 rates
+        :param games_played: The player's games played
+        :return: An array of per-game rates
         """
         adjusted_score = np.full_like(score, np.nan, dtype=float)
-        np.divide(score * 60, toi, out=adjusted_score, where=toi > 0)
+        np.divide(score, games_played, out=adjusted_score, where=games_played > 0)
         return adjusted_score
 
 
@@ -125,7 +125,7 @@ class SkaterScorer:
 
         :param df: A DataFrame containing the player's stats for the relevant situation
         :param stat_str: One of 'ixG', 'Goals', 'Assists', 'Physicality', 'PDO', or 'O-Zone Starts'
-        :param total: If True, return the raw season value instead of the per-60 rate
+        :param total: If True, return the raw season value instead of the per-game rate
         :return: An array of secondary scores
         """
         if stat_str == 'Assists':
@@ -142,7 +142,7 @@ class SkaterScorer:
         if total:
             final_score = score
         else:
-            final_score = self.adjust_score(score, df['TOI'].to_numpy())
+            final_score = self.adjust_score(score, df['GP'].to_numpy())
         return final_score
 
 
@@ -158,16 +158,16 @@ class GoalieScorer:
         self.game_gsax = self.buildgame_gsax_lookup(season)
 
 
-    def adjust_score(self, score: np.ndarray, toi: np.ndarray) -> np.ndarray:
+    def adjust_score(self, score: np.ndarray, games_played: np.ndarray) -> np.ndarray:
         """
-        Convert a raw score to a per-60-minute rate.
+        Convert a raw season total to a per-game rate.
 
         :param score: The score to be rate adjusted
-        :param toi: the time on ice
-        :return: An array of per-60 rates
+        :param games_played: The goalie's games played
+        :return: An array of per-game rates
         """
         adjusted = np.full_like(score, np.nan, dtype=float)
-        np.divide(score * 60, toi, out=adjusted, where=toi > 0)
+        np.divide(score, games_played, out=adjusted, where=games_played > 0)
         return adjusted
 
 
@@ -247,10 +247,10 @@ class GoalieScorer:
 
         :param df: A DataFrame containing the goalie's stats
         :param zone: One of 'HD', 'MD', 'LD'
-        :return: An array of per-60 zone GSAx scores; NaN for zero TOI
+        :return: An array of per-game zone GSAx scores; NaN for zero GP
         """
         score = df[f'{zone} xG Against'].to_numpy() - df[f'{zone} Goals Against'].to_numpy()
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        adjusted_score = self.adjust_score(score, df['GP'].to_numpy())
         return adjusted_score
 
 
@@ -297,25 +297,25 @@ class GoalieScorer:
         """
         Rebound danger allowed: negated 'Rebound xG Against'.
 
-        :param df: A DataFrame containing the goalie's stats (must have 'Rebound xG Against', 'TOI')
-        :return: An array of Rebound scores (-Rebound xG Against/60); NaN for zero TOI
+        :param df: A DataFrame containing the goalie's stats (must have 'Rebound xG Against', 'GP')
+        :return: An array of Rebound scores (-Rebound xG Against per game); NaN for zero GP
         """
         score = -df['Rebound xG Against'].to_numpy()
 
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        adjusted_score = self.adjust_score(score, df['GP'].to_numpy())
         return adjusted_score
 
 
     def team_d_score(self, df: pd.DataFrame) -> np.ndarray:
         """
-        Team Defense: negated 5v5 Team xG Against per 60 (shot quality allowed by the skaters).
+        Team Defense: negated 5v5 Team xG Against per game (shot quality allowed by the skaters).
 
         :param df: A DataFrame containing the goalie's 5v5 stats
         :return: An array of Team Defense scores
         """
         score = -df['xG Against'].to_numpy()
 
-        adjusted_score = self.adjust_score(score, df['TOI'].to_numpy())
+        adjusted_score = self.adjust_score(score, df['GP'].to_numpy())
         return adjusted_score
 
 
