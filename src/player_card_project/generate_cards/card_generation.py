@@ -90,11 +90,11 @@ def make_header_section(player_row: pd.Series, mode: str = 'light') -> Image:
         toi_seconds = int((toi_per_gp - toi_minutes) * 60)
         toi_formatted = f"{toi_minutes}:{toi_seconds:02d}"
         stat_line = f"{int(player_row['Goals'])}-{int(player_row['Total Assists'])}-{int(player_row['Goals'] + player_row['Total Assists'])}"
-        xgoals = format(player_row['ixG'], '.2f')
+        xgoals = str(player_row['ixG'])
         xgoals_for_percent = format((player_row['xGF%'] / 100), '.3f')
     else:
         record = f"{player_row['W']}-{player_row['L']}-{player_row['OT/SO']}"
-        save_percentage = format(float(player_row['SV%']), '.3f')
+        save_percentage = str(float(player_row['SV%']))
         gsax = format(player_row['xG Against'] - player_row['Goals Against'], '.2f')
 
     # Create header section card

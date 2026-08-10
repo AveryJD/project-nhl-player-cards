@@ -284,6 +284,16 @@ def make_card_data(season: str, position: str) -> None:
     # Sort based on player name
     card_info_df = card_info_df.sort_values('Player').reset_index(drop=True)
 
+    # Round key stat columns
+    two_decimal_cols = ['ixG', 'GF%', 'xGF%', 'TOI', 'GAA', 'xG Against']
+    three_decimal_cols = ['SV%']
+    for col in two_decimal_cols:
+        if col in card_info_df.columns:
+            card_info_df[col] = card_info_df[col].round(2)
+    for col in three_decimal_cols:
+        if col in card_info_df.columns:
+            card_info_df[col] = card_info_df[col].round(3)
+
     # Save CSV file
     pos_folder = constants.POSITION_FOLDERS[position]
     filename = f'{season}_{position}_card_data.csv'
