@@ -240,7 +240,7 @@ def make_rank_component(player_row: pd.Series, attribute_key: str, mode: str = '
     # Get percentile bar variables
     bar_x, bar_y = 210, 82
     bar_width, bar_height = 78, 150
-    border = 2
+    border = 3
 
     height = percentile * 1.5
 
