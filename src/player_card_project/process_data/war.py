@@ -184,11 +184,11 @@ def compute_replacement_levels(season: str, rapm_df: pd.DataFrame = None, rank_t
 
 def compute_finishing_impact(season: str, strength: str = None) -> pd.Series:
     """
-    Season-total (actual goals - sum of predicted xG) for every player's own shots.
+    Season-total (actual goals - sum of predicted xG) for every player's own shots, credibility-shrunk toward 0 by shot volume (n/(n+FINISHING_SHRINKAGE_K)) so a small sample of hot/cold shooting doesn't produce an inflated impact.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :param strength: An optional str strength situation to restrict shots to (e.g. '5v5')
-    :return: A Series of finishing impact (goals above expected) indexed by Player ID
+    :return: A Series of shrunk finishing impact (goals above expected) indexed by Player ID
     """
     bundle = xg.load_xg_model()
 
@@ -209,9 +209,11 @@ def compute_finishing_impact(season: str, strength: str = None) -> pd.Series:
     work['Shooter Player ID'] = work['Shooter Player ID'].astype(int)
 
     grouped = work.groupby('Shooter Player ID').agg(
-        Goals=('Goal', 'sum'), xG=('xG', 'sum'),
+        Goals=('Goal', 'sum'), xG=('xG', 'sum'), Shots=('Event Type', 'size'),
     )
-    fin_impact = grouped['Goals'] - grouped['xG']
+    raw_fin_impact = grouped['Goals'] - grouped['xG']
+    credibility = grouped['Shots'] / (grouped['Shots'] + constants.FINISHING_SHRINKAGE_K)
+    fin_impact = raw_fin_impact * credibility
     return fin_impact
 
 
@@ -221,12 +223,12 @@ def compute_finishing_impact(season: str, strength: str = None) -> pd.Series:
 
 def compute_penalty_impact(season: str, g2w: float = None, penalty_values: dict = None) -> dict:
     """
-    Penalty drawing/taking WAR component, split into three buckets by the committing player's own pre-penalty Strength.
+    Penalty drawing/taking WAR component, split into three buckets by the committing player's own pre-penalty Strength, credibility-shrunk toward 0 by penalty-event volume (n/(n+PENALTY_SHRINKAGE_K)) so a handful of drawn/taken penalties doesn't produce an inflated impact.
 
     :param season: A str representing the season ('YYYY-YYYY')
     :param g2w: An optional pre-computed goals-to-wins factor; computed if not given
     :param penalty_values: An optional dict of {strength_bucket: xG value per penalty minute} overrides
-    :return: A dict of {strength_bucket: Series of penalty WAR indexed by Player ID}
+    :return: A dict of {strength_bucket: Series of shrunk penalty WAR indexed by Player ID}
     """
     buckets = ('5v5', '5v4', '4v5')
 
@@ -247,20 +249,28 @@ def compute_penalty_impact(season: str, g2w: float = None, penalty_values: dict 
         bucket_df = attributable[attributable['Strength'] == bucket]
 
         # Drawn penalties: credited to the player who drew the power play
-        drawn = bucket_df.dropna(subset=['Drew Player ID']).assign(
+        drawn_group = bucket_df.dropna(subset=['Drew Player ID']).assign(
             **{'Drew Player ID': lambda x: x['Drew Player ID'].astype(int)},
-        ).groupby('Drew Player ID')['Duration'].sum().rename('drawn_min')
+        ).groupby('Drew Player ID')['Duration']
+        drawn = drawn_group.sum().rename('drawn_min')
+        drawn_n = drawn_group.size().rename('drawn_n')
 
         # Taken penalties: charged to the player who committed the infraction
-        taken = bucket_df.dropna(subset=['Penalty Player ID']).assign(
+        taken_group = bucket_df.dropna(subset=['Penalty Player ID']).assign(
             **{'Penalty Player ID': lambda x: x['Penalty Player ID'].astype(int)},
-        ).groupby('Penalty Player ID')['Duration'].sum().rename('taken_min')
+        ).groupby('Penalty Player ID')['Duration']
+        taken = taken_group.sum().rename('taken_min')
+        taken_n = taken_group.size().rename('taken_n')
 
         all_ids = drawn.index.union(taken.index)
         net_minutes = drawn.reindex(all_ids).fillna(0.0) - taken.reindex(all_ids).fillna(0.0)
         net_minutes.index.name = 'Player ID'
 
-        result[bucket] = net_minutes * penalty_values[bucket] * g2w
+        # Credibility is driven by event COUNT (how many independent penalties observed), not minutes
+        n_events = drawn_n.reindex(all_ids).fillna(0.0) + taken_n.reindex(all_ids).fillna(0.0)
+        credibility = n_events / (n_events + constants.PENALTY_SHRINKAGE_K)
+
+        result[bucket] = net_minutes * penalty_values[bucket] * g2w * credibility
 
     return result
 
@@ -407,8 +417,8 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
     g2w = goals_to_wins_factor(season)
     id_lookup = build_player_id_lookup(season, 'G')
 
-    # Custom xG Against from shot events, keyed by (component, Player ID); falls back to the stats CSV's own xG Against if unavailable
-    custom_gsax = {}  # component -> pd.Series(GSAx, index=Player ID)
+    # Custom xG Against from shot events, keyed by (component, Player ID); falls back to the stats CSV's own xG Against if unavailable. Already credibility-shrunk by shots-against volume (see the GSAx shrinkage note below).
+    custom_gsax = {}  # component -> pd.Series(shrunk GSAx, index=Player ID)
 
     shots_df = data_io.load_shot_events_csv(season)
     shots_df = shots_df[shots_df['Event Type'].isin(constants.UNBLOCKED_SHOT_EVENTS)].copy()
@@ -426,8 +436,12 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
             agg = subset.groupby('Goalie Player ID').agg(
                 xG_Against=('xG', 'sum'),
                 Goals_Against=('Goal', 'sum'),
+                Shots_Against=('Goal', 'size'),
             )
-            custom_gsax[component] = agg['xG_Against'] - agg['Goals_Against']
+            raw_gsax = agg['xG_Against'] - agg['Goals_Against']
+            # Credibility shrinkage toward 0 by shots-against volume (n/(n+GOALIE_GSAX_SHRINKAGE_K))
+            credibility = agg['Shots_Against'] / (agg['Shots_Against'] + constants.GOALIE_GSAX_SHRINKAGE_K)
+            custom_gsax[component] = raw_gsax * credibility
 
     war_series_list = []
 
@@ -445,15 +459,19 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
         if component in custom_gsax:
             gsax = custom_gsax[component].reindex(agg_toi.index).fillna(0.0)
         else:
-            fb_work = stats_df[['Player', 'xG Against', 'Goals Against']].copy()
+            fb_work = stats_df[['Player', 'xG Against', 'Goals Against', 'Shots Against']].copy()
             fb_work['Player ID'] = fb_work['Player'].map(id_lookup)
             fb_work = fb_work.dropna(subset=['Player ID']).copy()
             fb_work['Player ID'] = fb_work['Player ID'].astype(int)
             fb_agg = fb_work.groupby('Player ID').agg(
                 xG_Against=('xG Against', 'sum'),
                 Goals_Against=('Goals Against', 'sum'),
+                Shots_Against=('Shots Against', 'sum'),
             )
-            gsax = (fb_agg['xG_Against'] - fb_agg['Goals_Against']).reindex(agg_toi.index).fillna(0.0)
+            raw_gsax = fb_agg['xG_Against'] - fb_agg['Goals_Against']
+            # Same shots-against credibility shrinkage as the custom_gsax path above
+            fb_credibility = fb_agg['Shots_Against'] / (fb_agg['Shots_Against'] + constants.GOALIE_GSAX_SHRINKAGE_K)
+            gsax = (raw_gsax * fb_credibility).reindex(agg_toi.index).fillna(0.0)
 
         # GSAx/60 rate (positive = better than expected)
         gsax_per60 = pd.Series(
