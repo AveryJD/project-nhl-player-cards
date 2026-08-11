@@ -123,19 +123,19 @@ PRIOR_STABILIZATION_TOI = {
 # Ceiling on a single stint's implied goals/60 rate (hand picked)
 RATE_CAP = 50.0
 
-# Ridge penalty strengths searched via cross-validation in fit_rapm
+# Ridge penalty strengths searched via cross-validation in fit_rapm (hand picked)
 ALPHA_GRID = np.logspace(0.0, 4.5, 20)
 
-# PP/PK's own (wider, lower-floored) alpha grid
+# PP/PK's own (wider, lower-floored) alpha grid (hand picked)
 ALPHA_GRID_PP = np.logspace(-1.5, 4.5, 24)
 
-# Number of GroupKFold (grouped by Game ID) splits used to pick alpha
+# Number of GroupKFold (grouped by Game ID) splits used to pick alpha (hand picked)
 RAPM_CV_SPLITS = 5
 
-# A stint starting within this many seconds of a PP/PK ending on the same ice counts as PP expiry
+# A stint starting within this many seconds of a PP/PK ending on the same ice counts as PP expiry (hand picked)
 PP_EXPIRY_WINDOW_SECONDS = 20.0
 
-# Score-state differential is capped at +/- this value
+# Score-state differential is capped at +/- this value (hand picked)
 SCORE_STATE_CAP = 3
 
 # Ridge penalty for context covariates (found with fit_context_alpha.py)
@@ -151,6 +151,11 @@ PENALTY_XG_PER_MINUTE = {
     '5v4': 0.09624,
     '4v5': 0.24575
 }
+
+# Credibility-shrinkage stabilization constants (hand picked)
+FINISHING_SHRINKAGE_K = 100.0
+PENALTY_SHRINKAGE_K = 10.0
+GOALIE_GSAX_SHRINKAGE_K = 300.0
 
 # Team-relative TOI rank cutoff defining replacement level (hand picked)
 TEAM_TOI_RANK_THRESHOLDS = {
