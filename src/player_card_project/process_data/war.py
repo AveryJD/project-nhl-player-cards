@@ -278,7 +278,7 @@ def compute_penalty_impact(season: str, g2w: float = None, penalty_values: dict 
 def compute_component_war(
     season: str, position: str, component: str, rapm_df: pd.DataFrame = None,
     replacement_levels: dict = None, g2w: float = None,
-) -> pd.Series:
+) -> tuple:
     """
     One component's WAR (wins), indexed by Player ID, for one position's player pool this season.
 
@@ -288,7 +288,7 @@ def compute_component_war(
     :param rapm_df: An optional pre-loaded RAPM scores DataFrame; loaded from disk if not given
     :param replacement_levels: An optional pre-computed dict of {component: {position: replacement_rate}}; computed if not given
     :param g2w: An optional pre-computed goals-to-wins factor; computed if not given
-    :return: A Series of component WAR, prorated to a per-game rate, indexed by Player ID
+    :return: A (per_game, season_total) tuple of Series of component WAR, both indexed by Player ID
     """
     if rapm_df is None:
         rapm_df = data_io.load_rapm_scores_csv(season)
@@ -317,20 +317,21 @@ def compute_component_war(
 
     toi_hours = toi_series / 60.0
     xgar = (rate - component_replacement_rate) * toi_hours
-    wars = xgar * g2w
+    wars_total = xgar * g2w
 
-    # Prorate the season-total WAR to a per-game rate
-    games_played = games_played.reindex(wars.index).replace(0, np.nan)
-    wars = wars / games_played
-    return wars
+    # Prorate the season-total WAR to a per-game rate, keeping the season-total around too
+    games_played = games_played.reindex(wars_total.index).replace(0, np.nan)
+    wars_per_game = wars_total / games_played
+    return wars_per_game, wars_total
 
 
 def compute_skater_war(season: str) -> pd.DataFrame:
     """
-    Compute every skater's full WAR breakdown for a season, prorated to a per-game rate: the four RAPM-derived components plus finishing and penalty impact.
+    Compute every skater's full WAR breakdown for a season: the four RAPM-derived components plus finishing and penalty impact,
+    each saved as both a per-game rate and a season-total ('_total'-suffixed) value.
 
     :param season: A str representing the season ('YYYY-YYYY')
-    :return: A DataFrame of skater WAR components (per-game rates), one row per Player ID
+    :return: A DataFrame of skater WAR components (per-game rates plus their season-total counterparts), one row per Player ID
     """
     rapm_df = data_io.load_rapm_scores_csv(season)
     replacement_levels = compute_replacement_levels(season, rapm_df=rapm_df)
@@ -352,12 +353,13 @@ def compute_skater_war(season: str) -> pd.DataFrame:
         component_wars = {}
         toi_index = None
         for component in components:
-            war_series = compute_component_war(
+            war_per_game, war_total = compute_component_war(
                 season, position, component, rapm_df=rapm_df,
                 replacement_levels=replacement_levels, g2w=g2w,
             )
-            component_wars[f'{component}_war'] = war_series
-            toi_index = war_series.index if toi_index is None else toi_index.union(war_series.index)
+            component_wars[f'{component}_war'] = war_per_game
+            component_wars[f'{component}_war_total'] = war_total
+            toi_index = war_per_game.index if toi_index is None else toi_index.union(war_per_game.index)
 
         pos_df = pd.DataFrame(component_wars, index=toi_index).fillna(0.0)
         pos_df.insert(0, 'Position', position)
@@ -377,28 +379,43 @@ def compute_skater_war(season: str) -> pd.DataFrame:
     gp_aligned = games_played.reindex(combined.index).replace(0, np.nan)
 
     for bucket in ('5v5', '5v4', '4v5'):
-        combined[f'fin_war_{bucket}'] = fin_war_by_bucket[bucket].reindex(combined.index).fillna(0.0)
-        combined[f'pen_war_{bucket}'] = pen_war_by_bucket[bucket].reindex(combined.index).fillna(0.0)
+        combined[f'fin_war_{bucket}_total'] = fin_war_by_bucket[bucket].reindex(combined.index).fillna(0.0)
+        combined[f'pen_war_{bucket}_total'] = pen_war_by_bucket[bucket].reindex(combined.index).fillna(0.0)
 
-        # Prorate finishing/penalty impact to a per-game rate, matching the four RAPM-derived components
-        combined[f'fin_war_{bucket}'] = combined[f'fin_war_{bucket}'] / gp_aligned
-        combined[f'pen_war_{bucket}'] = combined[f'pen_war_{bucket}'] / gp_aligned
+        # Prorate finishing/penalty impact to a per-game rate, matching the four RAPM-derived components, keeping the season-total around too
+        combined[f'fin_war_{bucket}'] = combined[f'fin_war_{bucket}_total'] / gp_aligned
+        combined[f'pen_war_{bucket}'] = combined[f'pen_war_{bucket}_total'] / gp_aligned
 
     combined['fin_war'] = combined['fin_war_5v5'] + combined['fin_war_5v4'] + combined['fin_war_4v5']
     combined['pen_war'] = combined['pen_war_5v5'] + combined['pen_war_5v4'] + combined['pen_war_4v5']
+    combined['fin_war_total'] = (
+        combined['fin_war_5v5_total'] + combined['fin_war_5v4_total'] + combined['fin_war_4v5_total']
+    )
+    combined['pen_war_total'] = (
+        combined['pen_war_5v5_total'] + combined['pen_war_5v4_total'] + combined['pen_war_4v5_total']
+    )
+
     combined['tot_war'] = (
         combined['evo_war'] + combined['evd_war'] + combined['ppl_war'] + combined['pkl_war']
         + combined['fin_war'] + combined['pen_war']
+    )
+    combined['tot_war_total'] = (
+        combined['evo_war_total'] + combined['evd_war_total'] + combined['ppl_war_total'] + combined['pkl_war_total']
+        + combined['fin_war_total'] + combined['pen_war_total']
     )
 
     combined.index.name = 'Player ID'
     combined = combined.reset_index()
 
-    # Column order: identity, tot_war, the four RAPM components, then the two aggregates and their situational pieces
+    # Column order: identity, tot_war, the four RAPM components, then the two aggregates and their situational pieces --
+    # each per-game column immediately followed by its '_total' (season-total) counterpart
     ordered_cols = [
-        'Player ID', 'Position', 'tot_war', 'evo_war', 'evd_war', 'ppl_war', 'pkl_war',
-        'fin_war', 'pen_war', 'fin_war_5v5', 'fin_war_5v4', 'fin_war_4v5',
-        'pen_war_5v5', 'pen_war_5v4', 'pen_war_4v5',
+        'Player ID', 'Position',
+        'tot_war', 'tot_war_total',
+        'evo_war', 'evo_war_total', 'evd_war', 'evd_war_total', 'ppl_war', 'ppl_war_total', 'pkl_war', 'pkl_war_total',
+        'fin_war', 'fin_war_total', 'pen_war', 'pen_war_total',
+        'fin_war_5v5', 'fin_war_5v5_total', 'fin_war_5v4', 'fin_war_5v4_total', 'fin_war_4v5', 'fin_war_4v5_total',
+        'pen_war_5v5', 'pen_war_5v5_total', 'pen_war_5v4', 'pen_war_5v4_total', 'pen_war_4v5', 'pen_war_4v5_total',
     ]
 
     war_components = combined[ordered_cols]
@@ -407,10 +424,11 @@ def compute_skater_war(season: str) -> pd.DataFrame:
 
 def compute_goalie_war(season: str) -> pd.DataFrame:
     """
-    Compute goalie WAR for a season, using GSAx (Goals Saved Above Expected) as the per-60 rate metric in place of RAPM, then prorated to a per-game rate.
+    Compute goalie WAR for a season, using GSAx (Goals Saved Above Expected) as the per-60 rate metric in place of RAPM,
+    saved as both a per-game rate and a season-total ('_total'-suffixed) value.
 
     :param season: A str representing the season ('YYYY-YYYY')
-    :return: A DataFrame of goalie WAR components, one row per Player ID
+    :return: A DataFrame of goalie WAR components (per-game rates plus their season-total counterparts), one row per Player ID
     """
     bundle = xg.load_xg_model()
 
@@ -485,26 +503,31 @@ def compute_goalie_war(season: str) -> pd.DataFrame:
         )
 
         toi_hours = agg_toi / 60.0
-        war = (gsax_per60 - goalie_replacement_rate) * toi_hours * g2w
+        war_total = (gsax_per60 - goalie_replacement_rate) * toi_hours * g2w
 
-        # Prorate the season-total WAR to a per-game rate
-        games_played = gp_by_id(stats_df, id_lookup).reindex(war.index).replace(0, np.nan)
-        war = war / games_played
+        # Prorate the season-total WAR to a per-game rate, keeping the season-total around too
+        games_played = gp_by_id(stats_df, id_lookup).reindex(war_total.index).replace(0, np.nan)
+        war_per_game = war_total / games_played
 
-        war.name = f'{component}_war'
-        war_series_list.append(war)
+        war_per_game.name = f'{component}_war'
+        war_total.name = f'{component}_war_total'
+        war_series_list.append(war_per_game)
+        war_series_list.append(war_total)
 
     if not war_series_list:
-        war_components = pd.DataFrame(columns=['Player ID', 'evs_war', 'pkl_war', 'tot_war'])
+        war_components = pd.DataFrame(columns=[
+            'Player ID', 'evs_war', 'pkl_war', 'tot_war', 'evs_war_total', 'pkl_war_total', 'tot_war_total',
+        ])
     else:
         combined = pd.concat(war_series_list, axis=1).fillna(0.0)
         combined.index.name = 'Player ID'
 
-        for col in ['evs_war', 'pkl_war']:
+        for col in ['evs_war', 'pkl_war', 'evs_war_total', 'pkl_war_total']:
             if col not in combined.columns:
                 combined[col] = 0.0
 
         combined['tot_war'] = combined['evs_war'] + combined['pkl_war']
+        combined['tot_war_total'] = combined['evs_war_total'] + combined['pkl_war_total']
         war_components = combined.reset_index()
     return war_components
 
