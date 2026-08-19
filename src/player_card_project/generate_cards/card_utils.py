@@ -93,7 +93,7 @@ def plot_to_image(fig: plt.Figure) -> Image:
     """
 
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=500)
+    fig.savefig(buf, format="png", dpi=200)
     buf.seek(0)
     img = Image.open(buf)
 
