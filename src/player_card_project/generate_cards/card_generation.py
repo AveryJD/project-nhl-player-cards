@@ -292,11 +292,13 @@ def make_graph_section(player_row: pd.DataFrame, position: str, mode: str = 'lig
     # Get color variables
     if mode == 'light':
         background_color = constants.WHITE
+        text_color = constants.DARK
         graph_background_color = constants.GRAPH_WHITE
         graph_text_color = constants.GRAPH_DARK
 
     else:
         background_color = constants.DARK
+        text_color = constants.WHITE
         graph_background_color = constants.GRAPH_DARK
         graph_text_color = constants.GRAPH_WHITE
 
@@ -318,7 +320,7 @@ def make_graph_section(player_row: pd.DataFrame, position: str, mode: str = 'lig
 
      # Create the figure with correct size
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(graph_section_width / 200, (graph_section_height - 50) / 200), facecolor=graph_background_color, dpi=200)
+    fig, ax = plt.subplots(figsize=(graph_section_width / 200, (graph_section_height - 115) / 200), facecolor=graph_background_color, dpi=200)
 
     # Get a list of the five seasons to plot
     seasons = [player_row['Season']]
@@ -388,8 +390,17 @@ def make_graph_section(player_row: pd.DataFrame, position: str, mode: str = 'lig
 
     # Convert plot to image
     graph_img = ch.plot_to_image(fig)
-    graph_img = graph_img.resize((graph_section_width, graph_section_height - 50))
-    graph_section.paste(graph_img, (0, 0))
+    graph_img = graph_img.resize((graph_section_width, graph_section_height - 115))
+    graph_section.paste(graph_img, (0, 65))
+
+    # Load fonts
+    subheading_font = FONT_CACHE['heading_70']
+
+    # Create draw object
+    draw = ImageDraw.Draw(graph_section)
+
+    # Draw graph title text
+    ch.draw_centered_text(draw, text='WAR Percentile Per Season', font=subheading_font, y_position=20, x_center=graph_section_width // 2, fill=text_color)
 
     # Add player team image per season
     logo_x = 150
